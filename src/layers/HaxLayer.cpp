@@ -54,6 +54,9 @@ bool HaxLayer::init(bool fromRope) {
     addCheckbox(0, 1, "Unlock Icons", hax.iconHack, menu_selector(HaxLayer::onIconHack),                        buttonMenu, this);
     addCheckbox(0, 2, "Text Length Bypass", hax.textLengthBypass, menu_selector(HaxLayer::onTextLengthBypass),  buttonMenu, this);
     addCheckbox(0, 3, "Character Filter Bypass", hax.charFilterBypass, menu_selector(HaxLayer::onFilterBypass), buttonMenu, this);
+    addCheckbox(0, 4, "Swear Filter Bypass", hax.swearBypass, menu_selector(HaxLayer::onSwearBypass),           buttonMenu, this);
+    addCheckbox(0, 5, "Slider Bypass", hax.sliderBypass, menu_selector(HaxLayer::onSliderBypass),               buttonMenu, this);
+    addCheckbox(0, 6, "Instant Complete", hax.instantComplete, menu_selector(HaxLayer::onInstantComplete),      buttonMenu, this);
 
     return true;
 }
@@ -67,13 +70,13 @@ void HaxLayer::addCheckbox(float xIdx, float yIdx, const char* text, bool toggle
 
     auto checkbox = CCMenuItemToggler::create(toggleOn, toggleOff, target, callback);
     checkbox->toggle(!toggle);
-    checkbox->setPosition(ccp(45 + xIdx * 100, winSize.height / 2 - 55 - (yIdx * 25)));
+    checkbox->setPosition(ccp(45 + xIdx * 100, winSize.height / 2 - 55 - (yIdx * 23)));
     checkbox->setScale(0.6f);
     menu->addChild(checkbox, 2);
 
     auto label = CCLabelBMFont::create(text, "bigFont.fnt");
     label->setAnchorPoint({0.f, 0.5f});
-    label->setPosition(ccp(87 + xIdx * 100, winSize.height - 55 - (yIdx * 25)));
+    label->setPosition(ccp(87 + xIdx * 100, winSize.height - 55 - (yIdx * 23)));
     label->setScale(0.4f);
     addChild(label, 3);
 }
@@ -104,5 +107,20 @@ void HaxLayer::onTextLengthBypass(CCObject*) {
 void HaxLayer::onFilterBypass(CCObject*) {
     HaxManager& hax = HaxManager::sharedState();
     hax.charFilterBypass = !hax.charFilterBypass;
+}
+
+void HaxLayer::onSwearBypass(CCObject*) {
+    HaxManager& hax = HaxManager::sharedState();
+    hax.swearBypass = !hax.swearBypass;
+}
+
+void HaxLayer::onSliderBypass(CCObject*) {
+    HaxManager& hax = HaxManager::sharedState();
+    hax.sliderBypass = !hax.sliderBypass;
+}
+
+void HaxLayer::onInstantComplete(CCObject*) {
+    HaxManager& hax = HaxManager::sharedState();
+    hax.instantComplete = !hax.instantComplete;
 }
 // 

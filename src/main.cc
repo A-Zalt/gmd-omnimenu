@@ -4,24 +4,26 @@
 #include "../layers/HaxLayer.hpp"
 #include "HaxManager.hpp"
 #include "CCTextInputNode.hpp"
+#include "SliderTouchLogic.hpp"
+#include "PlayLayer.hpp"
 
 void (*TRAM_PlayLayer_destroyPlayer)(void* self);
 void PlayLayer_destroyPlayer(void* self) {
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.noClip) return;
+    if (hax.noClip || hax.instantComplete) return;
     TRAM_PlayLayer_destroyPlayer(self);
 }
 bool (*TRAM_GameManager_isColorUnlocked)(void* self, int idx, bool secondary);
 bool GameManager_isColorUnlocked(void* self, int idx, bool secondary) {
     HaxManager& hax = HaxManager::sharedState();
     if (hax.iconHack) return true;
-    TRAM_GameManager_isColorUnlocked(self, idx, secondary);
+    else return TRAM_GameManager_isColorUnlocked(self, idx, secondary);
 }
 bool (*TRAM_GameManager_isIconUnlocked)(void* self, int idx);
 bool GameManager_isIconUnlocked(void* self, int idx) {
     HaxManager& hax = HaxManager::sharedState();
     if (hax.iconHack) return true;
-    TRAM_GameManager_isIconUnlocked(self, idx);
+    else return TRAM_GameManager_isIconUnlocked(self, idx);
 }
 void MenuLayer_onMoreGames(void* self) {
     CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(0.5f, HaxLayer::scene(false)));
@@ -40,6 +42,48 @@ void CCTextInputNode_updateLabel(CCTextInputNode* self, char* text) {
     }
     TRAM_CCTextInputNode_updateLabel(self, text);
 }
+void (*TRAM_CCTextInputNode_setProfanityFilter)(CCTextInputNode* self, bool profanityFilter);
+void CCTextInputNode_setProfanityFilter(CCTextInputNode* self, bool profanityFilter) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.swearBypass) return;
+    TRAM_CCTextInputNode_setProfanityFilter(self, profanityFilter);
+}
+void (*TRAM_SliderTouchLogic_ccTouchMoved)(SliderTouchLogic* self, CCTouch* touch, CCEvent* event);
+void SliderTouchLogic_ccTouchMoved(SliderTouchLogic* self, CCTouch* touch, CCEvent* event) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.sliderBypass) {
+        auto touchPos = reinterpret_cast<CCNode*>(self)->convertTouchToNodeSpace(touch);
+        auto touchOffset = self->m_position;
+        auto position = ccp(touchPos.x - touchOffset.x, touchPos.y - touchOffset.y);
+
+        auto thumb = reinterpret_cast<CCNode*>(self->getThumb());
+
+        auto clamped = position.x;
+        thumb->setPosition(ccp(clamped, 0.f));
+
+        // if (self->getLiveDragging())
+        //     thumb->activate();
+
+        Slider* slider = self->getSliderDelegate();
+        if (slider != nullptr) {
+            slider->updateBar();
+        }
+        // if (Slider* slider = self->getSliderDelegate())
+        //     slider->updateBar();
+    } else TRAM_SliderTouchLogic_ccTouchMoved(self, touch, event);
+}
+void (*TRAM_PlayLayer_resetLevel)(PlayLayer* self);
+void PlayLayer_resetLevel(PlayLayer* self) {
+    HaxManager& hax = HaxManager::sharedState();
+    TRAM_PlayLayer_resetLevel(self);
+    if (hax.instantComplete) self->levelComplete();
+}
+// void (*TRAM_PlayerObject_update)(PlayerObject* self, float dt);
+// void PlayerObject_update(PlayerObject* self, float dt) {
+//     HaxManager& hax = HaxManager::sharedState();
+//     if (hax.instantComplete) return;
+//     TRAM_PlayerObject_update(self, dt);
+// }
 
 [[gnu::constructor]]
 int main() {
@@ -75,4 +119,24 @@ int main() {
         reinterpret_cast<void*>(CCTextInputNode_updateLabel),
         reinterpret_cast<void**>(&TRAM_CCTextInputNode_updateLabel)
     );
+    DobbyHook(
+        dlsym(handle, "_ZN15CCTextInputNode18setProfanityFilterEb"),
+        reinterpret_cast<void*>(CCTextInputNode_setProfanityFilter),
+        reinterpret_cast<void**>(&TRAM_CCTextInputNode_setProfanityFilter)
+    );
+    DobbyHook(
+        dlsym(handle, "_ZThn296_N16SliderTouchLogic12ccTouchMovedEPN7cocos2d7CCTouchEPNS0_7CCEventE"),
+        reinterpret_cast<void*>(SliderTouchLogic_ccTouchMoved),
+        reinterpret_cast<void**>(&TRAM_SliderTouchLogic_ccTouchMoved)
+    );
+    DobbyHook(
+        dlsym(handle, "_ZN9PlayLayer10resetLevelEv"),
+        reinterpret_cast<void*>(PlayLayer_resetLevel),
+        reinterpret_cast<void**>(&TRAM_PlayLayer_resetLevel)
+    );
+    // DobbyHook(
+    //     dlsym(handle, "_ZN12PlayerObject6updateEf"),
+    //     reinterpret_cast<void*>(PlayerObject_update),
+    //     reinterpret_cast<void**>(&TRAM_PlayerObject_update)
+    // );
 }

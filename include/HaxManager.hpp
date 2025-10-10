@@ -11,6 +11,9 @@ public:
     bool iconHack;
     bool textLengthBypass;
     bool charFilterBypass;
+    bool swearBypass;
+    bool sliderBypass;
+    bool instantComplete;
 
 private:
     HaxManager() {
@@ -18,6 +21,9 @@ private:
         iconHack = false;
         textLengthBypass = false;
         charFilterBypass = false;
+        swearBypass = false;
+        sliderBypass = false;
+        instantComplete = false;
     }
 
     HaxManager(const HaxManager&) = delete;

@@ -19,6 +19,9 @@ protected:
     void onIconHack(CCObject*);
     void onTextLengthBypass(CCObject*);
     void onFilterBypass(CCObject*);
+    void onSwearBypass(CCObject*);
+    void onSliderBypass(CCObject*);
+    void onInstantComplete(CCObject*);
 
     cocos2d::CCSprite* m_background = nullptr;
     bool m_fromRope = false;
