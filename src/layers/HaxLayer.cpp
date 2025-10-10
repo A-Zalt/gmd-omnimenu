@@ -52,12 +52,7 @@ void HaxLayer::keyBackClicked() {
 }
 
 void HaxLayer::onClose(CCObject*) {
-    this->retain();
-    this->removeFromParentAndCleanup(false);
-
     CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(0.5f, MenuLayer::scene()));
-
-    this->release();
 }
 
 // 
