@@ -2,6 +2,8 @@
 #include "CCMenuItemSpriteExtra.hpp"
 #include "MenuLayer.hpp"
 
+using namespace cocos2d;
+
 HaxLayer* HaxLayer::create(bool fromRope) {
     auto ret = new HaxLayer();
     if (ret->init(fromRope)) {
@@ -12,31 +14,35 @@ HaxLayer* HaxLayer::create(bool fromRope) {
     return nullptr;
 };
 
-cocos2d::CCScene* HaxLayer::scene(bool fromRope) {
+CCScene* HaxLayer::scene(bool fromRope) {
     auto layer = HaxLayer::create(fromRope);
-    auto scene = cocos2d::CCScene::create();
+    auto scene = CCScene::create();
     scene->addChild(layer);
     return scene;
 }
 
 bool HaxLayer::init(bool fromRope) {
-    if(!cocos2d::CCLayer::init())
+    if(!CCLayer::init())
         return false;
 
-    // auto director = cocos2d::CCDirector::sharedDirector();
-    // auto winSize = director->getWinSize();
+    auto director = CCDirector::sharedDirector();
+    auto winSize = director->getWinSize();
 
-    // m_background = cocos2d::CCSprite::create("menubackground.png");
+    m_background = CCSprite::create("menubackground.png");
     // m_background->setAnchorPoint({ 0.f, 0.f });
-    // m_background->setColor({66, 39, 133});
-    // addChild(m_background, -2);
+    m_background->setColor({66, 39, 133});
+    m_background->setPosition(ccp(winSize.width / 2, winSize.height / 2));
+    addChild(m_background, -2);
 
-    // CCSprite* backSpr = cocos2d::CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
-    // CCMenuItemSpriteExtra* backBtn = CCMenuItemSpriteExtra::create(backSpr, backSpr, this, menu_selector(HaxLayer::onClose));
+    CCMenu* backMenu = CCMenu::create();
 
-    // backBtn->setPosition(ccp(-winSize.width / 2 + 23.f, winSize.height / 2 - 25.f));
+    CCSprite* backSpr = CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
+    CCMenuItemSpriteExtra* backBtn = CCMenuItemSpriteExtra::create(backSpr, backSpr, this, menu_selector(HaxLayer::onClose));
 
-    // addChild(backBtn);
+    backMenu->addChild(backBtn);
+    backMenu->setPosition(ccp(25.f, winSize.height - 25.f));
+
+    addChild(backMenu, 1);
 
     return true;
 }
@@ -45,11 +51,11 @@ void HaxLayer::keyBackClicked() {
     HaxLayer::onClose(nullptr);
 }
 
-void HaxLayer::onClose(cocos2d::CCObject*) {
+void HaxLayer::onClose(CCObject*) {
     this->retain();
     this->removeFromParentAndCleanup(false);
 
-    cocos2d::CCDirector::sharedDirector()->replaceScene(cocos2d::CCTransitionFadeTR::create(0.5f, MenuLayer::scene()));
+    CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(0.5f, MenuLayer::scene()));
 
     this->release();
 }
