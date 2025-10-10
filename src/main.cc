@@ -1,37 +1,50 @@
-#include <cmath>    // std::fabs
-#include <cstdint>  // std::uintptr_t
 #include <dlfcn.h>  // dlsym, RTLD_NOW
 #include <dobby.h>  // DobbyHook
-#include <utility>  // std::swap
+#include "FLAlertLayer.hpp"
+#include "../layers/HaxLayer.hpp"
 
-namespace mem {
-template <typename T>
-T& field_from_offset(void* base, std::uintptr_t offset) {
-    return *reinterpret_cast<T*>(reinterpret_cast<std::uintptr_t>(base) + offset);
+bool noclip = false;
+bool iconHack = false;
+
+void (*TRAM_PlayLayer_destroyPlayer)(void* self);
+void PlayLayer_destroyPlayer(void* self) {
+    if (noclip) return;
+    TRAM_PlayLayer_destroyPlayer(self);
 }
-} // namespace mem
-
-struct CCSize {
-    char inherited[0x18];
-    float width, height;
-};
-
-struct CCRect {
-    char inherited[0x18];
-    char origin[0x20];
-    CCSize size;
-};
-
-const CCRect (*TRAM_GameObject_getObjectRect)(void* self, float scaleX, float scaleY);
-const CCRect GameObject_getObjectRect(void* self, float scaleX, float scaleY) {
-    CCRect objectRect = TRAM_GameObject_getObjectRect(self, scaleX, scaleY);
-    float rotation = std::fabs(mem::field_from_offset<float>(self, 0x20));
-
-    if (rotation == 90.0f || rotation == 270.0f) {
-        std::swap(objectRect.size.width, objectRect.size.height);
-    }
-
-    return objectRect;
+bool (*TRAM_GameManager_isColorUnlocked)(void* self, int idx, bool secondary);
+bool GameManager_isColorUnlocked(void* self, int idx, bool secondary) {
+    if (iconHack) return true;
+    TRAM_GameManager_isColorUnlocked(self, idx, secondary);
+}
+bool (*TRAM_GameManager_isIconUnlocked)(void* self, int idx);
+bool GameManager_isIconUnlocked(void* self, int idx) {
+    if (iconHack) return true;
+    TRAM_GameManager_isIconUnlocked(self, idx);
+}
+void MenuLayer_onMoreGames(void* self) {
+    // auto layer = FLAlertLayer::create(
+    //     nullptr,
+    //     "Test",
+    //     "Noclip toggled",
+    //     "Ok",
+    //     nullptr,
+    //     300.f
+    // );
+    // layer->show();
+    // noclip = !noclip;
+    CCDirector::sharedDirector()->replaceScene(CCTransitionMoveInT::create(0.5f, HaxLayer::scene(false)));
+}
+void MenuLayer_onRobTop(void* self) {
+    auto layer = FLAlertLayer::create(
+        nullptr,
+        "Test",
+        "Icon hack toggled",
+        "Ok",
+        nullptr,
+        300.f
+    );
+    layer->show();
+    iconHack = !iconHack;
 }
 
 [[gnu::constructor]]
@@ -39,8 +52,33 @@ int main() {
     void* handle = dlopen("libgame.so", RTLD_NOW);
 
     DobbyHook(
-        dlsym(handle, "_ZN10GameObject13getObjectRectEff"),
-        reinterpret_cast<void*>(GameObject_getObjectRect),
-        reinterpret_cast<void**>(&TRAM_GameObject_getObjectRect)
+        dlsym(handle, "_ZN9PlayLayer13destroyPlayerEv"),
+        reinterpret_cast<void*>(PlayLayer_destroyPlayer),
+        reinterpret_cast<void**>(&TRAM_PlayLayer_destroyPlayer)
+    );
+    DobbyHook(
+        dlsym(handle, "_ZN9MenuLayer11onMoreGamesEv"),
+        (dobby_dummy_func_t) MenuLayer_onMoreGames,
+        nullptr
+    );
+    DobbyHook(
+        dlsym(handle, "_ZN9MenuLayer8onRobTopEv"),
+        (dobby_dummy_func_t) MenuLayer_onRobTop,
+        nullptr
+    );
+    DobbyHook(
+        dlsym(handle, "_ZN12SupportLayer8onRobTopEv"),
+        (dobby_dummy_func_t) MenuLayer_onRobTop,
+        nullptr
+    );
+    DobbyHook(
+        dlsym(handle, "_ZN11GameManager15isColorUnlockedEib"),
+        reinterpret_cast<void*>(GameManager_isColorUnlocked),
+        reinterpret_cast<void**>(&TRAM_GameManager_isColorUnlocked)
+    );
+    DobbyHook(
+        dlsym(handle, "_ZN11GameManager14isIconUnlockedEi"),
+        reinterpret_cast<void*>(GameManager_isIconUnlocked),
+        reinterpret_cast<void**>(&TRAM_GameManager_isIconUnlocked)
     );
 }

@@ -23,5 +23,5 @@ if [ -f build/.setup-flag ]; then
 
     (($? != 0)) && exit
 
-    eval $NDK_ROOT\$STRIP_PATH -s build/librotpatch.so
+    eval $NDK_ROOT\$STRIP_PATH -s build/libmenu.so
 fi
