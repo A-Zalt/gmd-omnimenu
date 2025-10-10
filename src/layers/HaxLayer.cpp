@@ -1,4 +1,6 @@
 #include "../layers/HaxLayer.hpp"
+#include "CCMenuItemSpriteExtra.hpp"
+#include "MenuLayer.hpp"
 
 HaxLayer* HaxLayer::create(bool fromRope) {
     auto ret = new HaxLayer();
@@ -21,20 +23,20 @@ bool HaxLayer::init(bool fromRope) {
     if(!cocos2d::CCLayer::init())
         return false;
 
-    auto director = cocos2d::CCDirector::sharedDirector();
-    auto winSize = director->getWinSize();
+    // auto director = cocos2d::CCDirector::sharedDirector();
+    // auto winSize = director->getWinSize();
 
-    m_background = cocos2d::CCSprite::create("menubackground.png");
-    m_background->setAnchorPoint({ 0.f, 0.f });
-    m_background->setColor({66, 39, 133});
-    addChild(m_background, -2);
+    // m_background = cocos2d::CCSprite::create("menubackground.png");
+    // m_background->setAnchorPoint({ 0.f, 0.f });
+    // m_background->setColor({66, 39, 133});
+    // addChild(m_background, -2);
 
-    CCSprite* backSpr = cocos2d::CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
-    CCMenuItemSpriteExtra* backBtn = CCMenuItemSpriteExtra::create(backSpr, this, menu_selector(HaxLayer::onClose));
+    // CCSprite* backSpr = cocos2d::CCSprite::createWithSpriteFrameName("GJ_arrow_01_001.png");
+    // CCMenuItemSpriteExtra* backBtn = CCMenuItemSpriteExtra::create(backSpr, backSpr, this, menu_selector(HaxLayer::onClose));
 
-    backBtn->setPosition(ccp(-winSize.width / 2 + 23.f, winSize.height / 2 - 25.f));
+    // backBtn->setPosition(ccp(-winSize.width / 2 + 23.f, winSize.height / 2 - 25.f));
 
-    addChild(backBtn);
+    // addChild(backBtn);
 
     return true;
 }
@@ -47,12 +49,9 @@ void HaxLayer::onClose(cocos2d::CCObject*) {
     this->retain();
     this->removeFromParentAndCleanup(false);
 
-    cocos2d::CCDirector::sharedDirector()->replaceScene(cocos2d::CCTransitionFadeTR::create(0.5f, MenuLayer::scene(false)));
+    cocos2d::CCDirector::sharedDirector()->replaceScene(cocos2d::CCTransitionFadeTR::create(0.5f, MenuLayer::scene()));
 
     this->release();
-
-    setKeyboardEnabled(false);
-    setKeypadEnabled(false);
 }
 
 // 

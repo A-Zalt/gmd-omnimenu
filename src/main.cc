@@ -32,7 +32,7 @@ void MenuLayer_onMoreGames(void* self) {
     // );
     // layer->show();
     // noclip = !noclip;
-    CCDirector::sharedDirector()->replaceScene(CCTransitionMoveInT::create(0.5f, HaxLayer::scene(false)));
+    CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(0.5f, HaxLayer::scene(false)));
 }
 void MenuLayer_onRobTop(void* self) {
     auto layer = FLAlertLayer::create(

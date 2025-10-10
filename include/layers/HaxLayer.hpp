@@ -12,7 +12,7 @@ protected:
 
     bool init(bool fromRope);
 
-    void onClose(cocos2d::CCObject*);
+    void onClose(CCObject*);
     void keyBackClicked();
 
     cocos2d::CCSprite* m_background = nullptr;
