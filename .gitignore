@@ -1,2 +1,5 @@
 /.cache
 /build
+/submodules
+libgame.so
+libgame*.so

@@ -15,7 +15,15 @@ protected:
     void onClose(CCObject*);
     void keyBackClicked();
 
+    void onNoClip(CCObject*);
+    void onIconHack(CCObject*);
+    void onTextLengthBypass(CCObject*);
+    void onFilterBypass(CCObject*);
+
     cocos2d::CCSprite* m_background = nullptr;
     bool m_fromRope = false;
+
+private:
+    void addCheckbox(float xIdx, float yIdx, const char* text, bool toggle, SEL_MenuHandler callback, CCMenu* menu, CCObject* target);
 
 };
