@@ -57,6 +57,11 @@ bool HaxLayer::init(bool fromRope) {
     addCheckbox(0, 4, "Swear Filter Bypass", hax.swearBypass, menu_selector(HaxLayer::onSwearBypass),           buttonMenu, this);
     addCheckbox(0, 5, "Slider Bypass", hax.sliderBypass, menu_selector(HaxLayer::onSliderBypass),               buttonMenu, this);
     addCheckbox(0, 6, "Instant Complete", hax.instantComplete, menu_selector(HaxLayer::onInstantComplete),      buttonMenu, this);
+    addCheckbox(0, 7, "Fast Menu", hax.fastMenu, menu_selector(HaxLayer::onFastMenu),                           buttonMenu, this);
+    addCheckbox(0, 8, "Verify Bypass", hax.verifyHack, menu_selector(HaxLayer::onVerifyHack),                   buttonMenu, this);
+    addCheckbox(0, 9, "No Mirror", hax.noMirror, menu_selector(HaxLayer::onNoMirror),                           buttonMenu, this);
+
+    setKeypadEnabled(true);
 
     return true;
 }
@@ -122,5 +127,18 @@ void HaxLayer::onSliderBypass(CCObject*) {
 void HaxLayer::onInstantComplete(CCObject*) {
     HaxManager& hax = HaxManager::sharedState();
     hax.instantComplete = !hax.instantComplete;
+}
+
+void HaxLayer::onFastMenu(CCObject*) {
+    HaxManager& hax = HaxManager::sharedState();
+    hax.fastMenu = !hax.fastMenu;
+}
+void HaxLayer::onVerifyHack(CCObject*) {
+    HaxManager& hax = HaxManager::sharedState();
+    hax.verifyHack = !hax.verifyHack;
+}
+void HaxLayer::onNoMirror(CCObject*) {
+    HaxManager& hax = HaxManager::sharedState();
+    hax.noMirror = !hax.noMirror;
 }
 // 

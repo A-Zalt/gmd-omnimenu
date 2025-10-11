@@ -6,6 +6,7 @@
 #include "CCTextInputNode.hpp"
 #include "SliderTouchLogic.hpp"
 #include "PlayLayer.hpp"
+#include "GJGameLevel.hpp"
 
 void (*TRAM_PlayLayer_destroyPlayer)(void* self);
 void PlayLayer_destroyPlayer(void* self) {
@@ -74,10 +75,35 @@ void SliderTouchLogic_ccTouchMoved(SliderTouchLogic* self, CCTouch* touch, CCEve
 }
 void (*TRAM_PlayLayer_resetLevel)(PlayLayer* self);
 void PlayLayer_resetLevel(PlayLayer* self) {
+    TRAM_PlayLayer_resetLevel(self); 
     HaxManager& hax = HaxManager::sharedState();
-    TRAM_PlayLayer_resetLevel(self);
-    if (hax.instantComplete) self->levelComplete();
+    if (hax.instantComplete) {
+        PlayerObject* player = *reinterpret_cast<PlayerObject**>(reinterpret_cast<uintptr_t>(self) + 0x22c);
+        player->lockPlayer();
+        self->levelComplete();
+    }
 }
+bool (*TRAM_EditLevelLayer_init)(void* self, GJGameLevel* level);
+bool EditLevelLayer_init(void* self, GJGameLevel* level) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.verifyHack) {
+        *reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(level) + 0x159) = true;
+    }
+    return TRAM_EditLevelLayer_init(self, level);
+}
+void (*TRAM_CCTransitionFade_create)(float duration, CCScene* scene, const ccColor3B& color);
+void CCTransitionFade_create(float duration, CCScene* scene, const ccColor3B& color = ccBLACK) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.fastMenu) TRAM_CCTransitionFade_create(0.f, scene, color);
+    else TRAM_CCTransitionFade_create(duration, scene, color);
+}
+void (*TRAM_PlayLayer_toggleFlipped)(void* self, bool p1, bool p2);
+void PlayLayer_toggleFlipped(void* self, bool p1, bool p2) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.noMirror) return;
+    TRAM_PlayLayer_toggleFlipped(self, p1, p2);
+}
+
 // void (*TRAM_PlayerObject_update)(PlayerObject* self, float dt);
 // void PlayerObject_update(PlayerObject* self, float dt) {
 //     HaxManager& hax = HaxManager::sharedState();
@@ -134,9 +160,24 @@ int main() {
         reinterpret_cast<void*>(PlayLayer_resetLevel),
         reinterpret_cast<void**>(&TRAM_PlayLayer_resetLevel)
     );
+    DobbyHook(
+        dlsym(handle, "_ZN14EditLevelLayer4initEP11GJGameLevel"),
+        reinterpret_cast<void*>(EditLevelLayer_init),
+        reinterpret_cast<void**>(&TRAM_EditLevelLayer_init)
+    );
+    DobbyHook(
+        dlsym(handle, "_ZN9PlayLayer13toggleFlippedEbb"),
+        reinterpret_cast<void*>(PlayLayer_toggleFlipped),
+        reinterpret_cast<void**>(&TRAM_PlayLayer_toggleFlipped)
+    );
     // DobbyHook(
     //     dlsym(handle, "_ZN12PlayerObject6updateEf"),
     //     reinterpret_cast<void*>(PlayerObject_update),
     //     reinterpret_cast<void**>(&TRAM_PlayerObject_update)
     // );
+    DobbyHook(
+        dlsym(handle, "_ZN7cocos2d16CCTransitionFade6createEfPNS_7CCSceneERKNS_10_ccColor3BE"),
+        reinterpret_cast<void*>(CCTransitionFade_create),
+        reinterpret_cast<void**>(&TRAM_CCTransitionFade_create)
+    );
 }

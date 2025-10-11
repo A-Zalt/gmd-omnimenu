@@ -14,6 +14,9 @@ public:
     bool swearBypass;
     bool sliderBypass;
     bool instantComplete;
+    bool fastMenu;
+    bool verifyHack;
+    bool noMirror;
 
 private:
     HaxManager() {
@@ -24,6 +27,9 @@ private:
         swearBypass = false;
         sliderBypass = false;
         instantComplete = false;
+        fastMenu = false;
+        verifyHack = false;
+        noMirror = false;
     }
 
     HaxManager(const HaxManager&) = delete;

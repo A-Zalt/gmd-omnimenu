@@ -22,6 +22,9 @@ protected:
     void onSwearBypass(CCObject*);
     void onSliderBypass(CCObject*);
     void onInstantComplete(CCObject*);
+    void onFastMenu(CCObject*);
+    void onVerifyHack(CCObject*);
+    void onNoMirror(CCObject*);
 
     cocos2d::CCSprite* m_background = nullptr;
     bool m_fromRope = false;
