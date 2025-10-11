@@ -5,8 +5,9 @@
 #include "HaxManager.hpp"
 #include "CCTextInputNode.hpp"
 #include "SliderTouchLogic.hpp"
-#include "PlayLayer.hpp"
-#include "GJGameLevel.hpp"
+#include "EditorUI.hpp"
+#include "LevelEditorLayer.hpp"
+#include "GameManager.hpp"
 
 void (*TRAM_PlayLayer_destroyPlayer)(void* self);
 void PlayLayer_destroyPlayer(void* self) {
@@ -49,30 +50,30 @@ void CCTextInputNode_setProfanityFilter(CCTextInputNode* self, bool profanityFil
     if (hax.swearBypass) return;
     TRAM_CCTextInputNode_setProfanityFilter(self, profanityFilter);
 }
-void (*TRAM_SliderTouchLogic_ccTouchMoved)(SliderTouchLogic* self, CCTouch* touch, CCEvent* event);
-void SliderTouchLogic_ccTouchMoved(SliderTouchLogic* self, CCTouch* touch, CCEvent* event) {
-    HaxManager& hax = HaxManager::sharedState();
-    if (hax.sliderBypass) {
-        auto touchPos = reinterpret_cast<CCNode*>(self)->convertTouchToNodeSpace(touch);
-        auto touchOffset = self->m_position;
-        auto position = ccp(touchPos.x - touchOffset.x, touchPos.y - touchOffset.y);
+// void (*TRAM_SliderTouchLogic_ccTouchMoved)(SliderTouchLogic* self, CCTouch* touch, CCEvent* event);
+// void SliderTouchLogic_ccTouchMoved(SliderTouchLogic* self, CCTouch* touch, CCEvent* event) {
+//     HaxManager& hax = HaxManager::sharedState();
+//     if (hax.sliderBypass) {
+//         auto touchPos = reinterpret_cast<CCNode*>(self)->convertTouchToNodeSpace(touch);
+//         auto touchOffset = self->m_position;
+//         auto position = ccp(touchPos.x - touchOffset.x, touchPos.y - touchOffset.y);
 
-        auto thumb = reinterpret_cast<CCNode*>(self->getThumb());
+//         auto thumb = reinterpret_cast<CCNode*>(self->getThumb());
 
-        auto clamped = position.x;
-        thumb->setPosition(ccp(clamped, 0.f));
+//         auto clamped = position.x;
+//         thumb->setPosition(ccp(clamped, 0.f));
 
-        // if (self->getLiveDragging())
-        //     thumb->activate();
+//         // if (self->getLiveDragging())
+//         //     thumb->activate();
 
-        Slider* slider = self->getSliderDelegate();
-        if (slider != nullptr) {
-            slider->updateBar();
-        }
-        // if (Slider* slider = self->getSliderDelegate())
-        //     slider->updateBar();
-    } else TRAM_SliderTouchLogic_ccTouchMoved(self, touch, event);
-}
+//         Slider* slider = *reinterpret_cast<Slider**>(reinterpret_cast<uintptr_t>(self) + 0x158);
+//         if (slider != nullptr) {
+//             slider->updateBar();
+//         }
+//         // if (Slider* slider = self->getSliderDelegate())
+//         //     slider->updateBar();
+//     } else TRAM_SliderTouchLogic_ccTouchMoved(self, touch, event);
+// }
 void (*TRAM_PlayLayer_resetLevel)(PlayLayer* self);
 void PlayLayer_resetLevel(PlayLayer* self) {
     TRAM_PlayLayer_resetLevel(self); 
@@ -81,6 +82,21 @@ void PlayLayer_resetLevel(PlayLayer* self) {
         PlayerObject* player = *reinterpret_cast<PlayerObject**>(reinterpret_cast<uintptr_t>(self) + 0x22c);
         player->lockPlayer();
         self->levelComplete();
+    }
+}
+void (*TRAM_PauseLayer_customSetup)(CCLayer* self);
+void PauseLayer_customSetup(CCLayer* self) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.levelEdit) {
+        GameManager* gman = GameManager::sharedState();
+        void* playLayer = *reinterpret_cast<void**>(reinterpret_cast<uintptr_t>(gman) + 0x150);
+        void* level = *reinterpret_cast<void**>(reinterpret_cast<uintptr_t>(playLayer) + 0x230);
+        GJLevelType type = *reinterpret_cast<GJLevelType*>(reinterpret_cast<uintptr_t>(level) + 0x1A0);
+        *reinterpret_cast<GJLevelType*>(reinterpret_cast<uintptr_t>(level) + 0x1A0) = GJLevelType::Editor;
+        TRAM_PauseLayer_customSetup(self); 
+        *reinterpret_cast<GJLevelType*>(reinterpret_cast<uintptr_t>(level) + 0x1A0) = type;
+    } else {
+        TRAM_PauseLayer_customSetup(self); 
     }
 }
 bool (*TRAM_EditLevelLayer_init)(void* self, GJGameLevel* level);
@@ -102,6 +118,35 @@ void PlayLayer_toggleFlipped(void* self, bool p1, bool p2) {
     HaxManager& hax = HaxManager::sharedState();
     if (hax.noMirror) return;
     TRAM_PlayLayer_toggleFlipped(self, p1, p2);
+}
+void (*TRAM_EditorUI_showMaxError)(void* self);
+void EditorUI_showMaxError(void* self) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.objectLimitHack) return;
+    TRAM_EditorUI_showMaxError(self);
+}
+void (*TRAM_EditorUI_onCreate)(EditorUI* self);
+void EditorUI_onCreate(EditorUI* self) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.objectLimitHack) {
+        self->onCreateObject(*reinterpret_cast<const char**>(reinterpret_cast<uintptr_t>(self) + 0x6E));
+        // LevelEditorLayer* layer = *reinterpret_cast<LevelEditorLayer**>(reinterpret_cast<uintptr_t>(self) + 0x71);
+        // if (layer->getObjectCount() > 3999) {
+        //     if (layer->getObjectCount() < 16384) {
+            // } else {
+            //     FLAlertLayer::create(
+            //         nullptr,
+            //         "Max Objects",
+            //         "You cannot create more than <cy>16384</c> <cg>objects</c> in a single level.",
+            //         "OK",
+            //         nullptr,
+            //         300.f
+            //     )->show();
+            // }
+        //}
+    } else {
+        TRAM_EditorUI_onCreate(self);
+    }
 }
 
 // void (*TRAM_PlayerObject_update)(PlayerObject* self, float dt);
@@ -150,10 +195,15 @@ int main() {
         reinterpret_cast<void*>(CCTextInputNode_setProfanityFilter),
         reinterpret_cast<void**>(&TRAM_CCTextInputNode_setProfanityFilter)
     );
+    // DobbyHook(
+    //     dlsym(handle, "_ZThn296_N16SliderTouchLogic12ccTouchMovedEPN7cocos2d7CCTouchEPNS0_7CCEventE"),
+    //     reinterpret_cast<void*>(SliderTouchLogic_ccTouchMoved),
+    //     reinterpret_cast<void**>(&TRAM_SliderTouchLogic_ccTouchMoved)
+    // );
     DobbyHook(
-        dlsym(handle, "_ZThn296_N16SliderTouchLogic12ccTouchMovedEPN7cocos2d7CCTouchEPNS0_7CCEventE"),
-        reinterpret_cast<void*>(SliderTouchLogic_ccTouchMoved),
-        reinterpret_cast<void**>(&TRAM_SliderTouchLogic_ccTouchMoved)
+        dlsym(handle, "_ZN10PauseLayer11customSetupEv"),
+        reinterpret_cast<void*>(PauseLayer_customSetup),
+        reinterpret_cast<void**>(&TRAM_PauseLayer_customSetup)
     );
     DobbyHook(
         dlsym(handle, "_ZN9PlayLayer10resetLevelEv"),
@@ -169,6 +219,16 @@ int main() {
         dlsym(handle, "_ZN9PlayLayer13toggleFlippedEbb"),
         reinterpret_cast<void*>(PlayLayer_toggleFlipped),
         reinterpret_cast<void**>(&TRAM_PlayLayer_toggleFlipped)
+    );
+    DobbyHook(
+        dlsym(handle, "_ZN8EditorUI12showMaxErrorEv"),
+        reinterpret_cast<void*>(EditorUI_showMaxError),
+        reinterpret_cast<void**>(&TRAM_EditorUI_showMaxError)
+    );
+    DobbyHook(
+        dlsym(handle, "_ZN8EditorUI8onCreateEv"),
+        reinterpret_cast<void*>(EditorUI_onCreate),
+        reinterpret_cast<void**>(&TRAM_EditorUI_onCreate)
     );
     // DobbyHook(
     //     dlsym(handle, "_ZN12PlayerObject6updateEf"),

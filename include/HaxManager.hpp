@@ -17,6 +17,8 @@ public:
     bool fastMenu;
     bool verifyHack;
     bool noMirror;
+    bool objectLimitHack;
+    bool levelEdit;
 
 private:
     HaxManager() {
@@ -30,6 +32,8 @@ private:
         fastMenu = false;
         verifyHack = false;
         noMirror = false;
+        objectLimitHack = false;
+        levelEdit = false;
     }
 
     HaxManager(const HaxManager&) = delete;

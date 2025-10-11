@@ -20,11 +20,12 @@ protected:
     void onTextLengthBypass(CCObject*);
     void onFilterBypass(CCObject*);
     void onSwearBypass(CCObject*);
-    void onSliderBypass(CCObject*);
+    void onLevelEdit(CCObject*);
     void onInstantComplete(CCObject*);
     void onFastMenu(CCObject*);
     void onVerifyHack(CCObject*);
     void onNoMirror(CCObject*);
+    void onObjectLimitHack(CCObject*);
 
     cocos2d::CCSprite* m_background = nullptr;
     bool m_fromRope = false;

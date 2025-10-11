@@ -55,11 +55,13 @@ bool HaxLayer::init(bool fromRope) {
     addCheckbox(0, 2, "Text Length Bypass", hax.textLengthBypass, menu_selector(HaxLayer::onTextLengthBypass),  buttonMenu, this);
     addCheckbox(0, 3, "Character Filter Bypass", hax.charFilterBypass, menu_selector(HaxLayer::onFilterBypass), buttonMenu, this);
     addCheckbox(0, 4, "Swear Filter Bypass", hax.swearBypass, menu_selector(HaxLayer::onSwearBypass),           buttonMenu, this);
-    addCheckbox(0, 5, "Slider Bypass", hax.sliderBypass, menu_selector(HaxLayer::onSliderBypass),               buttonMenu, this);
+    addCheckbox(0, 5, "Level Edit", hax.levelEdit, menu_selector(HaxLayer::onLevelEdit),                        buttonMenu, this);
     addCheckbox(0, 6, "Instant Complete", hax.instantComplete, menu_selector(HaxLayer::onInstantComplete),      buttonMenu, this);
     addCheckbox(0, 7, "Fast Menu", hax.fastMenu, menu_selector(HaxLayer::onFastMenu),                           buttonMenu, this);
     addCheckbox(0, 8, "Verify Bypass", hax.verifyHack, menu_selector(HaxLayer::onVerifyHack),                   buttonMenu, this);
     addCheckbox(0, 9, "No Mirror", hax.noMirror, menu_selector(HaxLayer::onNoMirror),                           buttonMenu, this);
+
+    addCheckbox(1, 0, "Object Limit Bypass", hax.objectLimitHack, menu_selector(HaxLayer::onObjectLimitHack),   buttonMenu, this);
 
     setKeypadEnabled(true);
 
@@ -119,9 +121,9 @@ void HaxLayer::onSwearBypass(CCObject*) {
     hax.swearBypass = !hax.swearBypass;
 }
 
-void HaxLayer::onSliderBypass(CCObject*) {
+void HaxLayer::onLevelEdit(CCObject*) {
     HaxManager& hax = HaxManager::sharedState();
-    hax.sliderBypass = !hax.sliderBypass;
+    hax.levelEdit = !hax.levelEdit;
 }
 
 void HaxLayer::onInstantComplete(CCObject*) {
@@ -140,5 +142,9 @@ void HaxLayer::onVerifyHack(CCObject*) {
 void HaxLayer::onNoMirror(CCObject*) {
     HaxManager& hax = HaxManager::sharedState();
     hax.noMirror = !hax.noMirror;
+}
+void HaxLayer::onObjectLimitHack(CCObject*) {
+    HaxManager& hax = HaxManager::sharedState();
+    hax.objectLimitHack = !hax.objectLimitHack;
 }
 // 
