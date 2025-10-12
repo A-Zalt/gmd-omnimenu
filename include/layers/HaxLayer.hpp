@@ -26,6 +26,11 @@ protected:
     void onVerifyHack(CCObject*);
     void onNoMirror(CCObject*);
     void onObjectLimitHack(CCObject*);
+    void onFreeScroll(CCObject*);
+    void onZoomBypass(CCObject*);
+    void onLevelCopying(CCObject*);
+    void on100KBFix(CCObject*);
+    void onpCommand(CCObject*);
 
     cocos2d::CCSprite* m_background = nullptr;
     bool m_fromRope = false;

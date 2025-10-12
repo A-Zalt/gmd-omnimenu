@@ -24,7 +24,7 @@ CCScene* HaxLayer::scene(bool fromRope) {
 }
 
 bool HaxLayer::init(bool fromRope) {
-    if(!CCLayer::init())
+    if (!CCLayer::init())
         return false;
 
     auto director = CCDirector::sharedDirector();
@@ -53,7 +53,7 @@ bool HaxLayer::init(bool fromRope) {
     addCheckbox(0, 0, "NoClip", hax.noClip, menu_selector(HaxLayer::onNoClip),                                  buttonMenu, this);
     addCheckbox(0, 1, "Unlock Icons", hax.iconHack, menu_selector(HaxLayer::onIconHack),                        buttonMenu, this);
     addCheckbox(0, 2, "Text Length Bypass", hax.textLengthBypass, menu_selector(HaxLayer::onTextLengthBypass),  buttonMenu, this);
-    addCheckbox(0, 3, "Character Filter Bypass", hax.charFilterBypass, menu_selector(HaxLayer::onFilterBypass), buttonMenu, this);
+    addCheckbox(0, 3, "Char. Filter Bypass", hax.charFilterBypass, menu_selector(HaxLayer::onFilterBypass),     buttonMenu, this);
     addCheckbox(0, 4, "Swear Filter Bypass", hax.swearBypass, menu_selector(HaxLayer::onSwearBypass),           buttonMenu, this);
     addCheckbox(0, 5, "Level Edit", hax.levelEdit, menu_selector(HaxLayer::onLevelEdit),                        buttonMenu, this);
     addCheckbox(0, 6, "Instant Complete", hax.instantComplete, menu_selector(HaxLayer::onInstantComplete),      buttonMenu, this);
@@ -61,7 +61,9 @@ bool HaxLayer::init(bool fromRope) {
     addCheckbox(0, 8, "Verify Bypass", hax.verifyHack, menu_selector(HaxLayer::onVerifyHack),                   buttonMenu, this);
     addCheckbox(0, 9, "No Mirror", hax.noMirror, menu_selector(HaxLayer::onNoMirror),                           buttonMenu, this);
 
-    addCheckbox(1, 0, "Object Limit Bypass", hax.objectLimitHack, menu_selector(HaxLayer::onObjectLimitHack),   buttonMenu, this);
+    addCheckbox(1, 0, "Free Scroll", hax.freeScroll, menu_selector(HaxLayer::onFreeScroll),                     buttonMenu, this);
+    addCheckbox(1, 1, "Level Copying", hax.levelCopying, menu_selector(HaxLayer::onLevelCopying),               buttonMenu, this);
+    addCheckbox(1, 2, "100 KB Fix", hax.upload100KbFix, menu_selector(HaxLayer::on100KBFix),                    buttonMenu, this);
 
     setKeypadEnabled(true);
 
@@ -77,13 +79,13 @@ void HaxLayer::addCheckbox(float xIdx, float yIdx, const char* text, bool toggle
 
     auto checkbox = CCMenuItemToggler::create(toggleOn, toggleOff, target, callback);
     checkbox->toggle(!toggle);
-    checkbox->setPosition(ccp(45 + xIdx * 100, winSize.height / 2 - 55 - (yIdx * 23)));
+    checkbox->setPosition(ccp(45 + xIdx * 180, winSize.height / 2 - 55 - (yIdx * 23)));
     checkbox->setScale(0.6f);
     menu->addChild(checkbox, 2);
 
     auto label = CCLabelBMFont::create(text, "bigFont.fnt");
     label->setAnchorPoint({0.f, 0.5f});
-    label->setPosition(ccp(87 + xIdx * 100, winSize.height - 55 - (yIdx * 23)));
+    label->setPosition(ccp(87 + xIdx * 180, winSize.height - 55 - (yIdx * 23)));
     label->setScale(0.4f);
     addChild(label, 3);
 }
@@ -146,5 +148,25 @@ void HaxLayer::onNoMirror(CCObject*) {
 void HaxLayer::onObjectLimitHack(CCObject*) {
     HaxManager& hax = HaxManager::sharedState();
     hax.objectLimitHack = !hax.objectLimitHack;
+}
+void HaxLayer::onFreeScroll(CCObject*) {
+    HaxManager& hax = HaxManager::sharedState();
+    hax.freeScroll = !hax.freeScroll;
+}
+void HaxLayer::onZoomBypass(CCObject*) {
+    HaxManager& hax = HaxManager::sharedState();
+    hax.zoomBypass = !hax.zoomBypass;
+}
+void HaxLayer::onLevelCopying(CCObject*) {
+    HaxManager& hax = HaxManager::sharedState();
+    hax.levelCopying = !hax.levelCopying;
+}
+void HaxLayer::on100KBFix(CCObject*) {
+    HaxManager& hax = HaxManager::sharedState();
+    hax.upload100KbFix = !hax.upload100KbFix;
+}
+void HaxLayer::onpCommand(CCObject*) {
+    HaxManager& hax = HaxManager::sharedState();
+    hax.pCommand = !hax.pCommand;
 }
 // 

@@ -1,5 +1,11 @@
 #pragma once
 
+typedef enum {
+    Green = 1,
+    Yellow = 2,
+    Red = 3
+} CheatIndicatorColor;
+
 class HaxManager {
 
 public:
@@ -19,21 +25,44 @@ public:
     bool noMirror;
     bool objectLimitHack;
     bool levelEdit;
+    bool freeScroll;
+    bool zoomBypass;
+    bool levelCopying;
+    bool pCommand;
+    bool restartOnly;
+    bool upload100KbFix;
+
+    bool getCheatIndicatorColor() {
+        if (noClip || instantComplete || noMirror || pCommand) return CheatIndicatorColor::Red;
+        if (levelEdit) return CheatIndicatorColor::Yellow;
+        return CheatIndicatorColor::Green;
+    }
+
+    bool setAll(bool value) {
+        noClip = value;
+        iconHack = value;
+        textLengthBypass = value;
+        charFilterBypass = value;
+        swearBypass = value;
+        sliderBypass = value;
+        instantComplete = value;
+        fastMenu = value;
+        verifyHack = value;
+        noMirror = value;
+        objectLimitHack = value;
+        levelEdit = value;
+        freeScroll = value;
+        zoomBypass = value;
+        levelCopying = value;
+        pCommand = value;
+        restartOnly = value;
+        upload100KbFix = value;
+    }
 
 private:
     HaxManager() {
-        noClip = false;
-        iconHack = false;
-        textLengthBypass = false;
-        charFilterBypass = false;
-        swearBypass = false;
-        sliderBypass = false;
-        instantComplete = false;
-        fastMenu = false;
-        verifyHack = false;
-        noMirror = false;
-        objectLimitHack = false;
-        levelEdit = false;
+        setAll(false);
+        upload100KbFix = true;
     }
 
     HaxManager(const HaxManager&) = delete;

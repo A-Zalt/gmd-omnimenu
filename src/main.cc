@@ -8,6 +8,31 @@
 #include "EditorUI.hpp"
 #include "LevelEditorLayer.hpp"
 #include "GameManager.hpp"
+#include "LevelInfoLayer.hpp"
+#include "CCMenuItemSpriteExtra.hpp"
+#include "GameLevelManager.hpp"
+#include <algorithm>
+
+std::string itoa(int value) {
+    static const char digits[] = "0123456789";
+
+    unsigned int uvalue = value < 0 ? -value : value;
+
+    std::string result;
+    do {
+        result.push_back(digits[uvalue % 10]);
+        uvalue /= 10;
+    } while (uvalue);
+
+    if (value < 0)
+        result.push_back('-');
+
+    std::reverse(result.begin(), result.end());
+    return result;
+}
+
+#define MEMBER_BY_OFFSET(type, var, offset) \
+    (*reinterpret_cast<type*>(reinterpret_cast<uintptr_t>(var) + static_cast<uintptr_t>(offset)))
 
 void (*TRAM_PlayLayer_destroyPlayer)(void* self);
 void PlayLayer_destroyPlayer(void* self) {
@@ -74,12 +99,13 @@ void CCTextInputNode_setProfanityFilter(CCTextInputNode* self, bool profanityFil
 //         //     slider->updateBar();
 //     } else TRAM_SliderTouchLogic_ccTouchMoved(self, touch, event);
 // }
+// *reinterpret_cast<PlayerObject**>(reinterpret_cast<uintptr_t>(self) + 0x22c)
 void (*TRAM_PlayLayer_resetLevel)(PlayLayer* self);
 void PlayLayer_resetLevel(PlayLayer* self) {
     TRAM_PlayLayer_resetLevel(self); 
     HaxManager& hax = HaxManager::sharedState();
     if (hax.instantComplete) {
-        PlayerObject* player = *reinterpret_cast<PlayerObject**>(reinterpret_cast<uintptr_t>(self) + 0x22c);
+        PlayerObject* player = MEMBER_BY_OFFSET(PlayerObject*, self, 0x22c); // PlayLayer::getPlayer
         player->lockPlayer();
         self->levelComplete();
     }
@@ -89,12 +115,12 @@ void PauseLayer_customSetup(CCLayer* self) {
     HaxManager& hax = HaxManager::sharedState();
     if (hax.levelEdit) {
         GameManager* gman = GameManager::sharedState();
-        void* playLayer = *reinterpret_cast<void**>(reinterpret_cast<uintptr_t>(gman) + 0x150);
-        void* level = *reinterpret_cast<void**>(reinterpret_cast<uintptr_t>(playLayer) + 0x230);
-        GJLevelType type = *reinterpret_cast<GJLevelType*>(reinterpret_cast<uintptr_t>(level) + 0x1A0);
-        *reinterpret_cast<GJLevelType*>(reinterpret_cast<uintptr_t>(level) + 0x1A0) = GJLevelType::Editor;
+        void* playLayer = MEMBER_BY_OFFSET(void*, gman, 0x150); // uhh i forgor
+        void* level = MEMBER_BY_OFFSET(void*, playLayer, 0x230); // PlayLayer::getLevel
+        GJLevelType type = MEMBER_BY_OFFSET(GJLevelType, level, 0x1A0); // GJGameLevel::getLevelType
+        MEMBER_BY_OFFSET(GJLevelType, level, 0x1A0) = GJLevelType::Editor;
         TRAM_PauseLayer_customSetup(self); 
-        *reinterpret_cast<GJLevelType*>(reinterpret_cast<uintptr_t>(level) + 0x1A0) = type;
+        MEMBER_BY_OFFSET(GJLevelType, level, 0x1A0) = type;
     } else {
         TRAM_PauseLayer_customSetup(self); 
     }
@@ -103,7 +129,7 @@ bool (*TRAM_EditLevelLayer_init)(void* self, GJGameLevel* level);
 bool EditLevelLayer_init(void* self, GJGameLevel* level) {
     HaxManager& hax = HaxManager::sharedState();
     if (hax.verifyHack) {
-        *reinterpret_cast<bool*>(reinterpret_cast<uintptr_t>(level) + 0x159) = true;
+        MEMBER_BY_OFFSET(bool, level, 0x159) = true; // GJGameLevel::getIsVerified
     }
     return TRAM_EditLevelLayer_init(self, level);
 }
@@ -127,9 +153,10 @@ void EditorUI_showMaxError(void* self) {
 }
 void (*TRAM_EditorUI_onCreate)(EditorUI* self);
 void EditorUI_onCreate(EditorUI* self) {
+    TRAM_EditorUI_onCreate(self);
     HaxManager& hax = HaxManager::sharedState();
     if (hax.objectLimitHack) {
-        self->onCreateObject(*reinterpret_cast<const char**>(reinterpret_cast<uintptr_t>(self) + 0x6E));
+        self->onCreateObject(MEMBER_BY_OFFSET(const char*, self, 0x1B8));
         // LevelEditorLayer* layer = *reinterpret_cast<LevelEditorLayer**>(reinterpret_cast<uintptr_t>(self) + 0x71);
         // if (layer->getObjectCount() > 3999) {
         //     if (layer->getObjectCount() < 16384) {
@@ -144,10 +171,93 @@ void EditorUI_onCreate(EditorUI* self) {
             //     )->show();
             // }
         //}
-    } else {
-        TRAM_EditorUI_onCreate(self);
     }
 }
+// DobbyCodePatch(addr, patch, (uint32_t)patch_size);
+void (*TRAM_EditorUI_constrainGameLayerPosition)(void* self);
+void EditorUI_constrainGameLayerPosition(void* self) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.freeScroll) return;
+    TRAM_EditorUI_constrainGameLayerPosition(self);
+}
+bool (*TRAM_LevelInfoLayer_init)(LevelInfoLayer* self, GJGameLevel* level);
+bool LevelInfoLayer_init(LevelInfoLayer* self, GJGameLevel* level) {
+    if (!TRAM_LevelInfoLayer_init(self, level)) return false;
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.levelCopying) {
+        auto director = CCDirector::sharedDirector();
+        auto winSize = director->getWinSize();
+
+        CCMenu* cloneMenu = CCMenu::create();
+        CCSprite* cloneSpr = cocos2d::CCSprite::create("GJ_duplicateBtn.png");
+        CCMenuItemSpriteExtra* cloneBtn = CCMenuItemSpriteExtra::create(cloneSpr, cloneSpr, self, menu_selector(LevelInfoLayer::onClone));
+
+        self->addChild(cloneMenu, 1000);
+        cloneMenu->addChild(cloneBtn);
+        cloneMenu->setPosition(ccp(35.f, winSize.height / 2));
+        // cloneBtn->setPosition(ccp(0, winSize.height / 2 - 25));
+    }
+    return true;
+}
+void (*TRAM_GameLevelManager_uploadLevel)(GameLevelManager* self, GJGameLevel* level);
+void GameLevelManager_uploadLevel(GameLevelManager* self, GJGameLevel* level) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.upload100KbFix) {
+        GameManager* gman = GameManager::sharedState();
+        gman->reportAchievementWithID("geometry.ach.submit", 100);
+        std::string url = "http://nikolyas.141412.xyz/testin/uploadGJLevel.php";
+        std::string params = "udid=";
+        params += MEMBER_BY_OFFSET(std::string, gman, 0x164);
+        params += "&username=";
+        params += MEMBER_BY_OFFSET(std::string, gman, 0x168);
+        params += "&secret=Wmfd2893gb7&levelID=";
+        params += itoa(MEMBER_BY_OFFSET(int, level, 0x128));
+        params += "&levelName=";
+        params += MEMBER_BY_OFFSET(std::string, level, 0x12c);
+        params += "&levelDesc=";
+        params += MEMBER_BY_OFFSET(std::string, level, 0x130);
+        params += "&levelString=";
+        params += MEMBER_BY_OFFSET(std::string, level, 0x134);
+        params += "&levelVersion=";
+        params += itoa(MEMBER_BY_OFFSET(int, level, 0x15c));
+        params += "&levelLength=";
+        params += itoa(MEMBER_BY_OFFSET(int, level, 0x178));
+        params += "&audioTrack=";
+        params += itoa(MEMBER_BY_OFFSET(int, level, 0x144));
+        params += "&gameVersion=3";
+
+        cocos2d::extension::CCHttpRequest* request = new cocos2d::extension::CCHttpRequest();
+        request->setUrl(url.c_str());
+        request->setRequestType(cocos2d::extension::CCHttpRequest::HttpRequestType::kHttpPost);
+        request->setRequestData(params.c_str(), strlen(params.c_str()));
+        request->setResponseCallback(self, callfuncND_selector(GameLevelManager::onUploadLevelCompleted));
+
+        cocos2d::CCLog(request->getUrl());
+        cocos2d::CCLog(request->getRequestData());
+
+        cocos2d::extension::CCHttpClient::getInstance()->send(request);
+
+        request->release();
+    } else {
+        TRAM_GameLevelManager_uploadLevel(self, level);
+    }
+}
+// void (*TRAM_EditorUI_zoomGameLayer)(void* self, bool zoomIn);
+// void EditorUI_zoomGameLayer(void* self, bool zoomIn) {
+//     HaxManager& hax = HaxManager::sharedState();
+//     if (hax.zoomBypass) {
+//         void* editorLayer = MEMBER_BY_OFFSET(void*, self, 0x71);
+//         cocos2d::CCLayer* gameLayer = MEMBER_BY_OFFSET(cocos2d::CCLayer*, editorLayer, 0x158); // getGameLayer
+//         float scale = gameLayer->getScale();
+//         if (zoomIn) {
+//             scale += 0.1;
+//         } else {
+//             if (scale > 0.1)
+//                 scale -= 0.1;
+//         }
+//         gameLayer->setScale(scale);
+//     } else TRAM_EditorUI_zoomGameLayer(self, zoomIn);
+// }
 
 // void (*TRAM_PlayerObject_update)(PlayerObject* self, float dt);
 // void PlayerObject_update(PlayerObject* self, float dt) {
@@ -239,5 +349,25 @@ int main() {
         dlsym(handle, "_ZN7cocos2d16CCTransitionFade6createEfPNS_7CCSceneERKNS_10_ccColor3BE"),
         reinterpret_cast<void*>(CCTransitionFade_create),
         reinterpret_cast<void**>(&TRAM_CCTransitionFade_create)
+    );
+    DobbyHook(
+        dlsym(handle, "_ZN8EditorUI26constrainGameLayerPositionEv"),
+        reinterpret_cast<void*>(EditorUI_constrainGameLayerPosition),
+        reinterpret_cast<void**>(&TRAM_EditorUI_constrainGameLayerPosition)
+    );
+    // DobbyHook(
+    //     dlsym(handle, "_ZN8EditorUI13zoomGameLayerPositionEb"),
+    //     reinterpret_cast<void*>(EditorUI_zoomGameLayer),
+    //     reinterpret_cast<void**>(&TRAM_EditorUI_zoomGameLayer)
+    // );
+    DobbyHook(
+        dlsym(handle, "_ZN14LevelInfoLayer4initEP11GJGameLevel"),
+        reinterpret_cast<void*>(LevelInfoLayer_init),
+        reinterpret_cast<void**>(&TRAM_LevelInfoLayer_init)
+    );
+    DobbyHook(
+        dlsym(handle, "_ZN16GameLevelManager11uploadLevelEP11GJGameLevel"),
+        reinterpret_cast<void*>(GameLevelManager_uploadLevel),
+        reinterpret_cast<void**>(&TRAM_GameLevelManager_uploadLevel)
     );
 }

@@ -11,6 +11,8 @@ class GameManager : public cocos2d::CCNode {
 public:
     static GameManager* sharedState();
 
+    void reportAchievementWithID(const char* ach, int percent);
+
     // IDA returns poop addresses
 
     // cocos2d::CCDictionary* m_scoreKeeper; // 0x130

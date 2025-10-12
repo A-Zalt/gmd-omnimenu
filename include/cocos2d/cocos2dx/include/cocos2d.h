@@ -207,6 +207,11 @@ THE SOFTWARE.
 #include "CCDrawingPrimitives.h"
 #include "CCScheduler.h"
 
+// http
+#include "extensions/HttpClient.h"
+#include "extensions/HttpRequest.h"
+#include "extensions/HttpResponse.h"
+
 // robtop additions
 #include "robtop/CCBlockLayer.h"
 
