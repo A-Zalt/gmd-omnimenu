@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cocos2d.h>
+
 typedef enum {
     Green = 1,
     Yellow = 2,
@@ -31,8 +33,11 @@ public:
     bool pCommand;
     bool restartOnly;
     bool upload100KbFix;
+    bool cheatIndicator;
+    bool showPercentage;
+    cocos2d::CCLabelBMFont* cheatIndicatorLabel;
 
-    bool getCheatIndicatorColor() {
+    CheatIndicatorColor getCheatIndicatorColor() {
         if (noClip || instantComplete || noMirror || pCommand) return CheatIndicatorColor::Red;
         if (levelEdit) return CheatIndicatorColor::Yellow;
         return CheatIndicatorColor::Green;
@@ -57,6 +62,8 @@ public:
         pCommand = value;
         restartOnly = value;
         upload100KbFix = value;
+        cheatIndicator = value;
+        showPercentage = value;
     }
 
 private:

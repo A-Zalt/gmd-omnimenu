@@ -14,6 +14,7 @@
 #include "ButtonSprite.hpp"
 #include <algorithm>
 #include "UILayer.hpp"
+#include "VersionUtils.cc"
 
 std::string itoa(int value) {
     static const char digits[] = "0123456789";
@@ -32,9 +33,6 @@ std::string itoa(int value) {
     std::reverse(result.begin(), result.end());
     return result;
 }
-
-#define MEMBER_BY_OFFSET(type, var, offset) \
-    (*reinterpret_cast<type*>(reinterpret_cast<uintptr_t>(var) + static_cast<uintptr_t>(offset)))
 
 void (*TRAM_PlayLayer_destroyPlayer)(void* self);
 void PlayLayer_destroyPlayer(void* self) {
@@ -107,7 +105,7 @@ void PlayLayer_resetLevel(PlayLayer* self) {
     TRAM_PlayLayer_resetLevel(self); 
     HaxManager& hax = HaxManager::sharedState();
     if (hax.instantComplete) {
-        PlayerObject* player = MEMBER_BY_OFFSET(PlayerObject*, self, 0x22c); // PlayLayer::getPlayer
+        PlayerObject* player = getPlayer(self); // PlayLayer::getPlayer
         player->lockPlayer();
         self->levelComplete();
     }
@@ -116,13 +114,11 @@ void (*TRAM_PauseLayer_customSetup)(CCLayer* self);
 void PauseLayer_customSetup(CCLayer* self) {
     HaxManager& hax = HaxManager::sharedState();
     if (hax.levelEdit) {
-        GameManager* gman = GameManager::sharedState();
-        void* playLayer = MEMBER_BY_OFFSET(void*, gman, 0x150); // uhh i forgor
-        void* level = MEMBER_BY_OFFSET(void*, playLayer, 0x230); // PlayLayer::getLevel
-        GJLevelType type = MEMBER_BY_OFFSET(GJLevelType, level, 0x1A0); // GJGameLevel::getLevelType
-        MEMBER_BY_OFFSET(GJLevelType, level, 0x1A0) = GJLevelType::Editor;
+        GJGameLevel* level = getPlayLayerLevel();
+        GJLevelType type = getLevelType(level); // GJGameLevel::getLevelType
+        setLevelType(level, GJLevelType::Editor);
         TRAM_PauseLayer_customSetup(self); 
-        MEMBER_BY_OFFSET(GJLevelType, level, 0x1A0) = type;
+        setLevelType(level, type);
     } else {
         TRAM_PauseLayer_customSetup(self); 
     }
@@ -131,7 +127,7 @@ bool (*TRAM_EditLevelLayer_init)(void* self, GJGameLevel* level);
 bool EditLevelLayer_init(void* self, GJGameLevel* level) {
     HaxManager& hax = HaxManager::sharedState();
     if (hax.verifyHack) {
-        MEMBER_BY_OFFSET(bool, level, 0x159) = true; // GJGameLevel::getIsVerified
+        setLevelVerified(level, true);
     }
     return TRAM_EditLevelLayer_init(self, level);
 }
@@ -153,28 +149,28 @@ void EditorUI_showMaxError(void* self) {
     if (hax.objectLimitHack) return;
     TRAM_EditorUI_showMaxError(self);
 }
-void (*TRAM_EditorUI_onCreate)(EditorUI* self);
-void EditorUI_onCreate(EditorUI* self) {
-    TRAM_EditorUI_onCreate(self);
-    HaxManager& hax = HaxManager::sharedState();
-    if (hax.objectLimitHack) {
-        self->onCreateObject(MEMBER_BY_OFFSET(const char*, self, 0x1B8));
-        // LevelEditorLayer* layer = *reinterpret_cast<LevelEditorLayer**>(reinterpret_cast<uintptr_t>(self) + 0x71);
-        // if (layer->getObjectCount() > 3999) {
-        //     if (layer->getObjectCount() < 16384) {
-            // } else {
-            //     FLAlertLayer::create(
-            //         nullptr,
-            //         "Max Objects",
-            //         "You cannot create more than <cy>16384</c> <cg>objects</c> in a single level.",
-            //         "OK",
-            //         nullptr,
-            //         300.f
-            //     )->show();
-            // }
-        //}
-    }
-}
+// void (*TRAM_EditorUI_onCreate)(EditorUI* self);
+// void EditorUI_onCreate(EditorUI* self) {
+//     TRAM_EditorUI_onCreate(self);
+//     HaxManager& hax = HaxManager::sharedState();
+//     if (hax.objectLimitHack) {
+//         self->onCreateObject(MEMBER_BY_OFFSET(const char*, self, 0x1B8));
+//         // LevelEditorLayer* layer = *reinterpret_cast<LevelEditorLayer**>(reinterpret_cast<uintptr_t>(self) + 0x71);
+//         // if (layer->getObjectCount() > 3999) {
+//         //     if (layer->getObjectCount() < 16384) {
+//             // } else {
+//             //     FLAlertLayer::create(
+//             //         nullptr,
+//             //         "Max Objects",
+//             //         "You cannot create more than <cy>16384</c> <cg>objects</c> in a single level.",
+//             //         "OK",
+//             //         nullptr,
+//             //         300.f
+//             //     )->show();
+//             // }
+//         //}
+//     }
+// }
 // DobbyCodePatch(addr, patch, (uint32_t)patch_size);
 void (*TRAM_EditorUI_constrainGameLayerPosition)(void* self);
 void EditorUI_constrainGameLayerPosition(void* self) {
@@ -256,59 +252,62 @@ bool LevelInfoLayer_init(LevelInfoLayer* self, GJGameLevel* level) {
 //     }
 // }
 void UILayer::speedUp() {
-    GameManager* gman = GameManager::sharedState();
-    PlayLayer* playLayer = MEMBER_BY_OFFSET(PlayLayer*, gman, 0x150);
-    PlayerObject* player = MEMBER_BY_OFFSET(PlayerObject*, playLayer, 0x22c);
-    MEMBER_BY_OFFSET(double, player, 0x340) += 0.5d;
+    PlayerObject* player = getPlayer();
+    addXVelocity(player, 0.5d);
     player->logValues();
 }
 void UILayer::speedDown() {
-    GameManager* gman = GameManager::sharedState();
-    PlayLayer* playLayer = MEMBER_BY_OFFSET(PlayLayer*, gman, 0x150);
-    PlayerObject* player = MEMBER_BY_OFFSET(PlayerObject*, playLayer, 0x22c);
-    MEMBER_BY_OFFSET(double, player, 0x340) -= 0.5d;
+    PlayerObject* player = getPlayer();
+    addXVelocity(player, -0.5d);
     player->logValues();
 }
 void UILayer::gravityUp() {
-    GameManager* gman = GameManager::sharedState();
-    PlayLayer* playLayer = MEMBER_BY_OFFSET(PlayLayer*, gman, 0x150);
-    PlayerObject* player = MEMBER_BY_OFFSET(PlayerObject*, playLayer, 0x22c);
-    MEMBER_BY_OFFSET(double, player, 0x350) += 0.1d;
+    PlayerObject* player = getPlayer();
+    addGravity(player, 0.5d);
     player->logValues();
 }
 void UILayer::gravityDown() {
-    GameManager* gman = GameManager::sharedState();
-    PlayLayer* playLayer = MEMBER_BY_OFFSET(PlayLayer*, gman, 0x150);
-    PlayerObject* player = MEMBER_BY_OFFSET(PlayerObject*, playLayer, 0x22c);
-    MEMBER_BY_OFFSET(double, player, 0x350) -= 0.1d;
+    PlayerObject* player = getPlayer();
+    addGravity(player, -0.5d);
     player->logValues();
 }
 void UILayer::yStartUp() {
-    GameManager* gman = GameManager::sharedState();
-    PlayLayer* playLayer = MEMBER_BY_OFFSET(PlayLayer*, gman, 0x150);
-    PlayerObject* player = MEMBER_BY_OFFSET(PlayerObject*, playLayer, 0x22c);
-    MEMBER_BY_OFFSET(double, player, 0x348) += 1.d;
+    PlayerObject* player = getPlayer();
+    addYStart(player, 0.5d);
     player->logValues();
 }
 void UILayer::yStartDown() {
-    GameManager* gman = GameManager::sharedState();
-    PlayLayer* playLayer = MEMBER_BY_OFFSET(PlayLayer*, gman, 0x150);
-    PlayerObject* player = MEMBER_BY_OFFSET(PlayerObject*, playLayer, 0x22c);
-    MEMBER_BY_OFFSET(double, player, 0x348) -= 1.d;
+    PlayerObject* player = getPlayer();
+    addYStart(player, -0.5d);
     player->logValues();
 }
 bool (*TRAM_UILayer_init)(UILayer* self);
 bool UILayer_init(UILayer* self) {
     if (!TRAM_UILayer_init(self)) return false;
     HaxManager& hax = HaxManager::sharedState();
+    auto director = CCDirector::sharedDirector();
+    auto winSize = director->getWinSize();
+    if (hax.cheatIndicator) {
+        auto cheatIndicatorLabel = CCLabelBMFont::create(".", "bigFont.fnt");
+        cheatIndicatorLabel->setPosition(ccp(15, winSize.height));
+        switch (hax.getCheatIndicatorColor()) {
+            case CheatIndicatorColor::Green:
+                cheatIndicatorLabel->setColor(ccGREEN);
+                break;
+            case CheatIndicatorColor::Yellow:
+                cheatIndicatorLabel->setColor(ccYELLOW);
+                break;
+            case CheatIndicatorColor::Red:
+                cheatIndicatorLabel->setColor(ccRED);
+                break;
+            default:
+                cheatIndicatorLabel->setColor(ccWHITE);
+                break;
+        };
+        hax.cheatIndicatorLabel = cheatIndicatorLabel;
+        self->addChild(cheatIndicatorLabel, 10000);
+    }
     if (hax.pCommand) {
-        GameManager* gman = GameManager::sharedState();
-        PlayLayer* playLayer = MEMBER_BY_OFFSET(PlayLayer*, gman, 0x150);
-        PlayerObject* player = MEMBER_BY_OFFSET(PlayerObject*, playLayer, 0x22c);
-
-        auto director = CCDirector::sharedDirector();
-        auto winSize = director->getWinSize();
-
         auto menu = CCMenu::create();
         menu->setPosition(ccp(winSize.width - 30, winSize.height - 40));
 
@@ -357,6 +356,31 @@ bool UILayer_init(UILayer* self) {
         self->addChild(menu, 10000);
     }
     return true;
+}
+void (*TRAM_UILayer_draw)(UILayer* self);
+void UILayer_draw(UILayer* self) {
+    TRAM_UILayer_draw(self);
+    HaxManager& hax = HaxManager::sharedState();
+    auto director = CCDirector::sharedDirector();
+    if (hax.cheatIndicator) {
+        switch (hax.getCheatIndicatorColor()) {
+            case CheatIndicatorColor::Green:
+                hax.cheatIndicatorLabel->setColor(ccGREEN);
+                break;
+            case CheatIndicatorColor::Yellow:
+                hax.cheatIndicatorLabel->setColor(ccYELLOW);
+                break;
+            case CheatIndicatorColor::Red:
+                hax.cheatIndicatorLabel->setColor(ccRED);
+                break;
+            default:
+                hax.cheatIndicatorLabel->setColor(ccWHITE);
+                break;
+        };
+    }
+    if (hax.showPercentage) {
+
+    }
 }
 /*
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -475,11 +499,11 @@ int main() {
         reinterpret_cast<void*>(EditorUI_showMaxError),
         reinterpret_cast<void**>(&TRAM_EditorUI_showMaxError)
     );
-    DobbyHook(
-        dlsym(handle, "_ZN8EditorUI8onCreateEv"),
-        reinterpret_cast<void*>(EditorUI_onCreate),
-        reinterpret_cast<void**>(&TRAM_EditorUI_onCreate)
-    );
+    // DobbyHook(
+    //     dlsym(handle, "_ZN8EditorUI8onCreateEv"),
+    //     reinterpret_cast<void*>(EditorUI_onCreate),
+    //     reinterpret_cast<void**>(&TRAM_EditorUI_onCreate)
+    // );
     // DobbyHook(
     //     dlsym(handle, "_ZN12PlayerObject6updateEf"),
     //     reinterpret_cast<void*>(PlayerObject_update),

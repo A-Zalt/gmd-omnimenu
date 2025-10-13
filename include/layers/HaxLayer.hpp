@@ -31,6 +31,8 @@ protected:
     void onLevelCopying(CCObject*);
     void on100KBFix(CCObject*);
     void onpCommand(CCObject*);
+    void onCheatIndicator(CCObject*);
+    void onShowPercentage(CCObject*);
 
     cocos2d::CCSprite* m_background = nullptr;
     bool m_fromRope = false;
