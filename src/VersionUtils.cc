@@ -4,17 +4,20 @@
 #define GAME_VERSION 3
 #define READABLE_GAME_VERSION "1.2"
 #define READABLE_GAME_VERSION_FULL "1.22"
+#define MENU_VERSION "0.40"
 #define MEMBER_BY_OFFSET(type, var, offset) \
     (*reinterpret_cast<type*>(reinterpret_cast<uintptr_t>(var) + static_cast<uintptr_t>(offset)))
 
-#define GameManager__m_playLayer  0x150
-#define PlayLayer__m_playerObject 0x22c
-#define PlayLayer__m_level        0x230
-#define GJGameLevel__m_levelType  0x1a0
-#define GJGameLevel__m_isVerified 0x159
-#define PlayerObject__m_xVelocity 0x340
-#define PlayerObject__m_gravity   0x350
-#define PlayerObject__m_yStart    0x348
+#define GameManager__m_playLayer       0x150
+#define GJGameLevel__m_levelType       0x1a0
+#define GJGameLevel__m_isVerified      0x159
+#define GJGameLevel__m_normalPercent   0x168
+#define GJGameLevel__m_practicePercent 0x16c
+#define PlayLayer__m_playerObject      0x22c
+#define PlayLayer__m_level             0x230
+#define PlayerObject__m_xVelocity      0x340
+#define PlayerObject__m_gravity        0x350
+#define PlayerObject__m_yStart         0x348
 
 PlayLayer* getPlayLayer() {
     GameManager* gman = GameManager::sharedState();
@@ -77,4 +80,17 @@ void setYStart(PlayerObject* player, double yStart) {
 }
 void addYStart(PlayerObject* player, double adder) {
     MEMBER_BY_OFFSET(double, player, PlayerObject__m_yStart) += adder;
+}
+
+int getLevelNormalPercent(GJGameLevel* level) {
+    return MEMBER_BY_OFFSET(int, level, GJGameLevel__m_normalPercent);
+}
+int getLevelPracticePercent(GJGameLevel* level) {
+    return MEMBER_BY_OFFSET(int, level, GJGameLevel__m_practicePercent);
+}
+void setLevelNormalPercent(GJGameLevel* level, int percent) {
+    MEMBER_BY_OFFSET(int, level, GJGameLevel__m_normalPercent) = percent;
+}
+void setLevelPracticePercent(GJGameLevel* level, int percent) {
+    MEMBER_BY_OFFSET(int, level, GJGameLevel__m_practicePercent) = percent;
 }

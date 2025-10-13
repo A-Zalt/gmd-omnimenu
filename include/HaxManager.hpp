@@ -36,6 +36,7 @@ public:
     bool cheatIndicator;
     bool showPercentage;
     cocos2d::CCLabelBMFont* cheatIndicatorLabel;
+    cocos2d::CCLabelBMFont* percentageLabel;
 
     CheatIndicatorColor getCheatIndicatorColor() {
         if (noClip || instantComplete || noMirror || pCommand) return CheatIndicatorColor::Red;

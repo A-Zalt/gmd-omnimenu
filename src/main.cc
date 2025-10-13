@@ -289,7 +289,7 @@ bool UILayer_init(UILayer* self) {
     auto winSize = director->getWinSize();
     if (hax.cheatIndicator) {
         auto cheatIndicatorLabel = CCLabelBMFont::create(".", "bigFont.fnt");
-        cheatIndicatorLabel->setPosition(ccp(15, winSize.height));
+        cheatIndicatorLabel->setPosition(ccp(15, winSize.height - 10));
         switch (hax.getCheatIndicatorColor()) {
             case CheatIndicatorColor::Green:
                 cheatIndicatorLabel->setColor(ccGREEN);
@@ -306,6 +306,12 @@ bool UILayer_init(UILayer* self) {
         };
         hax.cheatIndicatorLabel = cheatIndicatorLabel;
         self->addChild(cheatIndicatorLabel, 10000);
+    }
+    if (hax.showPercentage) {
+        auto percentageLabel = CCLabelBMFont::create("0%", "bigFont.fnt");
+        percentageLabel->setPosition(ccp(winSize.width / 2, winSize.height - 10));
+        hax.percentageLabel = percentageLabel;
+        self->addChild(percentageLabel, 10000);
     }
     if (hax.pCommand) {
         auto menu = CCMenu::create();
@@ -362,7 +368,14 @@ void UILayer_draw(UILayer* self) {
     TRAM_UILayer_draw(self);
     HaxManager& hax = HaxManager::sharedState();
     auto director = CCDirector::sharedDirector();
+    auto winSize = director->getWinSize();
     if (hax.cheatIndicator) {
+        if (!hax.cheatIndicatorLabel) {
+            auto cheatIndicatorLabel = CCLabelBMFont::create(".", "bigFont.fnt");
+            cheatIndicatorLabel->setPosition(ccp(15, winSize.height - 10));
+            hax.cheatIndicatorLabel = cheatIndicatorLabel;
+            self->addChild(cheatIndicatorLabel, 10000);
+        }
         switch (hax.getCheatIndicatorColor()) {
             case CheatIndicatorColor::Green:
                 hax.cheatIndicatorLabel->setColor(ccGREEN);
@@ -379,7 +392,13 @@ void UILayer_draw(UILayer* self) {
         };
     }
     if (hax.showPercentage) {
-
+        if (!hax.percentageLabel) {
+            auto percentageLabel = CCLabelBMFont::create("0%", "bigFont.fnt");
+            percentageLabel->setPosition(ccp(winSize.width / 2, winSize.height - 10));
+            hax.percentageLabel = percentageLabel;
+            self->addChild(percentageLabel, 10000);
+        }
+        hax.percentageLabel->setString(CCString::createWithFormat("%d%%", getLevelNormalPercent(getPlayLayerLevel()))->getCString());
     }
 }
 /*
@@ -391,17 +410,21 @@ bool (*TRAM_CCString_initWithFormatAndValist)(cocos2d::CCString* self, const cha
 bool CCString_initWithFormatAndValist(cocos2d::CCString* self, const char* format, va_list ap) {
     HaxManager& hax = HaxManager::sharedState();
     if (hax.upload100KbFix) {
+        bool bRet = false;
         size_t buf_size = static_cast<size_t>(vsnprintf(nullptr, 0, format, ap)) + 1;
         char* buf = static_cast<char*>(malloc(buf_size));
 
-        vsprintf(buf, format, ap);
-        buf[buf_size] = '\x00';
-        
-        *self = cocos2d::CCString(buf);    
-        
-        free(buf);
+        if (buf != NULL) {
+            vsprintf(buf, format, ap);
+            buf[buf_size] = '\x00';
+            
+            *self = cocos2d::CCString(buf);
+            
+            free(buf);
+            bRet = true;
+        }
 
-        return true;
+        return bRet;
     } else {
         return TRAM_CCString_initWithFormatAndValist(self, format, ap);
     }
