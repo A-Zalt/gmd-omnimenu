@@ -11,7 +11,9 @@
 #include "LevelInfoLayer.hpp"
 #include "CCMenuItemSpriteExtra.hpp"
 #include "GameLevelManager.hpp"
+#include "ButtonSprite.hpp"
 #include <algorithm>
+#include "UILayer.hpp"
 
 std::string itoa(int value) {
     static const char digits[] = "0123456789";
@@ -205,6 +207,13 @@ void GameLevelManager_uploadLevel(GameLevelManager* self, GJGameLevel* level) {
     if (hax.upload100KbFix) {
         GameManager* gman = GameManager::sharedState();
         gman->reportAchievementWithID("geometry.ach.submit", 100);
+        const char* key = itoa(MEMBER_BY_OFFSET(int, level, 0x1a4)).c_str(); // getM_ID
+        cocos2d::CCDictionary* crapDict = MEMBER_BY_OFFSET(cocos2d::CCDictionary*, self, 0x14C);
+        if (crapDict->objectForKey(key) != nullptr) {
+            cocos2d::CCLog("Quitting early!");
+            return;
+        }
+        crapDict->setObject(cocos2d::CCNode::create(), key);
         std::string url = "http://nikolyas.141412.xyz/testin/uploadGJLevel.php";
         std::string params = "udid=";
         params += MEMBER_BY_OFFSET(std::string, gman, 0x164);
@@ -229,11 +238,15 @@ void GameLevelManager_uploadLevel(GameLevelManager* self, GJGameLevel* level) {
         cocos2d::extension::CCHttpRequest* request = new cocos2d::extension::CCHttpRequest();
         request->setUrl(url.c_str());
         request->setRequestType(cocos2d::extension::CCHttpRequest::HttpRequestType::kHttpPost);
-        request->setRequestData(params.c_str(), strlen(params.c_str()));
         request->setResponseCallback(self, callfuncND_selector(GameLevelManager::onUploadLevelCompleted));
+        if (self != NULL) self->retain();
+        request->setTag(key);
+        request->setRequestData(params.c_str(), strlen(params.c_str()) + 1);
 
-        cocos2d::CCLog(request->getUrl());
-        cocos2d::CCLog(request->getRequestData());
+        // cocos2d::CCLog(request->getUrl());
+        // cocos2d::CCLog(params.c_str());
+        // cocos2d::CCLog(request->getRequestData());
+        // cocos2d::CCLog(request->getTag());
 
         cocos2d::extension::CCHttpClient::getInstance()->send(request);
 
@@ -241,6 +254,109 @@ void GameLevelManager_uploadLevel(GameLevelManager* self, GJGameLevel* level) {
     } else {
         TRAM_GameLevelManager_uploadLevel(self, level);
     }
+}
+void UILayer::speedUp() {
+    GameManager* gman = GameManager::sharedState();
+    PlayLayer* playLayer = MEMBER_BY_OFFSET(PlayLayer*, gman, 0x150);
+    PlayerObject* player = MEMBER_BY_OFFSET(PlayerObject*, playLayer, 0x22c);
+    MEMBER_BY_OFFSET(double, player, 0x340) += 0.5d;
+    player->logValues();
+}
+void UILayer::speedDown() {
+    GameManager* gman = GameManager::sharedState();
+    PlayLayer* playLayer = MEMBER_BY_OFFSET(PlayLayer*, gman, 0x150);
+    PlayerObject* player = MEMBER_BY_OFFSET(PlayerObject*, playLayer, 0x22c);
+    MEMBER_BY_OFFSET(double, player, 0x340) -= 0.5d;
+    player->logValues();
+}
+void UILayer::gravityUp() {
+    GameManager* gman = GameManager::sharedState();
+    PlayLayer* playLayer = MEMBER_BY_OFFSET(PlayLayer*, gman, 0x150);
+    PlayerObject* player = MEMBER_BY_OFFSET(PlayerObject*, playLayer, 0x22c);
+    MEMBER_BY_OFFSET(double, player, 0x350) += 0.1d;
+    player->logValues();
+}
+void UILayer::gravityDown() {
+    GameManager* gman = GameManager::sharedState();
+    PlayLayer* playLayer = MEMBER_BY_OFFSET(PlayLayer*, gman, 0x150);
+    PlayerObject* player = MEMBER_BY_OFFSET(PlayerObject*, playLayer, 0x22c);
+    MEMBER_BY_OFFSET(double, player, 0x350) -= 0.1d;
+    player->logValues();
+}
+void UILayer::yStartUp() {
+    GameManager* gman = GameManager::sharedState();
+    PlayLayer* playLayer = MEMBER_BY_OFFSET(PlayLayer*, gman, 0x150);
+    PlayerObject* player = MEMBER_BY_OFFSET(PlayerObject*, playLayer, 0x22c);
+    MEMBER_BY_OFFSET(double, player, 0x348) += 1.d;
+    player->logValues();
+}
+void UILayer::yStartDown() {
+    GameManager* gman = GameManager::sharedState();
+    PlayLayer* playLayer = MEMBER_BY_OFFSET(PlayLayer*, gman, 0x150);
+    PlayerObject* player = MEMBER_BY_OFFSET(PlayerObject*, playLayer, 0x22c);
+    MEMBER_BY_OFFSET(double, player, 0x348) -= 1.d;
+    player->logValues();
+}
+bool (*TRAM_UILayer_init)(UILayer* self);
+bool UILayer_init(UILayer* self) {
+    if (!TRAM_UILayer_init(self)) return false;
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.pCommand) {
+        GameManager* gman = GameManager::sharedState();
+        PlayLayer* playLayer = MEMBER_BY_OFFSET(PlayLayer*, gman, 0x150);
+        PlayerObject* player = MEMBER_BY_OFFSET(PlayerObject*, playLayer, 0x22c);
+
+        auto director = CCDirector::sharedDirector();
+        auto winSize = director->getWinSize();
+
+        auto menu = CCMenu::create();
+        menu->setPosition(ccp(winSize.width - 30, winSize.height - 40));
+
+        auto btnSpr1 = ButtonSprite::create("S+", 20);
+        btnSpr1->setScale(1.0f);
+
+        auto btn1 = CCMenuItemSpriteExtra::create(btnSpr1, btnSpr1, self, menu_selector(UILayer::speedUp));
+        btn1->setPosition(ccp(0, -55));
+        menu->addChild(btn1);
+
+        auto btnSpr2 = ButtonSprite::create("S-", 20);
+        btnSpr2->setScale(1.0f);
+
+        auto btn2 = CCMenuItemSpriteExtra::create(btnSpr2, btnSpr2, self, menu_selector(UILayer::speedDown));
+        btn2->setPosition(ccp(0, -85));
+        menu->addChild(btn2, 10002);
+
+        auto btnSpr3 = ButtonSprite::create("G+", 20);
+        btnSpr3->setScale(1.0f);
+
+        auto btn3 = CCMenuItemSpriteExtra::create(btnSpr3, btnSpr3, self, menu_selector(UILayer::gravityUp));
+        btn3->setPosition(ccp(0, -115));
+        menu->addChild(btn3, 10003);
+
+        auto btnSpr4 = ButtonSprite::create("G-", 20);
+        btnSpr4->setScale(1.0f);
+
+        auto btn4 = CCMenuItemSpriteExtra::create(btnSpr4, btnSpr4, self, menu_selector(UILayer::gravityDown));
+        btn4->setPosition(ccp(0, -145));
+        menu->addChild(btn4, 10004);
+
+        auto btnSpr5 = ButtonSprite::create("Y+", 20);
+        btnSpr5->setScale(1.0f);
+
+        auto btn5 = CCMenuItemSpriteExtra::create(btnSpr5, btnSpr5, self, menu_selector(UILayer::yStartUp));
+        btn5->setPosition(ccp(0, -175));
+        menu->addChild(btn5, 10005);
+
+        auto btnSpr6 = ButtonSprite::create("Y-", 20);
+        btnSpr6->setScale(1.0f);
+
+        auto btn6 = CCMenuItemSpriteExtra::create(btnSpr6, btnSpr6, self, menu_selector(UILayer::yStartDown));
+        btn6->setPosition(ccp(0, -205));
+        menu->addChild(btn6, 10006);
+
+        self->addChild(menu, 10000);
+    }
+    return true;
 }
 // void (*TRAM_EditorUI_zoomGameLayer)(void* self, bool zoomIn);
 // void EditorUI_zoomGameLayer(void* self, bool zoomIn) {
@@ -369,5 +485,10 @@ int main() {
         dlsym(handle, "_ZN16GameLevelManager11uploadLevelEP11GJGameLevel"),
         reinterpret_cast<void*>(GameLevelManager_uploadLevel),
         reinterpret_cast<void**>(&TRAM_GameLevelManager_uploadLevel)
+    );
+    DobbyHook(
+        dlsym(handle, "_ZN7UILayer4initEv"),
+        reinterpret_cast<void*>(UILayer_init),
+        reinterpret_cast<void**>(&TRAM_UILayer_init)
     );
 }

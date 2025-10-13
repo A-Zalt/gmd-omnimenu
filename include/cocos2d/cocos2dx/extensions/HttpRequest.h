@@ -175,6 +175,18 @@ public:
         return _pSelector;
     }
 
+    /** Set any custom headers **/
+    inline void setHeaders(std::vector<std::string> pHeaders)
+   	{
+   		_headers=pHeaders;
+   	}
+   
+    /** Get custom headers **/
+   	inline std::vector<std::string> getHeaders()
+   	{
+   		return _headers;
+   	}
+
 
 protected:
     // properties
@@ -184,7 +196,8 @@ protected:
     std::string                 _tag;            /// user defined tag, to identify different requests in response callback
     CCObject*          _pTarget;        /// callback target of pSelector function
     SEL_CallFuncND     _pSelector;      /// callback function, e.g. MyLayer::onHttpResponse(CCObject *sender, void *data)
-    void*                       _pUserData;      /// You can add your customed data here
+    void*                       _pUserData;      /// You can add your customed data here 
+    std::vector<std::string>    _headers;		      /// custom http headers
 };
 
 }}

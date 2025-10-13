@@ -21,4 +21,5 @@ public:
     CC_SYNTHESIZE(const char*, m_pClickSound, ClickSound);
 
     static CCMenuItemSpriteExtra* create(cocos2d::CCNode* sprite, cocos2d::CCNode* unk, cocos2d::CCObject* target, SEL_MenuHandler callback);
+    void setSizeMult(float);
 };

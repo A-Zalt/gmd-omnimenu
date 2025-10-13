@@ -45,6 +45,7 @@ bool HaxLayer::init(bool fromRope) {
     buttonMenu->addChild(backBtn);
     buttonMenu->setPosition(ccp(25.f, winSize.height / 2));
     backBtn->setPosition(ccp(0, winSize.height / 2 - 25));
+    backBtn->setSizeMult(1.5f);
 
     addChild(buttonMenu, 1);
 
@@ -64,6 +65,7 @@ bool HaxLayer::init(bool fromRope) {
     addCheckbox(1, 0, "Free Scroll", hax.freeScroll, menu_selector(HaxLayer::onFreeScroll),                     buttonMenu, this);
     addCheckbox(1, 1, "Level Copying", hax.levelCopying, menu_selector(HaxLayer::onLevelCopying),               buttonMenu, this);
     addCheckbox(1, 2, "100 KB Fix", hax.upload100KbFix, menu_selector(HaxLayer::on100KBFix),                    buttonMenu, this);
+    addCheckbox(1, 3, "pCommand", hax.pCommand, menu_selector(HaxLayer::onpCommand),                            buttonMenu, this);
 
     setKeypadEnabled(true);
 
