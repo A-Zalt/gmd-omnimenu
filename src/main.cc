@@ -201,60 +201,60 @@ bool LevelInfoLayer_init(LevelInfoLayer* self, GJGameLevel* level) {
     }
     return true;
 }
-void (*TRAM_GameLevelManager_uploadLevel)(GameLevelManager* self, GJGameLevel* level);
-void GameLevelManager_uploadLevel(GameLevelManager* self, GJGameLevel* level) {
-    HaxManager& hax = HaxManager::sharedState();
-    if (hax.upload100KbFix) {
-        GameManager* gman = GameManager::sharedState();
-        gman->reportAchievementWithID("geometry.ach.submit", 100);
-        const char* key = itoa(MEMBER_BY_OFFSET(int, level, 0x1a4)).c_str(); // getM_ID
-        cocos2d::CCDictionary* crapDict = MEMBER_BY_OFFSET(cocos2d::CCDictionary*, self, 0x14C);
-        if (crapDict->objectForKey(key) != nullptr) {
-            cocos2d::CCLog("Quitting early!");
-            return;
-        }
-        crapDict->setObject(cocos2d::CCNode::create(), key);
-        std::string url = "http://nikolyas.141412.xyz/testin/uploadGJLevel.php";
-        std::string params = "udid=";
-        params += MEMBER_BY_OFFSET(std::string, gman, 0x164);
-        params += "&username=";
-        params += MEMBER_BY_OFFSET(std::string, gman, 0x168);
-        params += "&secret=Wmfd2893gb7&levelID=";
-        params += itoa(MEMBER_BY_OFFSET(int, level, 0x128));
-        params += "&levelName=";
-        params += MEMBER_BY_OFFSET(std::string, level, 0x12c);
-        params += "&levelDesc=";
-        params += MEMBER_BY_OFFSET(std::string, level, 0x130);
-        params += "&levelString=";
-        params += MEMBER_BY_OFFSET(std::string, level, 0x134);
-        params += "&levelVersion=";
-        params += itoa(MEMBER_BY_OFFSET(int, level, 0x15c));
-        params += "&levelLength=";
-        params += itoa(MEMBER_BY_OFFSET(int, level, 0x178));
-        params += "&audioTrack=";
-        params += itoa(MEMBER_BY_OFFSET(int, level, 0x144));
-        params += "&gameVersion=3";
+// void (*TRAM_GameLevelManager_uploadLevel)(GameLevelManager* self, GJGameLevel* level);
+// void GameLevelManager_uploadLevel(GameLevelManager* self, GJGameLevel* level) {
+//     HaxManager& hax = HaxManager::sharedState();
+//     if (hax.upload100KbFix) {
+//         GameManager* gman = GameManager::sharedState();
+//         gman->reportAchievementWithID("geometry.ach.submit", 100);
+//         const char* key = itoa(MEMBER_BY_OFFSET(int, level, 0x1a4)).c_str(); // getM_ID
+//         cocos2d::CCDictionary* crapDict = MEMBER_BY_OFFSET(cocos2d::CCDictionary*, self, 0x14C);
+//         if (crapDict->objectForKey(key) != nullptr) {
+//             cocos2d::CCLog("Quitting early!");
+//             return;
+//         }
+//         crapDict->setObject(cocos2d::CCNode::create(), key);
+//         std::string url = "http://nikolyas.141412.xyz/testin/uploadGJLevel.php";
+//         std::string params = "udid=";
+//         params += MEMBER_BY_OFFSET(std::string, gman, 0x164);
+//         params += "&username=";
+//         params += MEMBER_BY_OFFSET(std::string, gman, 0x168);
+//         params += "&secret=Wmfd2893gb7&levelID=";
+//         params += itoa(MEMBER_BY_OFFSET(int, level, 0x128));
+//         params += "&levelName=";
+//         params += MEMBER_BY_OFFSET(std::string, level, 0x12c);
+//         params += "&levelDesc=";
+//         params += MEMBER_BY_OFFSET(std::string, level, 0x130);
+//         params += "&levelString=";
+//         params += MEMBER_BY_OFFSET(std::string, level, 0x134);
+//         params += "&levelVersion=";
+//         params += itoa(MEMBER_BY_OFFSET(int, level, 0x15c));
+//         params += "&levelLength=";
+//         params += itoa(MEMBER_BY_OFFSET(int, level, 0x178));
+//         params += "&audioTrack=";
+//         params += itoa(MEMBER_BY_OFFSET(int, level, 0x144));
+//         params += "&gameVersion=3";
 
-        cocos2d::extension::CCHttpRequest* request = new cocos2d::extension::CCHttpRequest();
-        request->setUrl(url.c_str());
-        request->setRequestType(cocos2d::extension::CCHttpRequest::HttpRequestType::kHttpPost);
-        request->setResponseCallback(self, callfuncND_selector(GameLevelManager::onUploadLevelCompleted));
-        if (self != NULL) self->retain();
-        request->setTag(key);
-        request->setRequestData(params.c_str(), strlen(params.c_str()) + 1);
+//         cocos2d::extension::CCHttpRequest* request = new cocos2d::extension::CCHttpRequest();
+//         request->setUrl(url.c_str());
+//         request->setRequestType(cocos2d::extension::CCHttpRequest::HttpRequestType::kHttpPost);
+//         request->setResponseCallback(self, callfuncND_selector(GameLevelManager::onUploadLevelCompleted));
+//         if (self != NULL) self->retain();
+//         request->setTag(key);
+//         request->setRequestData(params.c_str(), strlen(params.c_str()) + 1);
 
-        // cocos2d::CCLog(request->getUrl());
-        // cocos2d::CCLog(params.c_str());
-        // cocos2d::CCLog(request->getRequestData());
-        // cocos2d::CCLog(request->getTag());
+//         // cocos2d::CCLog(request->getUrl());
+//         // cocos2d::CCLog(params.c_str());
+//         // cocos2d::CCLog(request->getRequestData());
+//         // cocos2d::CCLog(request->getTag());
 
-        cocos2d::extension::CCHttpClient::getInstance()->send(request);
+//         cocos2d::extension::CCHttpClient::getInstance()->send(request);
 
-        request->release();
-    } else {
-        TRAM_GameLevelManager_uploadLevel(self, level);
-    }
-}
+//         request->release();
+//     } else {
+//         TRAM_GameLevelManager_uploadLevel(self, level);
+//     }
+// }
 void UILayer::speedUp() {
     GameManager* gman = GameManager::sharedState();
     PlayLayer* playLayer = MEMBER_BY_OFFSET(PlayLayer*, gman, 0x150);
@@ -357,6 +357,30 @@ bool UILayer_init(UILayer* self) {
         self->addChild(menu, 10000);
     }
     return true;
+}
+/*
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+!!!!!! SHOUTOUT TO ADELFA/AKQANILE FOR IMPLEMENTATION !!!!!!
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+*/ 
+bool (*TRAM_CCString_initWithFormatAndValist)(cocos2d::CCString* self, const char* format, va_list ap);
+bool CCString_initWithFormatAndValist(cocos2d::CCString* self, const char* format, va_list ap) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.upload100KbFix) {
+        size_t buf_size = static_cast<size_t>(vsnprintf(nullptr, 0, format, ap)) + 1;
+        char* buf = static_cast<char*>(malloc(buf_size));
+
+        vsprintf(buf, format, ap);
+        buf[buf_size] = '\x00';
+        
+        *self = cocos2d::CCString(buf);    
+        
+        free(buf);
+
+        return true;
+    } else {
+        return TRAM_CCString_initWithFormatAndValist(self, format, ap);
+    }
 }
 // void (*TRAM_EditorUI_zoomGameLayer)(void* self, bool zoomIn);
 // void EditorUI_zoomGameLayer(void* self, bool zoomIn) {
@@ -481,14 +505,19 @@ int main() {
         reinterpret_cast<void*>(LevelInfoLayer_init),
         reinterpret_cast<void**>(&TRAM_LevelInfoLayer_init)
     );
-    DobbyHook(
-        dlsym(handle, "_ZN16GameLevelManager11uploadLevelEP11GJGameLevel"),
-        reinterpret_cast<void*>(GameLevelManager_uploadLevel),
-        reinterpret_cast<void**>(&TRAM_GameLevelManager_uploadLevel)
-    );
+    // DobbyHook(
+    //     dlsym(handle, "_ZN16GameLevelManager11uploadLevelEP11GJGameLevel"),
+    //     reinterpret_cast<void*>(GameLevelManager_uploadLevel),
+    //     reinterpret_cast<void**>(&TRAM_GameLevelManager_uploadLevel)
+    // );
     DobbyHook(
         dlsym(handle, "_ZN7UILayer4initEv"),
         reinterpret_cast<void*>(UILayer_init),
         reinterpret_cast<void**>(&TRAM_UILayer_init)
+    );
+    DobbyHook(
+        dlsym(handle, "_ZN7cocos2d8CCString23initWithFormatAndValistEPKcSt9__va_list"),
+        reinterpret_cast<void*>(CCString_initWithFormatAndValist),
+        reinterpret_cast<void**>(&TRAM_CCString_initWithFormatAndValist)
     );
 }
