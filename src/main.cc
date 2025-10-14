@@ -255,6 +255,7 @@ void UILayer::speedUp() {
     PlayerObject* player = getPlayer();
     addXVelocity(player, 0.5d);
     player->logValues();
+    cocos2d::CCLog("Currently at %i", getCurrentPercentage());
 }
 void UILayer::speedDown() {
     PlayerObject* player = getPlayer();
@@ -310,6 +311,7 @@ bool UILayer_init(UILayer* self) {
     if (hax.showPercentage) {
         auto percentageLabel = CCLabelBMFont::create("0%", "bigFont.fnt");
         percentageLabel->setPosition(ccp(winSize.width / 2, winSize.height - 10));
+        percentageLabel->setScale(0.5f);
         hax.percentageLabel = percentageLabel;
         self->addChild(percentageLabel, 10000);
     }
@@ -363,19 +365,22 @@ bool UILayer_init(UILayer* self) {
     }
     return true;
 }
-void (*TRAM_UILayer_draw)(UILayer* self);
-void UILayer_draw(UILayer* self) {
-    TRAM_UILayer_draw(self);
+void (*TRAM_PlayLayer_update)(PlayLayer* self, float dt);
+void PlayLayer_update(PlayLayer* self, float dt) {
+    TRAM_PlayLayer_update(self, dt);
     HaxManager& hax = HaxManager::sharedState();
     auto director = CCDirector::sharedDirector();
     auto winSize = director->getWinSize();
+    UILayer* uiLayer = getUILayer(self);
     if (hax.cheatIndicator) {
         if (!hax.cheatIndicatorLabel) {
             auto cheatIndicatorLabel = CCLabelBMFont::create(".", "bigFont.fnt");
             cheatIndicatorLabel->setPosition(ccp(15, winSize.height - 10));
             hax.cheatIndicatorLabel = cheatIndicatorLabel;
-            self->addChild(cheatIndicatorLabel, 10000);
-        }
+            uiLayer->addChild(cheatIndicatorLabel, 10000);
+        } else if (!hax.cheatIndicatorLabel->isVisible())
+            hax.cheatIndicatorLabel->setVisible(true);
+
         switch (hax.getCheatIndicatorColor()) {
             case CheatIndicatorColor::Green:
                 hax.cheatIndicatorLabel->setColor(ccGREEN);
@@ -390,15 +395,24 @@ void UILayer_draw(UILayer* self) {
                 hax.cheatIndicatorLabel->setColor(ccWHITE);
                 break;
         };
+    } else {
+        if (hax.cheatIndicatorLabel && hax.cheatIndicatorLabel->isVisible()) 
+            hax.cheatIndicatorLabel->setVisible(false);
     }
     if (hax.showPercentage) {
         if (!hax.percentageLabel) {
             auto percentageLabel = CCLabelBMFont::create("0%", "bigFont.fnt");
             percentageLabel->setPosition(ccp(winSize.width / 2, winSize.height - 10));
+            percentageLabel->setScale(0.5f);
             hax.percentageLabel = percentageLabel;
-            self->addChild(percentageLabel, 10000);
+            uiLayer->addChild(percentageLabel, 10000);
+        } else if (!hax.percentageLabel->isVisible()) {
+            hax.percentageLabel->setVisible(true);
         }
-        hax.percentageLabel->setString(CCString::createWithFormat("%d%%", getLevelNormalPercent(getPlayLayerLevel()))->getCString());
+        hax.percentageLabel->setString(CCString::createWithFormat("%i%%", getCurrentPercentage())->getCString());
+    } else {
+        if (hax.percentageLabel && hax.percentageLabel->isVisible())
+            hax.percentageLabel->setVisible(false);
     }
 }
 /*
@@ -566,5 +580,15 @@ int main() {
         dlsym(handle, "_ZN7cocos2d8CCString23initWithFormatAndValistEPKcSt9__va_list"),
         reinterpret_cast<void*>(CCString_initWithFormatAndValist),
         reinterpret_cast<void**>(&TRAM_CCString_initWithFormatAndValist)
+    );
+    // DobbyHook(
+    //     dlsym(handle, "_ZN7UILayer4drawEv"),
+    //     reinterpret_cast<void*>(UILayer_draw),
+    //     reinterpret_cast<void**>(&TRAM_UILayer_draw)
+    // );
+    DobbyHook(
+        dlsym(handle, "_ZN9PlayLayer6updateEf"),
+        reinterpret_cast<void*>(PlayLayer_update),
+        reinterpret_cast<void**>(&TRAM_PlayLayer_update)
     );
 }
