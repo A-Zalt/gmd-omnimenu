@@ -33,6 +33,7 @@ protected:
     void onpCommand(CCObject*);
     void onCheatIndicator(CCObject*);
     void onShowPercentage(CCObject*);
+    void onViewAttempts(CCObject*);
 
     cocos2d::CCSprite* m_background = nullptr;
     bool m_fromRope = false;

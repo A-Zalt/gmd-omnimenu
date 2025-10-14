@@ -1,30 +1,22 @@
 #include "GameManager.hpp"
-#include "GJGameLevel.hpp"
 #include "UILayer.hpp"
+#include "LevelInfoLayer.hpp"
+#include "offsets.hpp"
+#include "constants.hpp"
+#include <dlfcn.h>  // dlsym, RTLD_NOW
+#include <dobby.h>  // DobbyHook
 
-#define GAME_VERSION 3
-#define READABLE_GAME_VERSION "1.2"
-#define READABLE_GAME_VERSION_FULL "1.22"
-#define MENU_VERSION "0.41"
 #define MEMBER_BY_OFFSET(type, var, offset) \
     (*reinterpret_cast<type*>(reinterpret_cast<uintptr_t>(var) + static_cast<uintptr_t>(offset)))
 
-/****************************************************/
-/*/                    OFFSETS                     /*/
-/**/ #define GJGameLevel__m_isVerified      0x159 /**/
-/**/ #define GJGameLevel__m_levelType       0x1a0 /**/
-/**/ #define GJGameLevel__m_normalPercent   0x168 /**/
-/**/ #define GJGameLevel__m_practicePercent 0x16c /**/
-/**/ #define GameManager__m_playLayer       0x150 /**/
-/**/ #define PlayLayer__m_lastX             0x1d8 /**/
-/**/ #define PlayLayer__m_level             0x230 /**/
-/**/ #define PlayLayer__m_playerObject      0x22c /**/
-/**/ #define PlayLayer__m_uiLayer           0x228 /**/
-/**/ #define PlayerObject__m_gravity        0x350 /**/
-/**/ #define PlayerObject__m_xVelocity      0x340 /**/
-/**/ #define PlayerObject__m_yStart         0x348 /**/
-/*/                                                /*/
-/****************************************************/
+uintptr_t function_by_address(int offset) {
+    void* handle = dlopen(MAIN_LIBRARY, RTLD_NOW);
+    void* addr = dlsym(handle, "JNI_OnLoad");
+
+    Dl_info info;
+    dladdr(addr, &info);
+    return (uintptr_t)(info.dli_fbase) + offset;
+}
 
 PlayLayer* getPlayLayer() {
     GameManager* gman = GameManager::sharedState();
@@ -117,4 +109,22 @@ int getCurrentPercentage(PlayLayer* playLayer) {
 }
 int getCurrentPercentage() {
     return getCurrentPercentage(getPlayLayer());
+}
+
+int getLevelAttempts(GJGameLevel* level) {
+    return MEMBER_BY_OFFSET(int, level, GJGameLevel__m_attempts);
+}
+void setLevelAttempts(GJGameLevel* level, int attempts) {
+    MEMBER_BY_OFFSET(int, level, GJGameLevel__m_attempts) = attempts;
+}
+
+GJGameLevel* getInfoLayerLevel(LevelInfoLayer* infoLayer) {
+    return MEMBER_BY_OFFSET(GJGameLevel*, infoLayer, LevelInfoLayer__m_level);
+}
+
+int getLevelID(GJGameLevel* level) {
+    return MEMBER_BY_OFFSET(int, level, GJGameLevel__m_levelID);
+}
+std::string getLevelName(GJGameLevel* level) {
+    return MEMBER_BY_OFFSET(std::string, level, GJGameLevel__m_levelName);
 }

@@ -1,5 +1,3 @@
-#include <dlfcn.h>  // dlsym, RTLD_NOW
-#include <dobby.h>  // DobbyHook
 #include "FLAlertLayer.hpp"
 #include "../layers/HaxLayer.hpp"
 #include "HaxManager.hpp"
@@ -14,7 +12,7 @@
 #include "ButtonSprite.hpp"
 #include <algorithm>
 #include "UILayer.hpp"
-#include "VersionUtils.cc"
+#include "version-specific/VersionUtils.cc"
 
 std::string itoa(int value) {
     static const char digits[] = "0123456789";
@@ -178,14 +176,32 @@ void EditorUI_constrainGameLayerPosition(void* self) {
     if (hax.freeScroll) return;
     TRAM_EditorUI_constrainGameLayerPosition(self);
 }
+void LevelInfoLayer::onViewLevelInfo() {
+    // GJGameLevel* level = getInfoLayerLevel(this);
+    // CCString* flAlertInsides = CCString::createWithFormat(
+    //     "<cy>Level Name</c>\n<cg>Total Attempts</c>: %i\n<cp>Normal</c>: %i%%\n<co>Practice</c>: %i%%\n<cl>Level ID</cl>: %i",
+    //     //getLevelName(level).c_str(),
+    //     getLevelAttempts(level),
+    //     getLevelNormalPercent(level),
+    //     getLevelPracticePercent(level),
+    //     getLevelID(level)
+    // );
+    FLAlertLayer::create(
+        nullptr,
+        "Level Info",
+        "can you just say something man",
+        "OK",
+        nullptr,
+        300.f
+    )->show();
+}
 bool (*TRAM_LevelInfoLayer_init)(LevelInfoLayer* self, GJGameLevel* level);
 bool LevelInfoLayer_init(LevelInfoLayer* self, GJGameLevel* level) {
     if (!TRAM_LevelInfoLayer_init(self, level)) return false;
     HaxManager& hax = HaxManager::sharedState();
+    auto director = CCDirector::sharedDirector();
+    auto winSize = director->getWinSize();
     if (hax.levelCopying) {
-        auto director = CCDirector::sharedDirector();
-        auto winSize = director->getWinSize();
-
         CCMenu* cloneMenu = CCMenu::create();
         CCSprite* cloneSpr = cocos2d::CCSprite::create("GJ_duplicateBtn.png");
         CCMenuItemSpriteExtra* cloneBtn = CCMenuItemSpriteExtra::create(cloneSpr, cloneSpr, self, menu_selector(LevelInfoLayer::onClone));
@@ -195,6 +211,17 @@ bool LevelInfoLayer_init(LevelInfoLayer* self, GJGameLevel* level) {
         cloneMenu->setPosition(ccp(35.f, winSize.height / 2));
         // cloneBtn->setPosition(ccp(0, winSize.height / 2 - 25));
     }
+    // if (hax.viewAttempts) {
+    //     CCMenu* infoMenu = CCMenu::create();
+    //     CCSprite* infoSpr = cocos2d::CCSprite::create("GJ_infoIcon.png");
+    //     CCMenuItemSpriteExtra* infoBtn = CCMenuItemSpriteExtra::create(infoSpr, infoSpr, self, menu_selector(LevelInfoLayer::onViewLevelInfo));
+
+    //     infoBtn->setSizeMult(1.5f);
+
+    //     self->addChild(infoMenu, 1001);
+    //     infoMenu->addChild(infoBtn);
+    //     infoMenu->setPosition(ccp(25.f, 25.f));
+    // }
     return true;
 }
 // void (*TRAM_GameLevelManager_uploadLevel)(GameLevelManager* self, GJGameLevel* level);
@@ -255,7 +282,6 @@ void UILayer::speedUp() {
     PlayerObject* player = getPlayer();
     addXVelocity(player, 0.5d);
     player->logValues();
-    cocos2d::CCLog("Currently at %i", getCurrentPercentage());
 }
 void UILayer::speedDown() {
     PlayerObject* player = getPlayer();
@@ -424,21 +450,18 @@ bool (*TRAM_CCString_initWithFormatAndValist)(cocos2d::CCString* self, const cha
 bool CCString_initWithFormatAndValist(cocos2d::CCString* self, const char* format, va_list ap) {
     HaxManager& hax = HaxManager::sharedState();
     if (hax.upload100KbFix) {
-        bool bRet = false;
-        size_t buf_size = static_cast<size_t>(vsnprintf(nullptr, 0, format, ap)) + 1;
+         size_t buf_size = static_cast<size_t>(vsnprintf(nullptr, 0, format, ap)) + 1;
         char* buf = static_cast<char*>(malloc(buf_size));
 
-        if (buf != NULL) {
-            vsprintf(buf, format, ap);
-            buf[buf_size] = '\x00';
-            
-            *self = cocos2d::CCString(buf);
-            
-            free(buf);
-            bRet = true;
-        }
+        vsprintf(buf, format, ap);
 
-        return bRet;
+        typedef std::string* (*gd_string_assign_t)(void*, const char*, uint);
+        gd_string_assign_t gd_string_assign = reinterpret_cast<gd_string_assign_t>(function_by_address(basicstring_assign));
+        gd_string_assign((void*)&self->m_sString, buf, buf_size - 1);
+        
+        free(buf);
+
+        return true;
     } else {
         return TRAM_CCString_initWithFormatAndValist(self, format, ap);
     }
@@ -469,7 +492,7 @@ bool CCString_initWithFormatAndValist(cocos2d::CCString* self, const char* forma
 
 [[gnu::constructor]]
 int main() {
-    void* handle = dlopen("libgame.so", RTLD_NOW);
+    void* handle = dlopen(MAIN_LIBRARY, RTLD_NOW);
 
     DobbyHook(
         dlsym(handle, "_ZN9PlayLayer13destroyPlayerEv"),

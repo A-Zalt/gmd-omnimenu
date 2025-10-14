@@ -68,6 +68,7 @@ bool HaxLayer::init(bool fromRope) {
     addCheckbox(1, 3, "pCommand", hax.pCommand, menu_selector(HaxLayer::onpCommand),                            buttonMenu, this);
     addCheckbox(1, 4, "Cheat Indicator", hax.cheatIndicator, menu_selector(HaxLayer::onCheatIndicator),         buttonMenu, this);
     addCheckbox(1, 5, "Show Percentage", hax.showPercentage, menu_selector(HaxLayer::onShowPercentage),         buttonMenu, this);
+    addCheckbox(1, 6, "View Attempts", hax.viewAttempts, menu_selector(HaxLayer::onViewAttempts),               buttonMenu, this);
 
     setKeypadEnabled(true);
 
@@ -180,5 +181,9 @@ void HaxLayer::onCheatIndicator(CCObject*) {
 void HaxLayer::onShowPercentage(CCObject*) {
     HaxManager& hax = HaxManager::sharedState();
     hax.showPercentage = !hax.showPercentage;
+}
+void HaxLayer::onViewAttempts(CCObject*) {
+    HaxManager& hax = HaxManager::sharedState();
+    hax.viewAttempts = !hax.viewAttempts;
 }
 // 

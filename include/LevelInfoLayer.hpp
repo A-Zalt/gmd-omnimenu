@@ -8,4 +8,6 @@ public:
     static LevelInfoLayer* create(GJGameLevel*);
     bool init(GJGameLevel*);
     void onClone();
+
+    void onViewLevelInfo();
 };

@@ -35,6 +35,7 @@ public:
     bool upload100KbFix;
     bool cheatIndicator;
     bool showPercentage;
+    bool viewAttempts;
     cocos2d::CCLabelBMFont* cheatIndicatorLabel;
     cocos2d::CCLabelBMFont* percentageLabel;
 
@@ -65,6 +66,7 @@ public:
         upload100KbFix = value;
         cheatIndicator = value;
         showPercentage = value;
+        viewAttempts = value;
     }
 
 private:
