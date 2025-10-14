@@ -12,7 +12,8 @@
 #include "ButtonSprite.hpp"
 #include <algorithm>
 #include "UILayer.hpp"
-#include "version-specific/VersionUtils.cc"
+#include "version/VersionUtils.cc"
+#include "version/addresses.hpp"
 
 std::string itoa(int value) {
     static const char digits[] = "0123456789";
@@ -144,7 +145,17 @@ void PlayLayer_toggleFlipped(void* self, bool p1, bool p2) {
 void (*TRAM_EditorUI_showMaxError)(void* self);
 void EditorUI_showMaxError(void* self) {
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.objectLimitHack) return;
+    if (hax.objectLimitHack) {
+        FLAlertLayer::create(
+            nullptr,
+            "Max Objects",
+            "You cannot create more than <cy>16384</c> <cg>objects</c> in a single level.",
+            "OK",
+            nullptr,
+            300.f
+        )->show();
+        return;
+    }
     TRAM_EditorUI_showMaxError(self);
 }
 // void (*TRAM_EditorUI_onCreate)(EditorUI* self);
@@ -225,6 +236,25 @@ bool LevelInfoLayer_init(LevelInfoLayer* self, GJGameLevel* level) {
         infoMenu->setPosition(ccp(25.f, 25.f));
     }
     return true;
+}
+bool (*TRAM_LevelEditorLayer_init)(LevelEditorLayer* self, GJGameLevel* level);
+bool LevelEditorLayer_init(LevelEditorLayer* self, GJGameLevel* level) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.objectLimitHack)
+    {
+        DobbyCodePatch(
+            reinterpret_cast<void*>(get_address(object_limit)),
+            std::vector<uint8_t>({0x00, 0x40}).data(), 2
+        );
+    }
+    else
+    {
+        DobbyCodePatch(
+            reinterpret_cast<void*>(get_address(object_limit)),
+            std::vector<uint8_t>({0x9f, 0x0f}).data(), 2
+        );
+    }
+    return TRAM_LevelEditorLayer_init(self, level);
 }
 // void (*TRAM_GameLevelManager_uploadLevel)(GameLevelManager* self, GJGameLevel* level);
 // void GameLevelManager_uploadLevel(GameLevelManager* self, GJGameLevel* level) {
@@ -458,7 +488,7 @@ bool CCString_initWithFormatAndValist(cocos2d::CCString* self, const char* forma
         vsprintf(buf, format, ap);
 
         typedef std::string* (*gd_string_assign_t)(void*, const char*, uint);
-        gd_string_assign_t gd_string_assign = reinterpret_cast<gd_string_assign_t>(function_by_address(basicstring_assign));
+        gd_string_assign_t gd_string_assign = reinterpret_cast<gd_string_assign_t>(get_address(basicstring_assign));
         gd_string_assign((void*)&self->m_sString, buf, buf_size - 1);
         
         free(buf);
@@ -615,5 +645,10 @@ int main() {
         dlsym(handle, "_ZN9PlayLayer6updateEf"),
         reinterpret_cast<void*>(PlayLayer_update),
         reinterpret_cast<void**>(&TRAM_PlayLayer_update)
+    );
+    DobbyHook(
+        dlsym(handle, "_ZN16LevelEditorLayer4initEP11GJGameLevel"),
+        reinterpret_cast<void*>(LevelEditorLayer_init),
+        reinterpret_cast<void**>(&TRAM_LevelEditorLayer_init)
     );
 }

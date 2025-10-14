@@ -69,6 +69,7 @@ bool HaxLayer::init(bool fromRope) {
     addCheckbox(1, 4, "Cheat Indicator", hax.cheatIndicator, menu_selector(HaxLayer::onCheatIndicator),         buttonMenu, this);
     addCheckbox(1, 5, "Show Percentage", hax.showPercentage, menu_selector(HaxLayer::onShowPercentage),         buttonMenu, this);
     addCheckbox(1, 6, "View Level Stats", hax.viewAttempts, menu_selector(HaxLayer::onViewAttempts),            buttonMenu, this);
+    addCheckbox(1, 7, "Object Limit Bypass", hax.objectLimitHack, menu_selector(HaxLayer::onObjectLimitHack),   buttonMenu, this);
 
     setKeypadEnabled(true);
 

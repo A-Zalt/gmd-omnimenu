@@ -1,21 +1,20 @@
 #include "GameManager.hpp"
 #include "UILayer.hpp"
 #include "LevelInfoLayer.hpp"
-#include "offsets.hpp"
-#include "constants.hpp"
+#include "addresses.hpp"
 #include <dlfcn.h>  // dlsym, RTLD_NOW
 #include <dobby.h>  // DobbyHook
 
 #define MEMBER_BY_OFFSET(type, var, offset) \
     (*reinterpret_cast<type*>(reinterpret_cast<uintptr_t>(var) + static_cast<uintptr_t>(offset)))
 
-uintptr_t function_by_address(int offset) {
+uintptr_t get_address(int offset) {
     void* handle = dlopen(MAIN_LIBRARY, RTLD_NOW);
     void* addr = dlsym(handle, "JNI_OnLoad"); // this symbol is present in every GD version according to akqanile/Adelfa
 
     Dl_info info;
     dladdr(addr, &info);
-    return (uintptr_t)(info.dli_fbase) + offset;
+    return reinterpret_cast<uintptr_t>(info.dli_fbase) + offset;
 }
 
 PlayLayer* getPlayLayer() {
