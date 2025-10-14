@@ -36,6 +36,7 @@ public:
     bool cheatIndicator;
     bool showPercentage;
     bool viewAttempts;
+    bool objectCounter;
     cocos2d::CCLabelBMFont* cheatIndicatorLabel;
     cocos2d::CCLabelBMFont* percentageLabel;
 
@@ -67,6 +68,7 @@ public:
         cheatIndicator = value;
         showPercentage = value;
         viewAttempts = value;
+        objectCounter = value;
     }
 
 private:

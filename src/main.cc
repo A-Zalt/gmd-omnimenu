@@ -36,7 +36,10 @@ std::string itoa(int value) {
 void (*TRAM_PlayLayer_destroyPlayer)(void* self);
 void PlayLayer_destroyPlayer(void* self) {
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.noClip || hax.instantComplete) return;
+    if (hax.noClip || hax.instantComplete) {
+        getPlayLayerHazards()->removeAllObjects();
+        return;
+    }
     TRAM_PlayLayer_destroyPlayer(self);
 }
 bool (*TRAM_GameManager_isColorUnlocked)(void* self, int idx, bool secondary);
@@ -241,19 +244,10 @@ bool (*TRAM_LevelEditorLayer_init)(LevelEditorLayer* self, GJGameLevel* level);
 bool LevelEditorLayer_init(LevelEditorLayer* self, GJGameLevel* level) {
     HaxManager& hax = HaxManager::sharedState();
     if (hax.objectLimitHack)
-    {
-        DobbyCodePatch(
-            reinterpret_cast<void*>(get_address(object_limit)),
-            std::vector<uint8_t>({0x00, 0x40}).data(), 2
-        );
-    }
+        setObjectLimit(16383);
     else
-    {
-        DobbyCodePatch(
-            reinterpret_cast<void*>(get_address(object_limit)),
-            std::vector<uint8_t>({0x9f, 0x0f}).data(), 2
-        );
-    }
+        setObjectLimit(OBJECT_LIMIT);
+
     return TRAM_LevelEditorLayer_init(self, level);
 }
 // void (*TRAM_GameLevelManager_uploadLevel)(GameLevelManager* self, GJGameLevel* level);

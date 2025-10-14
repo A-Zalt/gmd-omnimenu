@@ -70,6 +70,7 @@ bool HaxLayer::init(bool fromRope) {
     addCheckbox(1, 5, "Show Percentage", hax.showPercentage, menu_selector(HaxLayer::onShowPercentage),         buttonMenu, this);
     addCheckbox(1, 6, "View Level Stats", hax.viewAttempts, menu_selector(HaxLayer::onViewAttempts),            buttonMenu, this);
     addCheckbox(1, 7, "Object Limit Bypass", hax.objectLimitHack, menu_selector(HaxLayer::onObjectLimitHack),   buttonMenu, this);
+    addCheckbox(1, 8, "Object Counter", hax.objectCounter, menu_selector(HaxLayer::onObjectCounter),            buttonMenu, this);
 
     setKeypadEnabled(true);
 
@@ -186,5 +187,9 @@ void HaxLayer::onShowPercentage(CCObject*) {
 void HaxLayer::onViewAttempts(CCObject*) {
     HaxManager& hax = HaxManager::sharedState();
     hax.viewAttempts = !hax.viewAttempts;
+}
+void HaxLayer::onObjectCounter(CCObject*) {
+    HaxManager& hax = HaxManager::sharedState();
+    hax.objectCounter = !hax.objectCounter;
 }
 // 

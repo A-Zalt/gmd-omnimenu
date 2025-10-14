@@ -14,6 +14,7 @@
 /**/ #define GJGameLevel__m_userID           0x13c /**/
 /**/ #define GJGameLevel__m_username         0x138 /**/
 /**/ #define LevelInfoLayer__m_level         0x154 /**/
+/**/ #define PlayLayer__m_hazards            0x188 /**/
 /**/ #define PlayLayer__m_lastX              0x1d8 /**/
 /**/ #define PlayLayer__m_level              0x230 /**/
 /**/ #define PlayLayer__m_playerObject       0x22c /**/

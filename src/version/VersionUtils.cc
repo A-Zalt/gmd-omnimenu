@@ -133,3 +133,24 @@ std::string getLevelUsername(GJGameLevel* level) {
 int getLevelUserID(GJGameLevel* level) {
     return MEMBER_BY_OFFSET(int, level, GJGameLevel__m_userID);
 }
+
+template <typename T>
+std::vector<uint8_t> toBytesLE(T value) {
+    std::vector<uint8_t> bytes(sizeof(T));
+    for (size_t i = 0; i < sizeof(T); ++i)
+        bytes[i] = static_cast<uint8_t>((value >> (8 * i)) & 0xFF);
+    return bytes;
+}
+void setObjectLimit(int limit) {
+    DobbyCodePatch(
+        reinterpret_cast<void*>(get_address(object_limit)),
+        toBytesLE(limit).data(), 2
+    );
+}
+
+CCArray* getPlayLayerHazards(PlayLayer* self) {
+    return MEMBER_BY_OFFSET(CCArray*, self, PlayLayer__m_hazards);
+}
+CCArray* getPlayLayerHazards() {
+    return getPlayLayerHazards(getPlayLayer());
+}

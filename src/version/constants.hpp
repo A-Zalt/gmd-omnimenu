@@ -1,5 +1,5 @@
 #define GAME_VERSION 3
-#define MENU_VERSION "0.45"
+#define MENU_VERSION "0.46"
 
 #if GAME_VERSION == 1
     #define GAME_VER_PATH 1.0
@@ -42,10 +42,6 @@
 // #elif GAME_VERSION == 2
 //     #define READABLE_GAME_VERSION "1.1"
 //     #define READABLE_GAME_VERSION_FULL "1.11"
-//     #define OBJECT_LIMIT 3999
-// #elif GAME_VERSION == 3
-//     #define READABLE_GAME_VERSION "1.2"
-//     #define READABLE_GAME_VERSION_FULL "1.22"
 //     #define OBJECT_LIMIT 3999
 // #elif GAME_VERSION == 4
 //     #define READABLE_GAME_VERSION "1.3"
