@@ -177,19 +177,21 @@ void EditorUI_constrainGameLayerPosition(void* self) {
     TRAM_EditorUI_constrainGameLayerPosition(self);
 }
 void LevelInfoLayer::onViewLevelInfo() {
-    // GJGameLevel* level = getInfoLayerLevel(this);
-    // CCString* flAlertInsides = CCString::createWithFormat(
-    //     "<cy>Level Name</c>\n<cg>Total Attempts</c>: %i\n<cp>Normal</c>: %i%%\n<co>Practice</c>: %i%%\n<cl>Level ID</cl>: %i",
-    //     //getLevelName(level).c_str(),
-    //     getLevelAttempts(level),
-    //     getLevelNormalPercent(level),
-    //     getLevelPracticePercent(level),
-    //     getLevelID(level)
-    // );
+    GJGameLevel* level = getInfoLayerLevel(this);
+    CCString* flAlertInsides = CCString::createWithFormat(
+        "<cy>%s</c> by <cy>%s</c>\n<cg>Total Attempts</c>: %i\n<cr>Normal</c>: %i%%\n<co>Practice</c>: %i%%\n<cl>Level ID</c>: %i\n<cb>User ID</c>: %i",
+        getLevelName(level).c_str(),
+        getLevelUsername(level).c_str(),
+        getLevelAttempts(level),
+        getLevelNormalPercent(level),
+        getLevelPracticePercent(level),
+        getLevelID(level),
+        getLevelUserID(level)
+    );
     FLAlertLayer::create(
         nullptr,
         "Level Info",
-        "can you just say something man",
+        flAlertInsides->getCString(),
         "OK",
         nullptr,
         300.f
@@ -211,17 +213,17 @@ bool LevelInfoLayer_init(LevelInfoLayer* self, GJGameLevel* level) {
         cloneMenu->setPosition(ccp(35.f, winSize.height / 2));
         // cloneBtn->setPosition(ccp(0, winSize.height / 2 - 25));
     }
-    // if (hax.viewAttempts) {
-    //     CCMenu* infoMenu = CCMenu::create();
-    //     CCSprite* infoSpr = cocos2d::CCSprite::create("GJ_infoIcon.png");
-    //     CCMenuItemSpriteExtra* infoBtn = CCMenuItemSpriteExtra::create(infoSpr, infoSpr, self, menu_selector(LevelInfoLayer::onViewLevelInfo));
+    if (hax.viewAttempts) {
+        CCMenu* infoMenu = CCMenu::create();
+        CCSprite* infoSpr = cocos2d::CCSprite::create("GJ_infoIcon.png");
+        CCMenuItemSpriteExtra* infoBtn = CCMenuItemSpriteExtra::create(infoSpr, infoSpr, self, menu_selector(LevelInfoLayer::onViewLevelInfo));
 
-    //     infoBtn->setSizeMult(1.5f);
+        infoBtn->setSizeMult(1.5f);
 
-    //     self->addChild(infoMenu, 1001);
-    //     infoMenu->addChild(infoBtn);
-    //     infoMenu->setPosition(ccp(25.f, 25.f));
-    // }
+        self->addChild(infoMenu, 1001);
+        infoMenu->addChild(infoBtn);
+        infoMenu->setPosition(ccp(25.f, 25.f));
+    }
     return true;
 }
 // void (*TRAM_GameLevelManager_uploadLevel)(GameLevelManager* self, GJGameLevel* level);

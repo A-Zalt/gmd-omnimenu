@@ -9,6 +9,8 @@
 /**/ #define GJGameLevel__m_normalPercent    0x168 /**/
 /**/ #define GJGameLevel__m_practicePercent  0x16c /**/
 /**/ #define GameManager__m_playLayer        0x150 /**/
+/**/ #define GJGameLevel__m_userID           0x13c /**/
+/**/ #define GJGameLevel__m_username         0x138 /**/
 /**/ #define LevelInfoLayer__m_level         0x154 /**/
 /**/ #define PlayLayer__m_lastX              0x1d8 /**/
 /**/ #define PlayLayer__m_level              0x230 /**/

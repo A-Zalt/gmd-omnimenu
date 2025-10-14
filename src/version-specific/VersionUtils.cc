@@ -11,7 +11,7 @@
 
 uintptr_t function_by_address(int offset) {
     void* handle = dlopen(MAIN_LIBRARY, RTLD_NOW);
-    void* addr = dlsym(handle, "JNI_OnLoad");
+    void* addr = dlsym(handle, "JNI_OnLoad"); // this symbol is present in every GD version according to akqanile/Adelfa
 
     Dl_info info;
     dladdr(addr, &info);
@@ -127,4 +127,10 @@ int getLevelID(GJGameLevel* level) {
 }
 std::string getLevelName(GJGameLevel* level) {
     return MEMBER_BY_OFFSET(std::string, level, GJGameLevel__m_levelName);
+}
+std::string getLevelUsername(GJGameLevel* level) {
+    return MEMBER_BY_OFFSET(std::string, level, GJGameLevel__m_username);
+}
+int getLevelUserID(GJGameLevel* level) {
+    return MEMBER_BY_OFFSET(int, level, GJGameLevel__m_userID);
 }
