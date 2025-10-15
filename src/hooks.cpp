@@ -12,6 +12,7 @@
 #include "hooks/CCString.cpp"
 #include "hooks/EditorPauseLayer.cpp"
 #include "hooks/CCNode.cpp"
+#include "hooks/LevelSelectLayer.cpp"
 
 void initialize_hooks() {
     PlayLayer_om();
@@ -28,4 +29,5 @@ void initialize_hooks() {
     CCString_om();
     EditorPauseLayer_om();
     CCNode_om();
+    LevelSelectLayer_om();
 }

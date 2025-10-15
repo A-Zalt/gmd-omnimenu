@@ -179,12 +179,14 @@ void PlayLayer_resetLevel(PlayLayer* self) {
     }
 }
 
+#if GAME_VERSION > 1
 void (*TRAM_PlayLayer_toggleFlipped)(void* self, bool p1, bool p2);
 void PlayLayer_toggleFlipped(void* self, bool p1, bool p2) {
     HaxManager& hax = HaxManager::sharedState();
     if (hax.noMirror) return;
     TRAM_PlayLayer_toggleFlipped(self, p1, p2);
 }
+#endif
 
 void (*TRAM_PlayLayer_update)(PlayLayer* self, float dt);
 void PlayLayer_update(PlayLayer* self, float dt) {
@@ -247,9 +249,11 @@ void PlayLayer_om() {
     Omni::hook("_ZN9PlayLayer6updateEf",
         reinterpret_cast<void*>(PlayLayer_update),
         reinterpret_cast<void**>(&TRAM_PlayLayer_update));
+#if GAME_VERSION > 1
     Omni::hook("_ZN9PlayLayer13toggleFlippedEbb",
         reinterpret_cast<void*>(PlayLayer_toggleFlipped),
         reinterpret_cast<void**>(&TRAM_PlayLayer_toggleFlipped));
+#endif
     Omni::hook("_ZN9PlayLayer10resetLevelEv",
         reinterpret_cast<void*>(PlayLayer_resetLevel),
         reinterpret_cast<void**>(&TRAM_PlayLayer_resetLevel));

@@ -188,3 +188,24 @@ cocos2d::CCPoint getStartPos(PlayLayer* playLayer) {
 cocos2d::CCPoint getStartPos() {
     return getStartPos(getPlayLayer());
 }
+CCLayer* getSelectLayerScroll(CCLayer* selectLayer) {
+    return MEMBER_BY_OFFSET(CCLayer*, selectLayer, LevelSelectLayer__m_scrollLayer);
+}
+int getCurrentScrollScreen(CCLayer* scrollLayer) {
+    return MEMBER_BY_OFFSET(int, scrollLayer, BoomScrollLayer__m_currentScreen);
+}
+int getScrollPageCount(CCLayer* scrollLayer) {
+    bool dynamic = MEMBER_BY_OFFSET(bool, scrollLayer, BoomScrollLayer__m_dynamic);
+    if (dynamic) {
+        CCArray* dynamicPages = MEMBER_BY_OFFSET(CCArray*, scrollLayer, BoomScrollLayer__m_dynamicPages);
+        return dynamicPages->count();
+    } else {
+        CCArray* pages = MEMBER_BY_OFFSET(CCArray*, scrollLayer, BoomScrollLayer__m_pages);
+        return pages->count();
+    }
+}
+int getCurrentScrollIndex(CCLayer* scrollLayer) {
+    int pageCount = getScrollPageCount(scrollLayer);
+    int screen = getCurrentScrollScreen(scrollLayer);
+    return ((screen % pageCount) + pageCount) % pageCount;
+}

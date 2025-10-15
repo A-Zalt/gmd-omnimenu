@@ -8,4 +8,5 @@ public:
     static GameLevelManager* sharedState();
 
     void onUploadLevelCompleted(cocos2d::CCNode* p1, void* p2);
+    GJGameLevel* getMainLevel(int id);
 };
