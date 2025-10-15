@@ -15,4 +15,6 @@ public:
     void gravityDown();
     void yStartUp();
     void yStartDown();
+
+    void toggleCheckpointsMenu(bool toggle);
 };

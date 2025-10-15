@@ -37,11 +37,13 @@ public:
     bool showPercentage;
     bool viewAttempts;
     bool objectCounter;
+    bool practiceMusic;
+    bool forceVisibility;
     cocos2d::CCLabelBMFont* cheatIndicatorLabel;
     cocos2d::CCLabelBMFont* percentageLabel;
 
     CheatIndicatorColor getCheatIndicatorColor() {
-        if (noClip || instantComplete || noMirror || pCommand) return CheatIndicatorColor::Red;
+        if (noClip || instantComplete || noMirror || pCommand || forceVisibility) return CheatIndicatorColor::Red;
         if (levelEdit) return CheatIndicatorColor::Yellow;
         return CheatIndicatorColor::Green;
     }
@@ -69,6 +71,8 @@ public:
         showPercentage = value;
         viewAttempts = value;
         objectCounter = value;
+        practiceMusic = value;
+        forceVisibility = value;
     }
 
 private:

@@ -35,6 +35,8 @@ protected:
     void onShowPercentage(CCObject*);
     void onViewAttempts(CCObject*);
     void onObjectCounter(CCObject*);
+    void onPracticeMusic(CCObject*);
+    void onForceVisibility(CCObject*);
 
     cocos2d::CCSprite* m_background = nullptr;
     bool m_fromRope = false;

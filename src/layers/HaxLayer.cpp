@@ -71,6 +71,8 @@ bool HaxLayer::init(bool fromRope) {
     addCheckbox(1, 6, "View Level Stats", hax.viewAttempts, menu_selector(HaxLayer::onViewAttempts),            buttonMenu, this);
     addCheckbox(1, 7, "Object Limit Bypass", hax.objectLimitHack, menu_selector(HaxLayer::onObjectLimitHack),   buttonMenu, this);
     addCheckbox(1, 8, "Object Counter", hax.objectCounter, menu_selector(HaxLayer::onObjectCounter),            buttonMenu, this);
+    addCheckbox(1, 9, "Force Visibility", hax.forceVisibility, menu_selector(HaxLayer::onForceVisibility),      buttonMenu, this);
+    // addCheckbox(1, 9, "Practice Music Hack", hax.practiceMusic, menu_selector(HaxLayer::onPracticeMusic),       buttonMenu, this);
 
     setKeypadEnabled(true);
 
@@ -191,5 +193,13 @@ void HaxLayer::onViewAttempts(CCObject*) {
 void HaxLayer::onObjectCounter(CCObject*) {
     HaxManager& hax = HaxManager::sharedState();
     hax.objectCounter = !hax.objectCounter;
+}
+void HaxLayer::onPracticeMusic(CCObject*) {
+    HaxManager& hax = HaxManager::sharedState();
+    hax.practiceMusic = !hax.practiceMusic;
+}
+void HaxLayer::onForceVisibility(CCObject*) {
+    HaxManager& hax = HaxManager::sharedState();
+    hax.forceVisibility = !hax.forceVisibility;
 }
 // 

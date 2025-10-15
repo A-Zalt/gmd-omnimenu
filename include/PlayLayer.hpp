@@ -10,5 +10,7 @@ public:
 
     void resetLevel();
     void levelComplete();
+    void removeLastCheckpoint();
+    CCNode* getLastCheckpoint();
     virtual PlayerObject* getPlayer();
 };

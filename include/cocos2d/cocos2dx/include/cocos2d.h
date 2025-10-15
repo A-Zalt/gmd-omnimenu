@@ -212,6 +212,9 @@ THE SOFTWARE.
 #include "extensions/HttpRequest.h"
 #include "extensions/HttpResponse.h"
 
+// cocosdenshion
+#include "../CocosDenshion/include/SimpleAudioEngine.h"
+
 // robtop additions
 #include "robtop/CCBlockLayer.h"
 

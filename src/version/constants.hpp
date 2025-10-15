@@ -1,5 +1,5 @@
 #define GAME_VERSION 3
-#define MENU_VERSION "0.46"
+#define MENU_VERSION "0.49"
 
 #if GAME_VERSION == 1
     #define GAME_VER_PATH 1.0
@@ -26,6 +26,8 @@
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 #define PATH(file) GAME_VER_PATH/file
+
+#define INCREASED_OBJECT_LIMIT 16384
 
 #include STR(PATH(constants.hpp))
 

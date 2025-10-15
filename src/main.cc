@@ -1,5 +1,9 @@
-#include "FLAlertLayer.hpp"
+#include <algorithm>
 #include "../layers/HaxLayer.hpp"
+#include "version/VersionUtils.cc"
+#include "version/addresses.hpp"
+
+#include "FLAlertLayer.hpp"
 #include "HaxManager.hpp"
 #include "CCTextInputNode.hpp"
 #include "SliderTouchLogic.hpp"
@@ -10,10 +14,11 @@
 #include "CCMenuItemSpriteExtra.hpp"
 #include "GameLevelManager.hpp"
 #include "ButtonSprite.hpp"
-#include <algorithm>
 #include "UILayer.hpp"
-#include "version/VersionUtils.cc"
-#include "version/addresses.hpp"
+#include "MenuLayer.hpp"
+#include "platform/android/jni/JniHelper.h"
+#include <jni.h>
+#include "cocos2d/CocosDenshion/android/jni/SimpleAudioEngineJni.h"
 
 std::string itoa(int value) {
     static const char digits[] = "0123456789";
@@ -33,14 +38,18 @@ std::string itoa(int value) {
     return result;
 }
 
-void (*TRAM_PlayLayer_destroyPlayer)(void* self);
-void PlayLayer_destroyPlayer(void* self) {
+void (*TRAM_PlayLayer_destroyPlayer)(PlayLayer* self);
+void PlayLayer_destroyPlayer(PlayLayer* self) {
     HaxManager& hax = HaxManager::sharedState();
     if (hax.noClip || hax.instantComplete) {
-        getPlayLayerHazards()->removeAllObjects();
+        getPlayLayerHazards()->removeAllObjects(); // the humble noclip lag fix
         return;
     }
     TRAM_PlayLayer_destroyPlayer(self);
+    if (hax.practiceMusic && getPlayLayerPractice(self)) {
+        auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
+        audioEngine->pauseBackgroundMusic();
+    }
 }
 bool (*TRAM_GameManager_isColorUnlocked)(void* self, int idx, bool secondary);
 bool GameManager_isColorUnlocked(void* self, int idx, bool secondary) {
@@ -102,10 +111,84 @@ void CCTextInputNode_setProfanityFilter(CCTextInputNode* self, bool profanityFil
 //     } else TRAM_SliderTouchLogic_ccTouchMoved(self, touch, event);
 // }
 // *reinterpret_cast<PlayerObject**>(reinterpret_cast<uintptr_t>(self) + 0x22c)
+JNIEnv* getEnv() {
+    JNIEnv** env;
+    if (cocos2d::JniHelper::getJavaVM()->GetEnv((void**)env, JNI_VERSION_1_4) != JNI_OK) {
+        cocos2d::CCLog("Failed to get the environment using GetEnv()");
+        return nullptr;
+    }
+    if (cocos2d::JniHelper::getJavaVM()->AttachCurrentThread(env, 0) < 0) {
+        cocos2d::CCLog("Failed to get the environment using AttachCurrentThread()");
+        return nullptr;
+    }
+
+    return *env;
+}
 void (*TRAM_PlayLayer_resetLevel)(PlayLayer* self);
 void PlayLayer_resetLevel(PlayLayer* self) {
-    TRAM_PlayLayer_resetLevel(self); 
     HaxManager& hax = HaxManager::sharedState();
+    if (hax.practiceMusic && getPlayLayerPractice(self)) {
+        auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
+        int seekTime = 0;
+        CCNode* lastCheckpoint = self->getLastCheckpoint();
+        if (lastCheckpoint != nullptr) {
+            CCPoint lastCheckpointPos = lastCheckpoint->getPosition();
+            seekTime = floorf((lastCheckpointPos.x / 311.58f) * 1000.f);
+        }
+        JNIEnv* env = getEnv();
+        if (env) {
+            do {
+                jclass Cocos2dxActivity = env->FindClass("org/cocos2dx/lib/Cocos2dxActivity");
+                if (Cocos2dxActivity == nullptr) {
+                    cocos2d::CCLog("Failed to get Cocos2dxActivity");
+                    break;
+                }
+                jfieldID fieldID_backgroundMusicPlayer = env->GetStaticFieldID(Cocos2dxActivity, "backgroundMusicPlayer", "Lorg/cocos2dx/lib/Cocos2dxMusic;");
+                if (fieldID_backgroundMusicPlayer == nullptr) {
+                    cocos2d::CCLog("Failed to get field ID of backgroundMusicPlayer");
+                    break;
+                }
+                jobject backgroundMusicPlayer = env->GetStaticObjectField(Cocos2dxActivity, fieldID_backgroundMusicPlayer);
+                if (backgroundMusicPlayer == nullptr) {
+                    cocos2d::CCLog("Failed to get backgroundMusicPlayer");
+                    break;
+                }
+
+                jclass Cocos2dxMusic = env->FindClass("org/cocos2dx/lib/Cocos2dxMusic");
+                if (Cocos2dxMusic == nullptr) {
+                    cocos2d::CCLog("Failed to get Cocos2dxMusic");
+                    break;
+                }
+                jfieldID fieldID_mBackgroundMediaPlayer = env->GetFieldID(Cocos2dxMusic, "mBackgroundMediaPlayer", "Landroid/media/MediaPlayer;");
+                if (fieldID_mBackgroundMediaPlayer == nullptr) {
+                    cocos2d::CCLog("Failed to get field ID of mBackgroundMediaPlayer");
+                    break;
+                }
+                jobject mBackgroundMediaPlayer = env->GetObjectField(backgroundMusicPlayer, fieldID_mBackgroundMediaPlayer);
+                if (mBackgroundMediaPlayer == nullptr) {
+                    cocos2d::CCLog("Failed to get mBackgroundMediaPlayer");
+                    break;
+                }
+
+                jclass MediaPlayer = env->GetObjectClass(mBackgroundMediaPlayer);
+                if (MediaPlayer == nullptr) {
+                    cocos2d::CCLog("Failed to get MediaPlayer");
+                    break;
+                }
+                jmethodID seekTo = env->GetMethodID(MediaPlayer, "seekTo", "(I)V");
+                if (seekTo == nullptr) {
+                    cocos2d::CCLog("Failed to get method ID of seekTo");
+                    break;
+                }
+                env->CallVoidMethod(mBackgroundMediaPlayer, seekTo, static_cast<jint>(seekTime));
+            } while (0);
+        } else {
+            cocos2d::CCLog("Failed to get Java Env");
+            audioEngine->setBackgroundMusicTime(static_cast<float>(seekTime) / 1000.f);
+            audioEngine->resumeBackgroundMusic();
+        }
+    }
+    TRAM_PlayLayer_resetLevel(self);
     if (hax.instantComplete) {
         PlayerObject* player = getPlayer(self); // PlayLayer::getPlayer
         player->lockPlayer();
@@ -152,7 +235,7 @@ void EditorUI_showMaxError(void* self) {
         FLAlertLayer::create(
             nullptr,
             "Max Objects",
-            "You cannot create more than <cy>16384</c> <cg>objects</c> in a single level.",
+            CCString::createWithFormat("You cannot create more than <cy>%i</c> <cg>objects</c> in a single level.", INCREASED_OBJECT_LIMIT)->getCString(),
             "OK",
             nullptr,
             300.f
@@ -244,7 +327,7 @@ bool (*TRAM_LevelEditorLayer_init)(LevelEditorLayer* self, GJGameLevel* level);
 bool LevelEditorLayer_init(LevelEditorLayer* self, GJGameLevel* level) {
     HaxManager& hax = HaxManager::sharedState();
     if (hax.objectLimitHack)
-        setObjectLimit(16383);
+        setObjectLimit(INCREASED_OBJECT_LIMIT - 1);
     else
         setObjectLimit(OBJECT_LIMIT);
 
@@ -427,7 +510,7 @@ void PlayLayer_update(PlayLayer* self, float dt) {
     if (hax.cheatIndicator) {
         if (!hax.cheatIndicatorLabel) {
             auto cheatIndicatorLabel = CCLabelBMFont::create(".", "bigFont.fnt");
-            cheatIndicatorLabel->setPosition(ccp(15, winSize.height - 10));
+            cheatIndicatorLabel->setPosition(ccp(15, winSize.height - 15));
             hax.cheatIndicatorLabel = cheatIndicatorLabel;
             uiLayer->addChild(cheatIndicatorLabel, 10000);
         } else if (!hax.cheatIndicatorLabel->isVisible())
@@ -491,6 +574,89 @@ bool CCString_initWithFormatAndValist(cocos2d::CCString* self, const char* forma
     } else {
         return TRAM_CCString_initWithFormatAndValist(self, format, ap);
     }
+}
+
+bool (*TRAM_EditorPauseLayer_init)(cocos2d::CCLayer* self, LevelEditorLayer* editLayer);
+bool EditorPauseLayer_init(cocos2d::CCLayer* self, LevelEditorLayer* editLayer) {
+    if (!TRAM_EditorPauseLayer_init(self, editLayer)) return false;
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.objectCounter) {
+        auto director = CCDirector::sharedDirector();
+        auto winSize = director->getWinSize();
+        auto objectLimit = OBJECT_LIMIT;
+        if (hax.objectLimitHack) objectLimit = INCREASED_OBJECT_LIMIT;
+        int objectCount = getObjectCount(editLayer);
+        auto counterLabel = CCLabelBMFont::create(
+            CCString::createWithFormat("%i/%i objects", objectCount, objectLimit)->getCString(), 
+            "goldFont.fnt"
+        );
+        counterLabel->setScale(0.5f);
+        counterLabel->setAnchorPoint({0.f, 0.5f});
+        counterLabel->setPosition(ccp(10, winSize.height - 15));
+        self->addChild(counterLabel, 1000);
+    }
+    return true;
+}
+void MenuLayer::onMenuInfo() {
+    FLAlertLayer::create(
+        nullptr,
+        "Game Information",
+        CCString::createWithFormat(
+            "<cg>OMNImenu</c> %s\n<cl>Geometry Dash</c> %s\n<cr>Special Thanks</c>: <cy>akqanile</c>, <cy>Hris69</c>, <cy>Pololak</c>, <cy>Nikolyas</c>\nWith love from <cy>AntiMatter</c> <cr><3</c>", 
+            MENU_VERSION, READABLE_GAME_VERSION)->getCString(),
+        "OK",
+        nullptr,
+        300.f
+    )->show();
+}
+bool (*TRAM_MenuLayer_init)(cocos2d::CCLayer* self);
+bool MenuLayer_init(cocos2d::CCLayer* self) {
+    if (!TRAM_MenuLayer_init(self)) return false;
+
+    auto director = CCDirector::sharedDirector();
+    auto winSize = director->getWinSize();
+
+    CCMenu* infoMenu = CCMenu::create();
+    CCSprite* infoSpr = cocos2d::CCSprite::create("GJ_infoIcon.png");
+    CCMenuItemSpriteExtra* infoBtn = CCMenuItemSpriteExtra::create(infoSpr, infoSpr, self, menu_selector(MenuLayer::onMenuInfo));
+    infoBtn->setSizeMult(1.5f);
+
+    self->addChild(infoMenu, 1001);
+    infoMenu->addChild(infoBtn);
+    infoMenu->setPosition(ccp(winSize.width - 25.f, winSize.height - 25.f));
+
+    return true;
+}
+void (*TRAM_PlayLayer_togglePracticeMode)(PlayLayer* self, bool toggle);
+void PlayLayer_togglePracticeMode(PlayLayer* self, bool toggle) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.practiceMusic && getPlayLayerPractice(self) != toggle) {
+        setPlayLayerPractice(self, toggle);
+        UILayer* uiLayer = getUILayer(getPlayLayer());
+        uiLayer->toggleCheckpointsMenu(toggle);
+        if (!toggle) {
+            cocos2d::CCArray* checkpoints = getPlayLayerCheckpoints(self);
+            while (checkpoints->count() > 0) {
+                self->removeLastCheckpoint();
+            }
+            MEMBER_BY_OFFSET(bool, self, PlayLayer__m_unkPrac) = true;
+            self->resetLevel();
+        }
+    } else TRAM_PlayLayer_togglePracticeMode(self, toggle);
+}
+void (*TRAM_CCNode_setVisible)(CCNode* self, bool toggle);
+void CCNode_setVisible(CCNode* self, bool toggle) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.forceVisibility) {
+        TRAM_CCNode_setVisible(self, true);
+    } else TRAM_CCNode_setVisible(self, toggle);
+}
+void (*TRAM_CCSprite_setVisible)(CCSprite* self, bool toggle);
+void CCSprite_setVisible(CCSprite* self, bool toggle) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.forceVisibility) {
+        TRAM_CCSprite_setVisible(self, true);
+    } else TRAM_CCSprite_setVisible(self, toggle);
 }
 // void (*TRAM_EditorUI_zoomGameLayer)(void* self, bool zoomIn);
 // void EditorUI_zoomGameLayer(void* self, bool zoomIn) {
@@ -641,8 +807,28 @@ int main() {
         reinterpret_cast<void**>(&TRAM_PlayLayer_update)
     );
     DobbyHook(
-        dlsym(handle, "_ZN16LevelEditorLayer4initEP11GJGameLevel"),
-        reinterpret_cast<void*>(LevelEditorLayer_init),
-        reinterpret_cast<void**>(&TRAM_LevelEditorLayer_init)
+        dlsym(handle, "_ZN16EditorPauseLayer4initEP16LevelEditorLayer"),
+        reinterpret_cast<void*>(EditorPauseLayer_init),
+        reinterpret_cast<void**>(&TRAM_EditorPauseLayer_init)
     );
+    DobbyHook(
+        dlsym(handle, "_ZN9MenuLayer4initEv"),
+        reinterpret_cast<void*>(MenuLayer_init),
+        reinterpret_cast<void**>(&TRAM_MenuLayer_init)
+    );
+    DobbyHook(
+        dlsym(handle, "_ZN9PlayLayer18togglePracticeModeEb"),
+        reinterpret_cast<void*>(PlayLayer_togglePracticeMode),
+        reinterpret_cast<void**>(&TRAM_PlayLayer_togglePracticeMode)
+    );
+    DobbyHook(
+        dlsym(handle, "_ZN7cocos2d6CCNode10setVisibleEb"),
+        reinterpret_cast<void*>(CCNode_setVisible),
+        reinterpret_cast<void**>(&TRAM_CCNode_setVisible)
+    );
+    // DobbyHook(
+    //     dlsym(handle, "_ZN7cocos2d8CCSprite10setVisibleEb"),
+    //     reinterpret_cast<void*>(CCNode_setVisible),
+    //     reinterpret_cast<void**>(&TRAM_CCNode_setVisible)
+    // );
 }

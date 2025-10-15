@@ -1,6 +1,7 @@
 #include "GameManager.hpp"
 #include "UILayer.hpp"
 #include "LevelInfoLayer.hpp"
+#include "LevelEditorLayer.hpp"
 #include "addresses.hpp"
 #include <dlfcn.h>  // dlsym, RTLD_NOW
 #include <dobby.h>  // DobbyHook
@@ -148,9 +149,37 @@ void setObjectLimit(int limit) {
     );
 }
 
-CCArray* getPlayLayerHazards(PlayLayer* self) {
-    return MEMBER_BY_OFFSET(CCArray*, self, PlayLayer__m_hazards);
+cocos2d::CCArray* getPlayLayerHazards(PlayLayer* playLayer) {
+    return MEMBER_BY_OFFSET(cocos2d::CCArray*, playLayer, PlayLayer__m_hazards);
 }
-CCArray* getPlayLayerHazards() {
+cocos2d::CCArray* getPlayLayerHazards() {
     return getPlayLayerHazards(getPlayLayer());
+}
+int getObjectCount(LevelEditorLayer* editorLayer) {
+    return MEMBER_BY_OFFSET(int, editorLayer, LevelEditorLayer__m_objectCount);
+}
+void setObjectCount(LevelEditorLayer* editorLayer, int objectCount) {
+    MEMBER_BY_OFFSET(int, editorLayer, LevelEditorLayer__m_objectCount) = objectCount;
+}
+LevelEditorLayer* getLevelEditorLayer(void* pauseLayer) {
+    return MEMBER_BY_OFFSET(LevelEditorLayer*, pauseLayer, EditorPauseLayer__m_editorLayer);
+}
+
+bool getPlayLayerPractice(PlayLayer* playLayer) {
+    return MEMBER_BY_OFFSET(bool, playLayer, PlayLayer__m_isPractice);
+}
+bool getPlayLayerPractice() {
+    return getPlayLayerPractice(getPlayLayer());
+}
+void setPlayLayerPractice(PlayLayer* playLayer, bool isPractice) {
+    MEMBER_BY_OFFSET(bool, playLayer, PlayLayer__m_isPractice) = isPractice;
+}
+void setPlayLayerPractice(bool isPractice) {
+    return setPlayLayerPractice(getPlayLayer(), isPractice);
+}
+cocos2d::CCArray* getPlayLayerCheckpoints(PlayLayer* playLayer) {
+    return MEMBER_BY_OFFSET(cocos2d::CCArray*, playLayer, PlayLayer__m_checkpoints);
+}
+cocos2d::CCArray* getPlayLayerCheckpoints() {
+    return getPlayLayerCheckpoints(getPlayLayer());
 }
