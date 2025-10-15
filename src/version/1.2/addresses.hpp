@@ -4,6 +4,7 @@
 /*/                     MEMBERS                     /*/
 /*****************************************************/
 /**/ #define CCNode_getPosition               0x48 /**/
+/**/ #define CheckpointObject__m_playerPos   0x12c /**/
 /**/ #define EditorPauseLayer__m_editorLayer 0x1c8 /**/
 /**/ #define GameManager__m_playLayer        0x150 /**/
 /**/ #define GameManager__m_playerUDID       0x164 /**/
@@ -24,6 +25,7 @@
 /**/ #define PlayLayer__m_lastX              0x1d8 /**/
 /**/ #define PlayLayer__m_level              0x230 /**/
 /**/ #define PlayLayer__m_playerObject       0x22c /**/
+/**/ #define PlayLayer__m_startPos           0x2c8 /**/
 /**/ #define PlayLayer__m_uiLayer            0x228 /**/
 /**/ #define PlayLayer__m_unkPrac            0x267 /**/
 /**/ #define PlayerObject__m_gravity         0x350 /**/

@@ -27,4 +27,8 @@ target_include_directories(menu PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include/cocos2d/cocos2dx/kazmath/include
     ${CMAKE_CURRENT_SOURCE_DIR}/include/layers
     ${CMAKE_CURRENT_SOURCE_DIR}/include
-    ${CMAKE_CURRENT_SOURCE_DIR})
+    ${CMAKE_CURRENT_SOURCE_DIR}
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/layers
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/hooks
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/version)

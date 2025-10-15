@@ -1,3 +1,5 @@
+#pragma once
+
 #include "GameManager.hpp"
 #include "UILayer.hpp"
 #include "LevelInfoLayer.hpp"
@@ -142,12 +144,6 @@ std::vector<uint8_t> toBytesLE(T value) {
         bytes[i] = static_cast<uint8_t>((value >> (8 * i)) & 0xFF);
     return bytes;
 }
-void setObjectLimit(int limit) {
-    DobbyCodePatch(
-        reinterpret_cast<void*>(get_address(object_limit)),
-        toBytesLE(limit).data(), 2
-    );
-}
 
 cocos2d::CCArray* getPlayLayerHazards(PlayLayer* playLayer) {
     return MEMBER_BY_OFFSET(cocos2d::CCArray*, playLayer, PlayLayer__m_hazards);
@@ -182,4 +178,13 @@ cocos2d::CCArray* getPlayLayerCheckpoints(PlayLayer* playLayer) {
 }
 cocos2d::CCArray* getPlayLayerCheckpoints() {
     return getPlayLayerCheckpoints(getPlayLayer());
+}
+cocos2d::CCPoint getCheckpointPosition(CCNode* checkpoint) {
+    return MEMBER_BY_OFFSET(cocos2d::CCPoint, checkpoint, CheckpointObject__m_playerPos);
+}
+cocos2d::CCPoint getStartPos(PlayLayer* playLayer) {
+    return MEMBER_BY_OFFSET(cocos2d::CCPoint, playLayer, PlayLayer__m_startPos);
+}
+cocos2d::CCPoint getStartPos() {
+    return getStartPos(getPlayLayer());
 }

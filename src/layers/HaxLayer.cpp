@@ -74,6 +74,8 @@ bool HaxLayer::init(bool fromRope) {
     addCheckbox(1, 9, "Force Visibility", hax.forceVisibility, menu_selector(HaxLayer::onForceVisibility),      buttonMenu, this);
     // addCheckbox(1, 9, "Practice Music Hack", hax.practiceMusic, menu_selector(HaxLayer::onPracticeMusic),       buttonMenu, this);
 
+    addCheckbox(2, 0, "Practice Music Hack", hax.practiceMusic, menu_selector(HaxLayer::onPracticeMusic),       buttonMenu, this);
+
     setKeypadEnabled(true);
 
     return true;
