@@ -22,7 +22,7 @@ void LevelSelectLayer::onViewLevelInfo() {
                 getPlayerName().c_str()
             )->getCString()),
             "no worries I will load a backup so people can restore levels they want via account page. May take a while",
-            "Prew Davlou approved!",
+            "A wild Prew Davlou appeared!",
             "i had a dream that the united nations recognized zoink as an independent country",
             "Guys, PLEASE <cr>STOP</c> calling Me <cy>Greg Heffley</c>. I'm more than just a <cg>STUPID GRAPHIC NOVEL CHARACTER</c>!!! Guys, Look at <cl>the bigger picture</c> here.",
             "Please do not disrespect other members.",
