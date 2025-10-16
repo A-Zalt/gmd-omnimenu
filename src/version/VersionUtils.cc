@@ -209,3 +209,7 @@ int getCurrentScrollIndex(CCLayer* scrollLayer) {
     int screen = getCurrentScrollScreen(scrollLayer);
     return ((screen % pageCount) + pageCount) % pageCount;
 }
+std::string getPlayerName() {
+    GameManager* gman = GameManager::sharedState();
+    return MEMBER_BY_OFFSET(std::string, gman, GameManager__m_playerName);
+}

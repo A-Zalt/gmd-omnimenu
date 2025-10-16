@@ -10,6 +10,7 @@
 /**/ #define CheckpointObject__m_playerPos    0x12c /**/
 /**/ #define EditorPauseLayer__m_editorLayer  0x1c8 /**/
 /**/ #define GameManager__m_playLayer         0x150 /**/
+/**/ #define GameManager__m_playerName        0x168 /**/
 /**/ #define GameManager__m_playerUDID        0x164 /**/
 /**/ #define GJGameLevel__m_attempts          0x164 /**/
 /**/ #define GJGameLevel__m_isVerified        0x159 /**/

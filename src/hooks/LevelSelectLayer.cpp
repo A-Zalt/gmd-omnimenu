@@ -10,10 +10,31 @@ void LevelSelectLayer::onViewLevelInfo() {
     // GJGameLevel* level = getInfoLayerLevel(this);
     int levelID = getCurrentScrollIndex(getSelectLayerScroll(this)) + 1;
     if (levelID > LAST_MAIN_LEVEL_ID) {
+        GameManager* gman = GameManager::sharedState();
+        std::vector<std::string> messages = {
+            "When them <co>fajitas</c> come out <cy>sizzlin'</c>!",
+            "kitto todoku hazu",
+            "I loooove <co>GD Cologne</c>!",
+            "Another Time Then...",
+            "<cl>And we Will End!!</c>",
+            std::string(CCString::createWithFormat(
+                "Hello <cy>%s</c>. You don't know me, but I know you. I want to play a <cr>game</c>.",
+                getPlayerName().c_str()
+            )->getCString()),
+            "no worries I will load a backup so people can restore levels they want via account page. May take a while",
+            "Prew Davlou approved!",
+            "i had a dream that the united nations recognized zoink as an independent country",
+            "Guys, PLEASE <cr>STOP</c> calling Me <cy>Greg Heffley</c>. I'm more than just a <cg>STUPID GRAPHIC NOVEL CHARACTER</c>!!! Guys, Look at <cl>the bigger picture</c> here.",
+            "Please do not disrespect other members.",
+            "The person who implemented <cl>SimpleAudioEngine</c> should be considered a <cr>war criminal</c>.",
+            "The family-friendly Christian Geometry Dash mod menu!",
+            "Stand with <cl>Ukr</c><cy>aine</c> and <cg>Palestine</c>!"
+        };
+        int index = rand() % messages.size();
         FLAlertLayer::create(
             nullptr,
             "Level Info",
-            "When them <co>fajitas</c> come out <cy>sizzlin'</c>!",
+            messages[index].c_str(),
             "OK",
             nullptr,
             300.f

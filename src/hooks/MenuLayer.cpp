@@ -12,7 +12,7 @@ void MenuLayer::onMenuInfo() {
         nullptr,
         "Game Information",
         CCString::createWithFormat(
-            "<cg>OMNImenu</c> %s\n<cl>Geometry Dash</c> %s\n<cr>Special Thanks</c>: <cy>akqanile</c>, <cy>Hris69</c>, <cy>Pololak</c>, <cy>Nikolyas</c>\nWith love from <cy>AntiMatter</c> <cr><3</c>", 
+            "<cg>OMNImenu</c> %s\n<cl>Geometry Dash</c> %s\n<cr>Special Thanks</c>: <cy>akqanile</c>, <cy>Hris69</c>, <cy>Pololak</c>, <cy>Nikolyas</c>, <cy>Capeling</c>, <cy>Cvolton</c>, <cy>dank_meme01</c>, <cy>prevter</c>, <cy>Thelazycat</c>\nWith love from <cy>AntiMatter</c> <cr><3</c>", 
             MENU_VERSION, READABLE_GAME_VERSION)->getCString(),
         "OK",
         nullptr,

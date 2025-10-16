@@ -1,5 +1,5 @@
 #define GAME_VERSION 3
-#define MENU_VERSION "0.51"
+#define MENU_VERSION "0.52"
 
 #if GAME_VERSION == 1
     #define GAME_VER_PATH 1.0
