@@ -8,7 +8,7 @@ set(CXX_STANDARD_REQUIRED ON)
 
 project(menu)
 
-add_library(menu SHARED src/main.cc src/layers/HaxLayer.cpp)
+add_library(menu SHARED src/main.cc src/layers/HaxOverlay.cpp)
 
 set(DOBBY_DEBUG OFF CACHE INTERNAL "" FORCE)
 set(DOBBY_GENERATE_SHARED OFF CACHE INTERNAL "" FORCE)

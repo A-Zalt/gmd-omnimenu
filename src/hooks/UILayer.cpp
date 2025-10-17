@@ -4,6 +4,78 @@
 #include "ButtonSprite.hpp"
 #include "PlayerObject.hpp"
 
+void UILayer::createCheatIndicator() {
+    auto director = CCDirector::sharedDirector();
+    auto winSize = director->getWinSize();
+    HaxManager& hax = HaxManager::sharedState();
+    auto cheatIndicatorLabel = CCLabelBMFont::create(".", "bigFont.fnt");
+    cheatIndicatorLabel->setPosition(ccp(15, winSize.height - 10));
+    switch (hax.getCheatIndicatorColor()) {
+        case CheatIndicatorColor::Green:
+            cheatIndicatorLabel->setColor(ccGREEN);
+            break;
+        case CheatIndicatorColor::Yellow:
+            cheatIndicatorLabel->setColor(ccYELLOW);
+            break;
+        case CheatIndicatorColor::Orange:
+            cheatIndicatorLabel->setColor(ccORANGE);
+            break;
+        case CheatIndicatorColor::Red:
+            cheatIndicatorLabel->setColor(ccRED);
+            break;
+        default:
+            cheatIndicatorLabel->setColor(ccWHITE);
+            break;
+    };
+    hax.cheatIndicatorLabel = cheatIndicatorLabel;
+    addChild(cheatIndicatorLabel, 10000);
+}
+
+void UILayer::createPercentageLabel() {
+    auto director = CCDirector::sharedDirector();
+    auto winSize = director->getWinSize();
+    HaxManager& hax = HaxManager::sharedState();
+    auto percentageLabel = CCLabelBMFont::create("0%", "bigFont.fnt");
+    percentageLabel->setPosition(ccp(winSize.width / 2, winSize.height - 10));
+    percentageLabel->setScale(0.5f);
+    hax.percentageLabel = percentageLabel;
+    addChild(percentageLabel, 10000);
+}
+
+CCMenuItemSpriteExtra* createPCButton(const char* label, float y, SEL_MenuHandler selector, UILayer* self, CCMenu* menu) {
+    auto btnSpr1 = ButtonSprite::create(label, 20);
+    btnSpr1->setScale(1.0f);
+
+    auto btn1 = CCMenuItemSpriteExtra::create(btnSpr1, btnSpr1, self, selector);
+    btn1->setPosition(ccp(0, y));
+    menu->addChild(btn1);
+    return btn1;
+}
+
+void UILayer::createPCommand() {
+    HaxManager& hax = HaxManager::sharedState();
+    auto director = CCDirector::sharedDirector();
+    auto winSize = director->getWinSize();
+    if (!hax.pMenu) {
+        auto menu = CCMenu::create();
+        menu->setPosition(ccp(winSize.width - 30, winSize.height - 40));
+        this->addChild(menu, 10000);
+        hax.pMenu = menu;
+    }
+    if (!hax.pButton1) 
+        hax.pButton1 = createPCButton("S+", -55, menu_selector(UILayer::speedUp), this, hax.pMenu);
+    if (!hax.pButton2) 
+        hax.pButton2 = createPCButton("S-", -85, menu_selector(UILayer::speedDown), this, hax.pMenu);
+    if (!hax.pButton3) 
+        hax.pButton3 = createPCButton("G+", -115, menu_selector(UILayer::gravityUp), this, hax.pMenu);
+    if (!hax.pButton4) 
+        hax.pButton4 = createPCButton("G-", -145, menu_selector(UILayer::gravityDown), this, hax.pMenu);
+    if (!hax.pButton5) 
+        hax.pButton5 = createPCButton("Y+", -175, menu_selector(UILayer::yStartUp), this, hax.pMenu);
+    if (!hax.pButton6) 
+        hax.pButton6 = createPCButton("Y-", -205, menu_selector(UILayer::yStartDown), this, hax.pMenu);
+}
+
 void UILayer::speedUp() {
     PlayerObject* player = getPlayer();
     addXVelocity(player, 0.5d);
@@ -40,80 +112,14 @@ bool UILayer_init(UILayer* self) {
     HaxManager& hax = HaxManager::sharedState();
     auto director = CCDirector::sharedDirector();
     auto winSize = director->getWinSize();
-    if (hax.cheatIndicator) {
-        auto cheatIndicatorLabel = CCLabelBMFont::create(".", "bigFont.fnt");
-        cheatIndicatorLabel->setPosition(ccp(15, winSize.height - 10));
-        switch (hax.getCheatIndicatorColor()) {
-            case CheatIndicatorColor::Green:
-                cheatIndicatorLabel->setColor(ccGREEN);
-                break;
-            case CheatIndicatorColor::Yellow:
-                cheatIndicatorLabel->setColor(ccYELLOW);
-                break;
-            case CheatIndicatorColor::Red:
-                cheatIndicatorLabel->setColor(ccRED);
-                break;
-            default:
-                cheatIndicatorLabel->setColor(ccWHITE);
-                break;
-        };
-        hax.cheatIndicatorLabel = cheatIndicatorLabel;
-        self->addChild(cheatIndicatorLabel, 10000);
+    if (hax.getModuleEnabled("cheat_indicator")) {
+        self->createCheatIndicator();
     }
-    if (hax.showPercentage) {
-        auto percentageLabel = CCLabelBMFont::create("0%", "bigFont.fnt");
-        percentageLabel->setPosition(ccp(winSize.width / 2, winSize.height - 10));
-        percentageLabel->setScale(0.5f);
-        hax.percentageLabel = percentageLabel;
-        self->addChild(percentageLabel, 10000);
+    if (hax.getModuleEnabled("show_percentage")) {
+        self->createPercentageLabel();
     }
-    if (hax.pCommand) {
-        auto menu = CCMenu::create();
-        menu->setPosition(ccp(winSize.width - 30, winSize.height - 40));
-
-        auto btnSpr1 = ButtonSprite::create("S+", 20);
-        btnSpr1->setScale(1.0f);
-
-        auto btn1 = CCMenuItemSpriteExtra::create(btnSpr1, btnSpr1, self, menu_selector(UILayer::speedUp));
-        btn1->setPosition(ccp(0, -55));
-        menu->addChild(btn1);
-
-        auto btnSpr2 = ButtonSprite::create("S-", 20);
-        btnSpr2->setScale(1.0f);
-
-        auto btn2 = CCMenuItemSpriteExtra::create(btnSpr2, btnSpr2, self, menu_selector(UILayer::speedDown));
-        btn2->setPosition(ccp(0, -85));
-        menu->addChild(btn2, 10002);
-
-        auto btnSpr3 = ButtonSprite::create("G+", 20);
-        btnSpr3->setScale(1.0f);
-
-        auto btn3 = CCMenuItemSpriteExtra::create(btnSpr3, btnSpr3, self, menu_selector(UILayer::gravityUp));
-        btn3->setPosition(ccp(0, -115));
-        menu->addChild(btn3, 10003);
-
-        auto btnSpr4 = ButtonSprite::create("G-", 20);
-        btnSpr4->setScale(1.0f);
-
-        auto btn4 = CCMenuItemSpriteExtra::create(btnSpr4, btnSpr4, self, menu_selector(UILayer::gravityDown));
-        btn4->setPosition(ccp(0, -145));
-        menu->addChild(btn4, 10004);
-
-        auto btnSpr5 = ButtonSprite::create("Y+", 20);
-        btnSpr5->setScale(1.0f);
-
-        auto btn5 = CCMenuItemSpriteExtra::create(btnSpr5, btnSpr5, self, menu_selector(UILayer::yStartUp));
-        btn5->setPosition(ccp(0, -175));
-        menu->addChild(btn5, 10005);
-
-        auto btnSpr6 = ButtonSprite::create("Y-", 20);
-        btnSpr6->setScale(1.0f);
-
-        auto btn6 = CCMenuItemSpriteExtra::create(btnSpr6, btnSpr6, self, menu_selector(UILayer::yStartDown));
-        btn6->setPosition(ccp(0, -205));
-        menu->addChild(btn6, 10006);
-
-        self->addChild(menu, 10000);
+    if (hax.getModuleEnabled("pcommand")) {
+        self->createPCommand();
     }
     return true;
 }

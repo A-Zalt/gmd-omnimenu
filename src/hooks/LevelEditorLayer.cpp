@@ -13,7 +13,7 @@ void setObjectLimit(int limit) {
 bool (*TRAM_LevelEditorLayer_init)(LevelEditorLayer* self, GJGameLevel* level);
 bool LevelEditorLayer_init(LevelEditorLayer* self, GJGameLevel* level) {
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.objectLimitHack)
+    if (hax.getModuleEnabled("object_hack"))
         setObjectLimit(INCREASED_OBJECT_LIMIT - 1);
     else
         setObjectLimit(OBJECT_LIMIT);

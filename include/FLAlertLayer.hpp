@@ -24,7 +24,7 @@ public:
     CCLayer *m_pInternalLayer;
 
     static FLAlertLayer* create(FLAlertLayerProtocol*, const char* title, const char* desc, const char* bnt1, const char* bnt2, float width);
-    virtual ~FLAlertLayer();
+    // virtual ~FLAlertLayer();
     virtual bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent);
     virtual void ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent);
     virtual void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent);
@@ -33,15 +33,15 @@ public:
     virtual bool show();
     virtual void keyBackClicked();
 
-    virtual FLAlertLayerProtocol* getPParent();
+    virtual FLAlertLayerProtocol* getPParent() const;
     virtual void setPParent(FLAlertLayerProtocol*);
 
-    virtual CCNode* getTargetScene();
+    virtual CCNode* getTargetScene() const;
     virtual void setTargetScene(CCNode*);
 
-    virtual bool getReverseKeyBack();
+    virtual bool getReverseKeyBack() const;
     virtual void setReverseKeyBack(bool);
-    virtual CCLayer* getInternalLayer();
+    virtual CCLayer* getInternalLayer() const;
 };
 
 #endif

@@ -8,6 +8,7 @@ public:
     static cocos2d::CCScene* scene() ;
 
     void onMenuInfo();
+    void onOpenMenu();
 
     virtual bool init();
     virtual void keyBackClicked();

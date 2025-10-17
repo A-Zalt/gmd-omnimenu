@@ -3,7 +3,7 @@
 void (*TRAM_CCNode_setVisible)(CCNode* self, bool toggle);
 void CCNode_setVisible(CCNode* self, bool toggle) {
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.forceVisibility) {
+    if (hax.getModuleEnabled("force_visibility")) {
         TRAM_CCNode_setVisible(self, true);
     } else TRAM_CCNode_setVisible(self, toggle);
 }

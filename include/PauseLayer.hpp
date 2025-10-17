@@ -2,7 +2,8 @@
 
 #include <cocos2d.h>
 
-class PlayLayer : public cocos2d::CCLayer {
+class PauseLayer : public cocos2d::CCLayer {
 public:
-    static PlayLayer* create(void*);
+    static PauseLayer* create(void*);
+    void onOpenMenu();
 };

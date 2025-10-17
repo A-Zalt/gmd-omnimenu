@@ -4,14 +4,14 @@
 bool (*TRAM_GameManager_isColorUnlocked)(GameManager* self, int idx, bool secondary);
 bool GameManager_isColorUnlocked(GameManager* self, int idx, bool secondary) {
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.iconHack) {
+    if (hax.getModuleEnabled("icon_hack")) {
         return true;
     } else return TRAM_GameManager_isColorUnlocked(self, idx, secondary);
 }
 bool (*TRAM_GameManager_isIconUnlocked)(GameManager* self, int idx);
 bool GameManager_isIconUnlocked(GameManager* self, int idx) {
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.iconHack) {
+    if (hax.getModuleEnabled("icon_hack")) {
         return true;
     } else return TRAM_GameManager_isIconUnlocked(self, idx);
 }

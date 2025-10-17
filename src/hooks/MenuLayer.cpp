@@ -2,10 +2,15 @@
 #include "MenuLayer.hpp"
 #include "FLAlertLayer.hpp"
 #include "CCMenuItemSpriteExtra.hpp"
-#include "../layers/HaxLayer.hpp"
+// #include "../layers/HaxLayer.hpp"
+#include "../layers/HaxOverlay.hpp"
 
-void MenuLayer_onMoreGames(void* self) {
-    CCDirector::sharedDirector()->replaceScene(CCTransitionFade::create(0.5f, HaxLayer::scene(false)));
+// void MenuLayer_onMoreGames(void* self) {
+//     CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.5f, HaxLayer::scene(false)));
+// }
+void MenuLayer::onOpenMenu() {
+    auto haxOverlay = HaxOverlay::create(this);
+    this->addChild(haxOverlay, 1000);
 }
 void MenuLayer::onMenuInfo() {
     FLAlertLayer::create(
@@ -35,13 +40,18 @@ bool MenuLayer_init(cocos2d::CCLayer* self) {
     infoMenu->addChild(infoBtn);
     infoMenu->setPosition(ccp(winSize.width - 25.f, winSize.height - 25.f));
 
+    CCSprite* menuSpr = CCSprite::create("OMNImenu_btn.png");
+    CCMenuItemSpriteExtra* menuBtn = CCMenuItemSpriteExtra::create(menuSpr, menuSpr, self, menu_selector(MenuLayer::onOpenMenu));
+    infoMenu->addChild(menuBtn);
+    menuBtn->setPosition(ccp(-130, -winSize.height + 70.f));
+
     return true;
 }
 
 void MenuLayer_om() {
-    Omni::hook("_ZN9MenuLayer11onMoreGamesEv",
-        reinterpret_cast<void*>(MenuLayer_onMoreGames),
-        nullptr);
+    // Omni::hook("_ZN9MenuLayer11onMoreGamesEv",
+    //     reinterpret_cast<void*>(MenuLayer_onMoreGames),
+    //     nullptr);
     Omni::hook("_ZN9MenuLayer4initEv",
         reinterpret_cast<void*>(MenuLayer_init),
         reinterpret_cast<void**>(&TRAM_MenuLayer_init));

@@ -115,12 +115,12 @@ void seekBackgroundMusicTo(int ms) {
 void (*TRAM_PlayLayer_destroyPlayer)(PlayLayer* self);
 void PlayLayer_destroyPlayer(PlayLayer* self) {
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.noClip || hax.instantComplete) {
+    if (hax.getModuleEnabled("noclip") || hax.getModuleEnabled("instant_complete")) {
         getPlayLayerHazards()->removeAllObjects(); // the humble noclip lag fix
         return;
     }
     TRAM_PlayLayer_destroyPlayer(self);
-    if (hax.practiceMusic && getPlayLayerPractice(self)) {
+    if (hax.getModuleEnabled("practice_music") && getPlayLayerPractice(self)) {
         auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
         audioEngine->pauseBackgroundMusic();
     }
@@ -129,9 +129,10 @@ void PlayLayer_destroyPlayer(PlayLayer* self) {
 void (*TRAM_PlayLayer_togglePracticeMode)(PlayLayer* self, bool toggle);
 void PlayLayer_togglePracticeMode(PlayLayer* self, bool toggle) {
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.practiceMusic && getPlayLayerPractice(self) != toggle) {
+    if (hax.getModuleEnabled("practice_music") && getPlayLayerPractice(self) != toggle) {
+        // recreated function basically
         setPlayLayerPractice(self, toggle);
-        UILayer* uiLayer = getUILayer(getPlayLayer());
+        UILayer* uiLayer = getUILayer(self);
         uiLayer->toggleCheckpointsMenu(toggle);
         if (!toggle) {
             cocos2d::CCArray* checkpoints = getPlayLayerCheckpoints(self);
@@ -147,7 +148,8 @@ void PlayLayer_togglePracticeMode(PlayLayer* self, bool toggle) {
 void (*TRAM_PlayLayer_resetLevel)(PlayLayer* self);
 void PlayLayer_resetLevel(PlayLayer* self) {
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.practiceMusic && getPlayLayerPractice(self)) {
+    if (hax.getCheatIndicatorColor() == CheatIndicatorColor::Orange) hax.hasCheated = false;
+    if (hax.getModuleEnabled("practice_music") && getPlayLayerPractice(self)) {
         auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
         int seekTime = 0;
         CCPoint startPos = getStartPos(self);
@@ -172,7 +174,7 @@ void PlayLayer_resetLevel(PlayLayer* self) {
         }
     }
     TRAM_PlayLayer_resetLevel(self);
-    if (hax.instantComplete) {
+    if (hax.getModuleEnabled("instant_complete")) {
         PlayerObject* player = getPlayer(self); // PlayLayer::getPlayer
         player->lockPlayer();
         self->levelComplete();
@@ -183,7 +185,7 @@ void PlayLayer_resetLevel(PlayLayer* self) {
 void (*TRAM_PlayLayer_toggleFlipped)(void* self, bool p1, bool p2);
 void PlayLayer_toggleFlipped(void* self, bool p1, bool p2) {
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.noMirror) return;
+    if (hax.getModuleEnabled("no_mirror")) return;
     TRAM_PlayLayer_toggleFlipped(self, p1, p2);
 }
 #endif
@@ -195,12 +197,9 @@ void PlayLayer_update(PlayLayer* self, float dt) {
     auto director = CCDirector::sharedDirector();
     auto winSize = director->getWinSize();
     UILayer* uiLayer = getUILayer(self);
-    if (hax.cheatIndicator) {
+    if (hax.getModuleEnabled("cheat_indicator")) {
         if (!hax.cheatIndicatorLabel) {
-            auto cheatIndicatorLabel = CCLabelBMFont::create(".", "bigFont.fnt");
-            cheatIndicatorLabel->setPosition(ccp(15, winSize.height - 15));
-            hax.cheatIndicatorLabel = cheatIndicatorLabel;
-            uiLayer->addChild(cheatIndicatorLabel, 10000);
+            uiLayer->createCheatIndicator();
         } else if (!hax.cheatIndicatorLabel->isVisible())
             hax.cheatIndicatorLabel->setVisible(true);
 
@@ -210,6 +209,9 @@ void PlayLayer_update(PlayLayer* self, float dt) {
                 break;
             case CheatIndicatorColor::Yellow:
                 hax.cheatIndicatorLabel->setColor(ccYELLOW);
+                break;
+            case CheatIndicatorColor::Orange:
+                hax.cheatIndicatorLabel->setColor(ccORANGE);
                 break;
             case CheatIndicatorColor::Red:
                 hax.cheatIndicatorLabel->setColor(ccRED);
@@ -222,13 +224,9 @@ void PlayLayer_update(PlayLayer* self, float dt) {
         if (hax.cheatIndicatorLabel && hax.cheatIndicatorLabel->isVisible()) 
             hax.cheatIndicatorLabel->setVisible(false);
     }
-    if (hax.showPercentage) {
+    if (hax.getModuleEnabled("show_percentage")) {
         if (!hax.percentageLabel) {
-            auto percentageLabel = CCLabelBMFont::create("0%", "bigFont.fnt");
-            percentageLabel->setPosition(ccp(winSize.width / 2, winSize.height - 10));
-            percentageLabel->setScale(0.5f);
-            hax.percentageLabel = percentageLabel;
-            uiLayer->addChild(percentageLabel, 10000);
+            uiLayer->createPercentageLabel();
         } else if (!hax.percentageLabel->isVisible()) {
             hax.percentageLabel->setVisible(true);
         }
@@ -236,6 +234,17 @@ void PlayLayer_update(PlayLayer* self, float dt) {
     } else {
         if (hax.percentageLabel && hax.percentageLabel->isVisible())
             hax.percentageLabel->setVisible(false);
+    }
+    if (hax.getModuleEnabled("pcommand")) {
+        if (!hax.pMenu || !hax.pButton1 || !hax.pButton2 || !hax.pButton3 || !hax.pButton4 || !hax.pButton5 || !hax.pButton6) {
+            uiLayer->createPCommand();
+        } else if (!hax.pMenu->isVisible()) {
+            hax.pMenu->setVisible(true);
+        }
+    } else {
+        if (hax.pMenu && hax.pMenu->isVisible()) {
+            hax.pMenu->setVisible(false);
+        }
     }
 }
 

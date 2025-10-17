@@ -145,6 +145,11 @@ public:
     virtual void touchesEnded(CCSet* touches, CCEvent* pEvent);
     virtual void touchesCancelled(CCSet* touches, CCEvent* pEvent);
 
+    virtual bool getForcePrio();
+    virtual void setForcePrio(bool);
+    virtual int getTargetPrio();
+    virtual void setTargetPrio(int);
+
 public:
     CCTouchHandler* findHandler(CCTouchDelegate *pDelegate);
 protected:

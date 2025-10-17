@@ -5,11 +5,11 @@ bool (*TRAM_EditorPauseLayer_init)(cocos2d::CCLayer* self, LevelEditorLayer* edi
 bool EditorPauseLayer_init(cocos2d::CCLayer* self, LevelEditorLayer* editLayer) {
     if (!TRAM_EditorPauseLayer_init(self, editLayer)) return false;
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.objectCounter) {
+    if (hax.getModuleEnabled("object_counter")) {
         auto director = CCDirector::sharedDirector();
         auto winSize = director->getWinSize();
         auto objectLimit = OBJECT_LIMIT + 1;
-        if (hax.objectLimitHack) objectLimit = INCREASED_OBJECT_LIMIT;
+        if (hax.getModuleEnabled("object_hack")) objectLimit = INCREASED_OBJECT_LIMIT;
         int objectCount = getObjectCount(editLayer);
         auto counterLabel = CCLabelBMFont::create(
             CCString::createWithFormat("%i/%i objects", objectCount, objectLimit)->getCString(), 

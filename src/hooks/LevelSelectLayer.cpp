@@ -28,7 +28,9 @@ void LevelSelectLayer::onViewLevelInfo() {
             "Please do not disrespect other members.",
             "The person who implemented <cl>SimpleAudioEngine</c> should be considered a <cr>war criminal</c>.",
             "The family-friendly Christian Geometry Dash mod menu!",
-            "Stand with <cl>Ukr</c><cy>aine</c> and <cg>Palestine</c>!"
+            // "Stand with <cl>Ukr</c><cy>aine</c> and <cg>Palestine</c>!" <-- i stand by this but it didn't feel right to have in a mod menu
+            "NEVER INHERIT <cb>FLAlertLayer</c>, WORST MISTAKE OF MY LIFE!",
+            "it's just simple <cr>red</c> counting"
         };
         int index = rand() % messages.size();
         FLAlertLayer::create(
@@ -65,7 +67,7 @@ bool (*TRAM_LevelSelectLayer_init)(LevelSelectLayer* self, int a);
 bool LevelSelectLayer_init(LevelSelectLayer* self, int a) {
     TRAM_LevelSelectLayer_init(self, a);
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.viewAttempts) {
+    if (hax.getModuleEnabled("view_level_stats")) {
         auto director = CCDirector::sharedDirector();
         auto winSize = director->getWinSize();
         CCMenu* infoMenu = CCMenu::create();

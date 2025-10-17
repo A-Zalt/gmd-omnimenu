@@ -4,13 +4,13 @@
 void (*TRAM_CCTextInputNode_setCharLimit)(void* self, int charLimit);
 void CCTextInputNode_setCharLimit(void* self, int charLimit) {
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.textLengthBypass) return;
+    if (hax.getModuleEnabled("text_length_bypass")) return;
     TRAM_CCTextInputNode_setCharLimit(self, charLimit);
 }
 void (*TRAM_CCTextInputNode_updateLabel)(CCTextInputNode* self, char* text);
 void CCTextInputNode_updateLabel(CCTextInputNode* self, char* text) {
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.charFilterBypass) {
+    if (hax.getModuleEnabled("char_filter_bypass")) {
         self->setAllowedChars(" !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~");
     }
     TRAM_CCTextInputNode_updateLabel(self, text);
@@ -18,7 +18,7 @@ void CCTextInputNode_updateLabel(CCTextInputNode* self, char* text) {
 void (*TRAM_CCTextInputNode_setProfanityFilter)(CCTextInputNode* self, bool profanityFilter);
 void CCTextInputNode_setProfanityFilter(CCTextInputNode* self, bool profanityFilter) {
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.swearBypass) return;
+    if (hax.getModuleEnabled("swear_filter_bypass")) return;
     TRAM_CCTextInputNode_setProfanityFilter(self, profanityFilter);
 }
 

@@ -5,7 +5,7 @@
 void (*TRAM_EditorUI_showMaxError)(void* self);
 void EditorUI_showMaxError(void* self) {
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.objectLimitHack) {
+    if (hax.getModuleEnabled("object_hack")) {
         FLAlertLayer::create(
             nullptr,
             "Max Objects",
@@ -21,7 +21,7 @@ void EditorUI_showMaxError(void* self) {
 void (*TRAM_EditorUI_constrainGameLayerPosition)(void* self);
 void EditorUI_constrainGameLayerPosition(void* self) {
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.freeScroll) return;
+    if (hax.getModuleEnabled("free_scroll")) return;
     TRAM_EditorUI_constrainGameLayerPosition(self);
 }
 

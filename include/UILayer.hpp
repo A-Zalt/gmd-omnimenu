@@ -16,5 +16,9 @@ public:
     void yStartUp();
     void yStartDown();
 
+    void createCheatIndicator();
+    void createPercentageLabel();
+    void createPCommand();
+
     void toggleCheckpointsMenu(bool toggle);
 };
