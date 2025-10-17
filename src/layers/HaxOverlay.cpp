@@ -42,7 +42,7 @@ bool HaxOverlay::init(CCLayer* referrer) {
 
     CCTouchDispatcher* touchDispatch = director->getTouchDispatcher();
     touchDispatch->setForcePrio(true);
-    touchDispatch->setTargetPrio(0x80000004);
+    touchDispatch->setTargetPrio(0x80000005);
 
     CCNode* parent = CCNode::create();
     addChild(parent);
@@ -85,6 +85,7 @@ bool HaxOverlay::init(CCLayer* referrer) {
 
     setTouchEnabled(true);
     setKeypadEnabled(true);
+    referrer->setTouchEnabled(false);
 
     parent->runAction(CCEaseOut::create(
         CCMoveTo::create(getDuration(), ccp(0.0f, 0.0f)), 3
@@ -197,7 +198,7 @@ void HaxOverlay::onClose(CCObject*) {
     CCSize winSize = director->getWinSize();
     
     this->setKeypadEnabled(false);
-    referrer->setTouchEnabled(true);
+    //referrer->setTouchEnabled(true);
     cocos2d::CCDirector::sharedDirector()->getTouchDispatcher()->removeDelegate(this);
 
     mainParent->runAction(CCEaseIn::create(

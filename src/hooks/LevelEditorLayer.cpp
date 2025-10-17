@@ -2,14 +2,6 @@
 #include "LevelEditorLayer.hpp"
 #include "GJGameLevel.hpp"
 
-void setObjectLimit(int limit) {
-    if (limit > 0xFFFF) return;
-    DobbyCodePatch(
-        reinterpret_cast<void*>(get_address(object_limit)),
-        toBytesLE(limit).data(), 2
-    );
-}
-
 bool (*TRAM_LevelEditorLayer_init)(LevelEditorLayer* self, GJGameLevel* level);
 bool LevelEditorLayer_init(LevelEditorLayer* self, GJGameLevel* level) {
     HaxManager& hax = HaxManager::sharedState();
@@ -17,6 +9,7 @@ bool LevelEditorLayer_init(LevelEditorLayer* self, GJGameLevel* level) {
         setObjectLimit(INCREASED_OBJECT_LIMIT - 1);
     else
         setObjectLimit(OBJECT_LIMIT);
+    setZoomBypass(hax.getModuleEnabled("zoom_bypass"));
 
     return TRAM_LevelEditorLayer_init(self, level);
 }

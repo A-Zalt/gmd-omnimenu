@@ -41,4 +41,7 @@
 /******************************************************/
 /**/ #define basicstring_assign            0x2D45A8 /**/
 /**/ #define object_limit                  0x152520 /**/
+/**/ #define zoom_bypass_max_1             0x1509D0 /**/
+/**/ #define zoom_bypass_max_2             0x150B0A /**/
+/**/ #define zoom_bypass_min               0x150B18 /**/
 /******************************************************/

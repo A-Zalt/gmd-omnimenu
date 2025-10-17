@@ -4,8 +4,7 @@
 
 void PauseLayer::onOpenMenu() {
     auto haxOverlay = HaxOverlay::create(this);
-    auto director = CCDirector::sharedDirector();
-    director->getRunningScene()->addChild(haxOverlay, 1001);
+    this->addChild(haxOverlay, 1000);
     this->setTouchEnabled(false);
 }
 

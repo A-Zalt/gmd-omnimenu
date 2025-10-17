@@ -1,5 +1,4 @@
-#pragma once
-
+#include "VersionUtils.hpp"
 #include "GameManager.hpp"
 #include "UILayer.hpp"
 #include "LevelInfoLayer.hpp"
@@ -8,9 +7,8 @@
 #include <dlfcn.h>  // dlsym, RTLD_NOW
 #include <dobby.h>  // DobbyHook
 
-#define MEMBER_BY_OFFSET(type, var, offset) \
-    (*reinterpret_cast<type*>(reinterpret_cast<uintptr_t>(var) + static_cast<uintptr_t>(offset)))
-
+#define ARM_NOP {0x00, 0xbf}
+    
 uintptr_t get_address(int offset) {
     void* handle = dlopen(MAIN_LIBRARY, RTLD_NOW);
     void* addr = dlsym(handle, "JNI_OnLoad"); // this symbol is present in every GD version according to akqanile/Adelfa
@@ -212,4 +210,40 @@ int getCurrentScrollIndex(CCLayer* scrollLayer) {
 std::string getPlayerName() {
     GameManager* gman = GameManager::sharedState();
     return MEMBER_BY_OFFSET(std::string, gman, GameManager__m_playerName);
+}
+void setObjectLimit(int limit) {
+    if (limit > 0xFFFF) return;
+    DobbyCodePatch(
+        reinterpret_cast<void*>(get_address(object_limit)),
+        toBytesLE(limit).data(), 2
+    );
+}
+void setZoomBypass(bool enable) {
+    if (enable) {
+        DobbyCodePatch(
+            reinterpret_cast<void*>(get_address(zoom_bypass_max_1)),
+            std::vector<uint8_t>(ARM_NOP).data(), 2
+        );
+        DobbyCodePatch(
+            reinterpret_cast<void*>(get_address(zoom_bypass_max_2)),
+            std::vector<uint8_t>(ARM_NOP).data(), 2
+        );
+        DobbyCodePatch(
+            reinterpret_cast<void*>(get_address(zoom_bypass_min)),
+            std::vector<uint8_t>(ARM_NOP).data(), 2
+        );
+    } else {
+        DobbyCodePatch(
+            reinterpret_cast<void*>(get_address(zoom_bypass_max_1)),
+            std::vector<uint8_t>({0x00, 0xd1}).data(), 2
+        );
+        DobbyCodePatch(
+            reinterpret_cast<void*>(get_address(zoom_bypass_max_2)),
+            std::vector<uint8_t>({0x63, 0xe7}).data(), 2
+        );
+        DobbyCodePatch(
+            reinterpret_cast<void*>(get_address(zoom_bypass_min)),
+            std::vector<uint8_t>({0x00, 0xd1}).data(), 2
+        );
+    }
 }

@@ -4,7 +4,7 @@
 #include <dobby.h>  // DobbyHook
 #include "HaxManager.hpp"
 #include <cocos2d.h>
-#include "../version/VersionUtils.cc"
+#include "../version/VersionUtils.hpp"
 
 namespace Omni {
     void* getHandle() {

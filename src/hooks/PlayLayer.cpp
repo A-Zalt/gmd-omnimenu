@@ -145,10 +145,19 @@ void PlayLayer_togglePracticeMode(PlayLayer* self, bool toggle) {
     } else TRAM_PlayLayer_togglePracticeMode(self, toggle);
 }
 
+void instantComplete(PlayLayer* self) {
+    HaxManager& hax = HaxManager::sharedState();
+    PlayerObject* player = getPlayer(self); // PlayLayer::getPlayer
+    player->lockPlayer();
+    self->levelComplete();
+    hax.instantComped = true;
+}
+
 void (*TRAM_PlayLayer_resetLevel)(PlayLayer* self);
 void PlayLayer_resetLevel(PlayLayer* self) {
     HaxManager& hax = HaxManager::sharedState();
     if (hax.getCheatIndicatorColor() == CheatIndicatorColor::Orange) hax.hasCheated = false;
+    hax.instantComped = false;
     if (hax.getModuleEnabled("practice_music") && getPlayLayerPractice(self)) {
         auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
         int seekTime = 0;
@@ -175,20 +184,16 @@ void PlayLayer_resetLevel(PlayLayer* self) {
     }
     TRAM_PlayLayer_resetLevel(self);
     if (hax.getModuleEnabled("instant_complete")) {
-        PlayerObject* player = getPlayer(self); // PlayLayer::getPlayer
-        player->lockPlayer();
-        self->levelComplete();
+        instantComplete(self);
     }
 }
 
-#if GAME_VERSION > 1
 void (*TRAM_PlayLayer_toggleFlipped)(void* self, bool p1, bool p2);
 void PlayLayer_toggleFlipped(void* self, bool p1, bool p2) {
     HaxManager& hax = HaxManager::sharedState();
     if (hax.getModuleEnabled("no_mirror")) return;
     TRAM_PlayLayer_toggleFlipped(self, p1, p2);
 }
-#endif
 
 void (*TRAM_PlayLayer_update)(PlayLayer* self, float dt);
 void PlayLayer_update(PlayLayer* self, float dt) {
@@ -245,6 +250,9 @@ void PlayLayer_update(PlayLayer* self, float dt) {
         if (hax.pMenu && hax.pMenu->isVisible()) {
             hax.pMenu->setVisible(false);
         }
+    }
+    if (hax.getModuleEnabled("instant_complete") && !hax.instantComped) {
+        instantComplete(self);
     }
 }
 

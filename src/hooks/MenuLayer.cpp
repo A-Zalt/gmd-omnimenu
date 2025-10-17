@@ -11,6 +11,7 @@
 void MenuLayer::onOpenMenu() {
     auto haxOverlay = HaxOverlay::create(this);
     this->addChild(haxOverlay, 1000);
+    this->setTouchEnabled(false);
 }
 void MenuLayer::onMenuInfo() {
     FLAlertLayer::create(

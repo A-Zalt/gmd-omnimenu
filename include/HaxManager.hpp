@@ -3,6 +3,8 @@
 #include <cocos2d.h>
 #include "Module.hpp"
 #include "CCMenuItemSpriteExtra.hpp"
+#include "constants.hpp"
+#include "../version/VersionUtils.hpp"
 
 enum class CheatIndicatorColor {
     Green,
@@ -54,6 +56,7 @@ public:
     CCMenuItemSpriteExtra* pButton5;
     CCMenuItemSpriteExtra* pButton6;
     bool hasCheated;
+    bool instantComped;
 
     Module* getModule(const char* id) {
         return modules.at(std::string(id));
@@ -145,11 +148,22 @@ private:
         modules.insert(std::pair<std::string, Module*>("object_hack", new Module(
                 "Object Limit Bypass", 
                 "Sets the object limit to 16,384. (Note: 16k Fix is not yet available. It will be added in a future update.)", 
-                false, ModuleCategory::Editor, [](bool _){})));
+                false, ModuleCategory::Editor, [](bool _){
+                    if (_)
+                        setObjectLimit(INCREASED_OBJECT_LIMIT - 1);
+                    else
+                        setObjectLimit(OBJECT_LIMIT);
+                })));
         modules.insert(std::pair<std::string, Module*>("verify_bypass", new Module(
                 "Verify Bypass", 
                 "Allows you to upload any level without verifying it.", 
                 false, ModuleCategory::Editor, [](bool _){})));
+        modules.insert(std::pair<std::string, Module*>("zoom_bypass", new Module(
+                "Zoom Bypass", 
+                "Removes editor zoom restrictions.", 
+                false, ModuleCategory::Editor, [](bool _){
+                    setZoomBypass(_);
+                })));
 
 
 
