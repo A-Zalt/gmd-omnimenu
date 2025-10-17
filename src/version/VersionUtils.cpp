@@ -6,6 +6,7 @@
 #include "addresses.hpp"
 #include <dlfcn.h>  // dlsym, RTLD_NOW
 #include <dobby.h>  // DobbyHook
+#include "EditorUI.hpp"
 
 #define ARM_NOP {0x00, 0xbf}
     
@@ -235,15 +236,21 @@ void setZoomBypass(bool enable) {
     } else {
         DobbyCodePatch(
             reinterpret_cast<void*>(get_address(zoom_bypass_max_1)),
-            std::vector<uint8_t>({0x00, 0xd1}).data(), 2
+            std::vector<uint8_t>({0x00, 0xd1}).data(), 2 // BNE
         );
         DobbyCodePatch(
             reinterpret_cast<void*>(get_address(zoom_bypass_max_2)),
-            std::vector<uint8_t>({0x63, 0xe7}).data(), 2
+            std::vector<uint8_t>({0x63, 0xe7}).data(), 2 // B
         );
         DobbyCodePatch(
             reinterpret_cast<void*>(get_address(zoom_bypass_min)),
-            std::vector<uint8_t>({0x00, 0xd1}).data(), 2
+            std::vector<uint8_t>({0x00, 0xd1}).data(), 2 // BNE
         );
     }
+}
+cocos2d::CCNode* getEditorGameLayer(LevelEditorLayer* editorLayer) {
+    return MEMBER_BY_OFFSET(cocos2d::CCNode*, editorLayer, LevelEditorLayer__m_gameLayer);
+}
+LevelEditorLayer* getUIEditorLayer(EditorUI* uiLayer) {
+    return MEMBER_BY_OFFSET(LevelEditorLayer*, uiLayer, EditorUI__m_editorLayer);
 }

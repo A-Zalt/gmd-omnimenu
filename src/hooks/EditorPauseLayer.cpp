@@ -33,7 +33,7 @@ bool EditorPauseLayer_init(cocos2d::CCLayer* self, LevelEditorLayer* editLayer) 
     CCSprite* menuSpr = CCSprite::create("OMNImenu_btn.png");
     CCMenuItemSpriteExtra* menuBtn = CCMenuItemSpriteExtra::create(menuSpr, menuSpr, self, menu_selector(PauseLayer::onOpenMenu));
     btnMenu->addChild(menuBtn, 999);
-    menuBtn->setPosition(ccp(winSize.width / 2.f - 50.f, -50.f));
+    menuBtn->setPosition(ccp(winSize.width - 50.f, -50.f));
     return true;
 }
 void EditorPauseLayer_om() {

@@ -6,6 +6,7 @@
 #include "addresses.hpp"
 #include <dlfcn.h>  // dlsym, RTLD_NOW
 #include <dobby.h>  // DobbyHook
+#include "EditorUI.hpp"
 
 #define MEMBER_BY_OFFSET(type, var, offset) \
     (*reinterpret_cast<type*>(reinterpret_cast<uintptr_t>(var) + static_cast<uintptr_t>(offset)))
@@ -80,3 +81,5 @@ int getCurrentScrollIndex(CCLayer* scrollLayer);
 std::string getPlayerName();
 void setObjectLimit(int limit);
 void setZoomBypass(bool enabled);
+cocos2d::CCNode* getEditorGameLayer(LevelEditorLayer* editorLayer);
+LevelEditorLayer* getUIEditorLayer(EditorUI* uiLayer);

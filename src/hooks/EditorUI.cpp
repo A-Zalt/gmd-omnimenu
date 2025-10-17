@@ -25,6 +25,17 @@ void EditorUI_constrainGameLayerPosition(void* self) {
     TRAM_EditorUI_constrainGameLayerPosition(self);
 }
 
+void (*TRAM_EditorUI_zoomOut)(EditorUI* self);
+void EditorUI_zoomOut(EditorUI* self) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.getModuleEnabled("zoom_bypass")) {
+        cocos2d::CCNode* gameLayer = getEditorGameLayer(getUIEditorLayer(self));
+        if (gameLayer->getScale() > 0.1f) TRAM_EditorUI_zoomOut(self);
+    } else {
+        TRAM_EditorUI_zoomOut(self);
+    }
+}
+
 void EditorUI_om() {
     Omni::hook("_ZN8EditorUI12showMaxErrorEv",
         reinterpret_cast<void*>(EditorUI_showMaxError),
@@ -32,4 +43,7 @@ void EditorUI_om() {
     Omni::hook("_ZN8EditorUI26constrainGameLayerPositionEv",
         reinterpret_cast<void*>(EditorUI_constrainGameLayerPosition),
         reinterpret_cast<void**>(&TRAM_EditorUI_constrainGameLayerPosition));
+    Omni::hook("_ZN8EditorUI7zoomOutEv",
+        reinterpret_cast<void*>(EditorUI_zoomOut),
+        reinterpret_cast<void**>(&TRAM_EditorUI_zoomOut));
 }
