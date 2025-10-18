@@ -254,3 +254,12 @@ cocos2d::CCNode* getEditorGameLayer(LevelEditorLayer* editorLayer) {
 LevelEditorLayer* getUIEditorLayer(EditorUI* uiLayer) {
     return MEMBER_BY_OFFSET(LevelEditorLayer*, uiLayer, EditorUI__m_editorLayer);
 }
+GJGameLevel* getCellLevel(CCNode* cell) {
+    return MEMBER_BY_OFFSET(GJGameLevel*, cell, LevelCell__m_level);
+}
+CCLayer* getCellMainLayer(CCNode* cell) {
+    return MEMBER_BY_OFFSET(CCLayer*, cell, CCTableViewCell__m_mainLayer);
+}
+int getCommentID(CCNode* comment) {
+    return MEMBER_BY_OFFSET(int, comment, GJComment__m_commentID);
+}

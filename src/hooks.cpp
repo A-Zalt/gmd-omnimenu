@@ -13,6 +13,8 @@
 #include "hooks/EditorPauseLayer.cpp"
 #include "hooks/CCNode.cpp"
 #include "hooks/LevelSelectLayer.cpp"
+#include "hooks/LevelCell.cpp"
+#include "hooks/CommentCell.cpp"
 
 void initialize_hooks() {
     PlayLayer_om();
@@ -30,4 +32,6 @@ void initialize_hooks() {
     EditorPauseLayer_om();
     CCNode_om();
     LevelSelectLayer_om();
+    LevelCell_om();
+    CommentCell_om();
 }

@@ -186,6 +186,14 @@ private:
 
 
 
+        modules.insert(std::pair<std::string, Module*>("comment_ids", new Module(
+                "Comment IDs", 
+                "Displays comment IDs in comment cells.", 
+                false, ModuleCategory::Informational, [](bool _){})));
+        modules.insert(std::pair<std::string, Module*>("level_ids_in_list", new Module(
+                "Level IDs in Search", 
+                "Displays level IDs in level cells.", 
+                false, ModuleCategory::Informational, [](bool _){})));
         modules.insert(std::pair<std::string, Module*>("view_level_stats", new Module(
                 "View Level Stats", 
                 "Adds a menu button that displays some information about the level, such as your attempt count on it.", 

@@ -7,12 +7,14 @@
 /**/ #define BoomScrollLayer__m_dynamic       0x154 /**/
 /**/ #define BoomScrollLayer__m_dynamicPages  0x150 /**/
 /**/ #define BoomScrollLayer__m_pages         0x164 /**/
+/**/ #define CCTableViewCell__m_mainLayer     0x17c /**/
 /**/ #define CheckpointObject__m_playerPos    0x12c /**/
 /**/ #define EditorPauseLayer__m_editorLayer  0x1c8 /**/
 /**/ #define EditorUI__m_editorLayer          0x1c4 /**/
 /**/ #define GameManager__m_playLayer         0x150 /**/
 /**/ #define GameManager__m_playerName        0x168 /**/
 /**/ #define GameManager__m_playerUDID        0x164 /**/
+/**/ #define GJComment__m_commentID           0x130 /**/
 /**/ #define GJGameLevel__m_attempts          0x164 /**/
 /**/ #define GJGameLevel__m_isVerified        0x159 /**/
 /**/ #define GJGameLevel__m_levelID           0x128 /**/
@@ -22,6 +24,7 @@
 /**/ #define GJGameLevel__m_practicePercent   0x16c /**/
 /**/ #define GJGameLevel__m_userID            0x13c /**/
 /**/ #define GJGameLevel__m_username          0x138 /**/
+/**/ #define LevelCell__m_level               0x180 /**/
 /**/ #define LevelEditorLayer__m_gameLayer    0x158 /**/
 /**/ #define LevelEditorLayer__m_objectCount  0x154 /**/
 /**/ #define LevelInfoLayer__m_level          0x154 /**/

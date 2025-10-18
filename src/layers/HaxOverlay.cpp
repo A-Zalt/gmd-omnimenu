@@ -42,7 +42,7 @@ bool HaxOverlay::init(CCLayer* referrer) {
 
     CCTouchDispatcher* touchDispatch = director->getTouchDispatcher();
     touchDispatch->setForcePrio(true);
-    touchDispatch->setTargetPrio(0x80000005);
+    touchDispatch->setTargetPrio(0x80000002);
 
     CCNode* parent = CCNode::create();
     addChild(parent);
@@ -219,5 +219,5 @@ bool HaxOverlay::ccTouchBegan(cocos2d::CCTouch* t, cocos2d::CCEvent*)
 void HaxOverlay::registerWithTouchDispatcher()
 {
     CCTouchDispatcher* t = CCDirector::sharedDirector()->getTouchDispatcher();   
-    t->addTargetedDelegate(this, 0x80000005, true);
+    t->addTargetedDelegate(this, 0x80000003, true);
 }

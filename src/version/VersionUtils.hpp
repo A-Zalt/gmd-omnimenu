@@ -83,3 +83,6 @@ void setObjectLimit(int limit);
 void setZoomBypass(bool enabled);
 cocos2d::CCNode* getEditorGameLayer(LevelEditorLayer* editorLayer);
 LevelEditorLayer* getUIEditorLayer(EditorUI* uiLayer);
+GJGameLevel* getCellLevel(CCNode* cell);
+CCLayer* getCellMainLayer(CCNode* cell);
+int getCommentID(CCNode* comment);
