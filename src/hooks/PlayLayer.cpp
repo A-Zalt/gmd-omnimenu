@@ -188,6 +188,13 @@ void PlayLayer_resetLevel(PlayLayer* self) {
     }
 }
 
+void (*TRAM_PlayLayer_onQuit)(PlayLayer* self);
+void PlayLayer_onQuit(PlayLayer* self) {
+    TRAM_PlayLayer_onQuit(self);
+    HaxManager& hax = HaxManager::sharedState();
+    hax.quitPlayLayer = true;
+}
+
 void (*TRAM_PlayLayer_toggleFlipped)(void* self, bool p1, bool p2);
 void PlayLayer_toggleFlipped(void* self, bool p1, bool p2) {
     HaxManager& hax = HaxManager::sharedState();
@@ -199,11 +206,12 @@ void (*TRAM_PlayLayer_update)(PlayLayer* self, float dt);
 void PlayLayer_update(PlayLayer* self, float dt) {
     TRAM_PlayLayer_update(self, dt);
     HaxManager& hax = HaxManager::sharedState();
+    if (hax.quitPlayLayer) return;
     auto director = CCDirector::sharedDirector();
     auto winSize = director->getWinSize();
     UILayer* uiLayer = getUILayer(self);
     if (hax.getModuleEnabled("cheat_indicator")) {
-        if (!hax.cheatIndicatorLabel) {
+        if (!hax.cheatIndicatorLabel || hax.cheatIndicatorLabel == nullptr) {
             uiLayer->createCheatIndicator();
         } else if (!hax.cheatIndicatorLabel->isVisible())
             hax.cheatIndicatorLabel->setVisible(true);
@@ -226,34 +234,42 @@ void PlayLayer_update(PlayLayer* self, float dt) {
                 break;
         };
     } else {
-        if (hax.cheatIndicatorLabel && hax.cheatIndicatorLabel->isVisible()) 
+        if (hax.cheatIndicatorLabel && hax.cheatIndicatorLabel != nullptr && hax.cheatIndicatorLabel->isVisible()) 
             hax.cheatIndicatorLabel->setVisible(false);
     }
     if (hax.getModuleEnabled("show_percentage")) {
-        if (!hax.percentageLabel) {
+        if (!hax.percentageLabel || hax.percentageLabel == nullptr) {
             uiLayer->createPercentageLabel();
         } else if (!hax.percentageLabel->isVisible()) {
             hax.percentageLabel->setVisible(true);
         }
         hax.percentageLabel->setString(CCString::createWithFormat("%i%%", getCurrentPercentage())->getCString());
     } else {
-        if (hax.percentageLabel && hax.percentageLabel->isVisible())
+        if (hax.percentageLabel && hax.percentageLabel != nullptr && hax.percentageLabel->isVisible())
             hax.percentageLabel->setVisible(false);
     }
     if (hax.getModuleEnabled("pcommand")) {
-        if (!hax.pMenu || !hax.pButton1 || !hax.pButton2 || !hax.pButton3 || !hax.pButton4 || !hax.pButton5 || !hax.pButton6) {
+        if (!hax.pMenu || !hax.pButton1 || !hax.pButton2 || !hax.pButton3 || !hax.pButton4 || !hax.pButton5 || !hax.pButton6
+        || hax.pMenu == nullptr || hax.pButton1 == nullptr || hax.pButton2 == nullptr || hax.pButton3 == nullptr || hax.pButton4 == nullptr
+        || hax.pButton5 == nullptr || hax.pButton6 == nullptr) {
             uiLayer->createPCommand();
         } else if (!hax.pMenu->isVisible()) {
             hax.pMenu->setVisible(true);
         }
     } else {
-        if (hax.pMenu && hax.pMenu->isVisible()) {
+        if (hax.pMenu && hax.pMenu != nullptr && hax.pMenu->isVisible()) {
             hax.pMenu->setVisible(false);
         }
     }
     if (hax.getModuleEnabled("instant_complete") && !hax.instantComped) {
         instantComplete(self);
     }
+}
+void (*TRAM_PlayLayer_init)(PlayLayer* self);
+void PlayLayer_init(PlayLayer* self) {
+    TRAM_PlayLayer_init(self);
+    HaxManager& hax = HaxManager::sharedState();
+    hax.quitPlayLayer = false;
 }
 
 void PlayLayer_om() {
@@ -274,4 +290,10 @@ void PlayLayer_om() {
     Omni::hook("_ZN9PlayLayer10resetLevelEv",
         reinterpret_cast<void*>(PlayLayer_resetLevel),
         reinterpret_cast<void**>(&TRAM_PlayLayer_resetLevel));
+    Omni::hook("_ZN9PlayLayer6onQuitEv",
+        reinterpret_cast<void*>(PlayLayer_onQuit),
+        reinterpret_cast<void**>(&TRAM_PlayLayer_onQuit));
+    Omni::hook("_ZN9PlayLayer4initEP11GJGameLevel",
+        reinterpret_cast<void*>(PlayLayer_init),
+        reinterpret_cast<void**>(&TRAM_PlayLayer_init));
 }

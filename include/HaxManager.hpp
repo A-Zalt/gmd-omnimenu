@@ -57,6 +57,7 @@ public:
     CCMenuItemSpriteExtra* pButton6;
     bool hasCheated;
     bool instantComped;
+    bool quitPlayLayer;
 
     Module* getModule(const char* id) {
         return modules.at(std::string(id));
@@ -219,6 +220,16 @@ private:
 
         lastCategory = ModuleCategory::Gameplay;
         hasCheated = false;
+        
+        cheatIndicatorLabel = nullptr;
+        percentageLabel = nullptr;
+        pMenu = nullptr;
+        pButton1 = nullptr;
+        pButton2 = nullptr;
+        pButton3 = nullptr;
+        pButton4 = nullptr;
+        pButton5 = nullptr;
+        pButton6 = nullptr;
     }
 
     HaxManager(const HaxManager&) = delete;
