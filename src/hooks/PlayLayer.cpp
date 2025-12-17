@@ -283,6 +283,9 @@ bool PlayLayer_init(PlayLayer* self, GJGameLevel* level) {
     if (hax.getModuleEnabled(ModuleID::HIDE_ATTEMPTS)) {
         getAttemptLabel(self)->setVisible(false);
     }
+    if (hax.getCheatIndicatorColor() == CheatIndicatorColor::Red || hax.getCheatIndicatorColor() == CheatIndicatorColor::Orange) {
+        hax.setCheating(true);
+    }
     hax.quitPlayLayer = false;
     hax.startPosIndex = -2;
     if (hax.getModuleEnabled(ModuleID::START_POS_SWITCHER)) {

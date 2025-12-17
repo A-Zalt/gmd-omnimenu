@@ -8,12 +8,13 @@ Currently works for versions 1.02 - 1.6.
 Downloads are available in the Discord server: https://discord.gg/4AC23yn4yF
 
 ## Special Thanks
-- [**akqanile (Adelfa)**](https://github.com/cierra-kb) - 100 KB fix, font size calculator, lots of help with issues. He is regarded as the god of tradmodding for a reason.
+- [**akqanile (Adelfa)**](https://github.com/cierra-kb) - 100 KB fix, 16k fix, lots of help with issues. He is regarded as the god of tradmodding for a reason.
 - Eclipse Mod Menu team - many hack implementations
 - Hris69 - betatested on Android 4.4. Also got me started with tradmodding in general. Without him, this mod menu wouldn't exist.
 - Nikolyas, Caster, Tabbi - betatesters
 - HJFod - BetterEdit code (particularly the RGB Color Inputs)
 - iAndy_HD3 - Helping out with fmtlib
+- Pololak - GD 1.7 Cocos 2.2.3 headers
 
 ## Build Instructions
 Note: the minimum Android version is currently KitKat (4.4). Android 14+ devices won't work without solutions like Shizuku or Virtual Master.
