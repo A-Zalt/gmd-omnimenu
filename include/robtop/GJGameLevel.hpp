@@ -76,6 +76,8 @@ public:
     static GJGameLevel* create();
     static GJGameLevel* create(cocos2d::CCDictionary dict);
     static GJGameLevel* createWithCoder(DS_Dictionary* dict);
+    static int getLengthKey(int seconds);
+    static std::string lengthKeyToString(int key);
     virtual bool init();
     virtual void setIsVerified(bool isVerified);
     int getAverageDifficulty();

@@ -17,6 +17,7 @@ public:
 
     void setMaxLabelScale(float scale);
     void setLabelPlaceholderScale(float scale);
+    void setLabelPlaceholderColor(_ccColor3B);
 };
 
 class TextInputDelegate {

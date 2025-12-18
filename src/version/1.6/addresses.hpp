@@ -50,8 +50,8 @@
 /**/ #define LevelCell__m_level                0x180 /**/ // LevelCell::loadFromLevel
 /**/ #define LevelEditorLayer__m_batchNode     0x140 /**/ // LevelEditorLayer::createObject (1st function call after GameObject::createObject)
 /**/ #define LevelEditorLayer__m_gameLayer     0x158 /**/ // LevelEditorLayer::getGameLayer
-/**/ #define LevelEditorLayer__m_gridLayer     0x150 /**/ // LevelEditorLayer::removeObject
-/**/ #define LevelEditorLayer__m_objectCount   0x154 /**/ // LevelEditorLayer::getObjectCount
+/**/ #define LevelEditorLayer__m_gridLayer     0x154 /**/ // LevelEditorLayer::removeObject
+/**/ #define LevelEditorLayer__m_objectCount   0x150 /**/ // LevelEditorLayer::getObjectCount
 /**/ #define LevelEditorLayer__m_sections      0x144 /**/ // LevelEditorLayer::getSectionCount
 /**/ #define LevelEditorLayer__m_settings      0x160 /**/ // LevelEditorLayer::getLevelSettings
 /**/ #define LevelEditorLayer__m_redoArray     0x14c /**/ // LevelEditorLayer::addToRedoList

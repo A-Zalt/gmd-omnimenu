@@ -20,6 +20,7 @@ public:
     void addToSection(GameObject* object);
     void addToUndoList(UndoObject*);
     void removeObject(GameObject*);
+    int getSectionCount();
 #if GAME_VERSION >= GV_1_6
     void addObjectFromString(std::string);
 #endif

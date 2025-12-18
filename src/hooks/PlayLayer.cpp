@@ -23,6 +23,7 @@ void PlayLayer_destroyPlayer(PlayLayer* self) {
         hax.bestRunStart = hax.startPercent;
         hax.bestRunEnd = currRun;
     }
+    hax.dead = true;
     TRAM_PlayLayer_destroyPlayer(self);
     if (hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK) && getPlayLayerPractice(self)) {
         auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
@@ -90,6 +91,7 @@ void PlayLayer_resetLevel(PlayLayer* self) {
     hax.deadFrames = 0;
     hax.noclipAccuracy = 100;
     hax.completed = false;
+    hax.dead = false;
     if (hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK) && getPlayLayerPractice(self)) {
         auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
         int seekTime = 0;
@@ -112,6 +114,13 @@ void PlayLayer_resetLevel(PlayLayer* self) {
             audioEngine->setBackgroundMusicTime(0.f);
         }
         audioEngine->resumeBackgroundMusic();
+    }
+    if (hax.percentageLabel) {
+        auto director = CCDirector::sharedDirector();
+        auto winSize = director->getWinSize();
+        hax.percentageLabel->setFntFile("bigFont.fnt");
+        hax.percentageLabel->setScale(0.5f);
+        hax.percentageLabel->setPositionY(winSize.height - 7.5);
     }
     TRAM_PlayLayer_resetLevel(self);
 #if GAME_VERSION == GV_1_4
@@ -191,9 +200,29 @@ void PlayLayer_update(PlayLayer* self, float dt) {
         } else {
             hax.percentageLabel->setString(CCString::createWithFormat("%i%%", getCurrentPercentage(self))->getCString());
         }
-#if GAME_VERSION >= GV_1_5
+        auto sp = getStartPos(self);
         auto director = CCDirector::sharedDirector();
         auto winSize = director->getWinSize();
+        if (hax.getModuleEnabled(ModuleID::GOLDEN_BEST) && !getPlayLayerPractice(self) && sp.x == 0 && sp.y == 105) {
+            if (getCurrentPercentage() > getPlayLayerLevel(self)->m_nNormalPercent) {
+                if (strcmp(hax.percentageLabel->getFntFile(), "goldFont.fnt")) {
+                    hax.percentageLabel->setFntFile("goldFont.fnt");
+                    hax.percentageLabel->setScale(0.68f);
+                    hax.percentageLabel->setPositionY(winSize.height - 7);
+                }
+            } else if (!hax.dead && strcmp(hax.percentageLabel->getFntFile(), "bigFont.fnt")) {
+                hax.percentageLabel->setFntFile("bigFont.fnt");
+                hax.percentageLabel->setScale(0.5f);
+                hax.percentageLabel->setPositionY(winSize.height - 7.5);
+            }
+        } else {
+            if (strcmp(hax.percentageLabel->getFntFile(), "bigFont.fnt")) {
+                hax.percentageLabel->setFntFile("bigFont.fnt");
+                hax.percentageLabel->setScale(0.5f);
+                hax.percentageLabel->setPositionY(winSize.height - 7.5);
+            }
+        }
+#if GAME_VERSION >= GV_1_5
         if (getShowProgressBar()) {
             hax.percentageLabel->setPositionX(winSize.width / 2 + 110);
         } else {

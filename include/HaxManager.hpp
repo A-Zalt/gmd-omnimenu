@@ -36,6 +36,7 @@ enum ModuleID {
     DELETE_SELECTED,
     DELETE_START_POS,
     DEMONS_IN_GARAGE,
+    OBJECT_COUNTER, // Editor Pause Info
     EXTRA_EDIT_BUTTONS,
     FAST_MENU,
     FONT_OFFSET_FIX,
@@ -43,6 +44,7 @@ enum ModuleID {
     FREE_BUILD,
     FREE_SCROLL,
     GDSHARE,
+    GOLDEN_BEST,
     LEVEL_COPYING,
     LEVEL_EDIT,
     HIDE_ATTEMPTS,
@@ -63,6 +65,7 @@ enum ModuleID {
     LABEL_PCOMMAND,
     LABEL_PLAYER_POSITION,
     LABEL_PLAYER_ROTATION,
+    LABEL_SPEEDHACK,
     LABEL_TIME_SPENT,
 
     LEVEL_IDS_IN_SEARCH,
@@ -76,7 +79,6 @@ enum ModuleID {
     NO_SHAKE,
     NO_SHIP_TINT,
     OBJ_COLOR_FIX,
-    OBJECT_COUNTER,
     OBJECT_LIMIT_BYPASS,
     PAGE_REFRESH,
 
@@ -106,10 +108,11 @@ enum ModuleID {
     SHOW_PERCENTAGE_DECIMAL,
     SHOW_OBJECT_INFO,
     SHOW_RESTART_BUTTON,
+    SPEEDHACK,
     START_POS_SWITCHER,
     SWEAR_FILTER_BYPASS,
     TEXT_LENGTH_BYPASS,
-    NO_TRAIL,
+    NO_TRAIL, // Trail Always Off
     TRAIL_ALWAYS_ON,
     UNLISTED_OBJECTS,
     UNLOCK_CLUBSTEP,
@@ -180,6 +183,8 @@ public:
 #ifdef NP4
     std::map<GJGameLevel*, int> featureTypeMap;
 #endif
+    float timeScale;
+    bool dead;
 
     bool getModuleEnabled(ModuleID id) {
         return modules[id].enabled;
@@ -198,7 +203,8 @@ public:
         checkpointsInNormalMode || 
         getModuleEnabled(ModuleID::JUMP_HACK) || 
         getModuleEnabled(ModuleID::NO_MIRROR) || 
-        pSpeedModified != 0 || pGravityModified != 0 || pYStartModified != 0) return CheatIndicatorColor::Red;
+        pSpeedModified != 0 || pGravityModified != 0 || pYStartModified != 0
+        || (getModuleEnabled(ModuleID::SPEEDHACK)) && timeScale != 1) return CheatIndicatorColor::Red;
         if (hasCheated) return CheatIndicatorColor::Orange;
 #ifndef FORCE_AUTO_SAFE_MODE
         if (getModuleEnabled(ModuleID::LEVEL_EDIT)) return CheatIndicatorColor::Yellow;
@@ -216,12 +222,14 @@ public:
             getModuleEnabled(ModuleID::LABEL_FPS) ||
             getModuleEnabled(ModuleID::LABEL_FRAMES) ||
             getModuleEnabled(ModuleID::LABEL_JUMPS) ||
-            getModuleEnabled(ModuleID::LABEL_NOCLIP_ACCURACY) ||
-            getModuleEnabled(ModuleID::LABEL_NOCLIP_DEATHS) ||
+            (getModuleEnabled(ModuleID::NOCLIP) && 
+            (getModuleEnabled(ModuleID::LABEL_NOCLIP_ACCURACY) ||
+            getModuleEnabled(ModuleID::LABEL_NOCLIP_DEATHS))) ||
             getModuleEnabled(ModuleID::LABEL_PCOMMAND) ||
             getModuleEnabled(ModuleID::LABEL_PLAYER_POSITION) ||
             getModuleEnabled(ModuleID::LABEL_PLAYER_ROTATION) ||
-            getModuleEnabled(ModuleID::LABEL_TIME_SPENT)
+            getModuleEnabled(ModuleID::LABEL_TIME_SPENT) ||
+            (getModuleEnabled(ModuleID::SPEEDHACK) && getModuleEnabled(ModuleID::LABEL_SPEEDHACK))
         );
     }
 
@@ -250,6 +258,9 @@ public:
 
         fclose(fp);
 
+        if (doc.HasMember("pref_timeScale") && doc["pref_timeScale"].IsFloat()) {
+            timeScale = doc["pref_timeScale"].GetFloat();
+        }
         for (Module& record : modules) {
             if (!record.exists) continue;
             if (doc.HasMember(record.id) && doc[record.id].IsBool()) {
@@ -294,6 +305,10 @@ public:
                 document.AddMember(jsonKey, getModuleEnabled(static_cast<ModuleID>(key)), allocator);
                 key++;
             }
+
+            rapidjson::Value jk("pref_timeScale", static_cast<rapidjson::SizeType>(strlen("pref_timeScale")), allocator);
+            document.AddMember(jk, timeScale, allocator);
+
             rapidjson::StringBuffer buffer;
             rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
             document.Accept(writer);
@@ -358,6 +373,7 @@ public:
         completed = false;
         ntOpacity = 0;
         startPositions = nullptr;
+        dead = false;
     }
 
 private:
@@ -426,6 +442,19 @@ private:
             false, ModuleCategory::Player, [](bool _){
                 setRestartButton(_);
             });
+        modules[ModuleID::SPEEDHACK] = Module(
+            "speedhack",
+            "Speedhack", 
+            "Lets you change the speed the game runs at.", 
+            false, ModuleCategory::Player, [](bool _){
+                HaxManager& hax = HaxManager::sharedState();
+                if (_) {
+                    CCDirector::sharedDirector()->getScheduler()->setTimeScale(hax.timeScale);
+                    if (hax.timeScale != 1) hax.setCheating(true);
+                } else {
+                    CCDirector::sharedDirector()->getScheduler()->setTimeScale(1);
+                }
+            });
         modules[ModuleID::START_POS_SWITCHER] = Module(
             "start_pos_switcher",
             "Start Pos Switcher", 
@@ -434,6 +463,11 @@ private:
 
 
 
+        modules[ModuleID::GOLDEN_BEST] = Module(
+            "golden_best",
+            "Golden Best", 
+            "Makes the Show Percentage label gold if you are past your record on the level.", 
+            false, ModuleCategory::Visual, [](bool _){});
         modules[ModuleID::HIDE_ATTEMPTS] = Module(
             "hide_attempts",
             "Hide Attempts", 
@@ -539,6 +573,15 @@ private:
             "Adds a button that removes all start positions in the level.", 
             false, ModuleCategory::Editor, [](bool _){});
 #endif
+        modules[ModuleID::OBJECT_COUNTER] = Module(
+            "object_counter",
+            "Editor Pause Info", 
+#if GAME_VERSION < GV_1_6
+            "Displays the object count and length of the level in the editor pause menu.", 
+#else
+            "Displays the length of the level in the editor pause menu.", 
+#endif
+            false, ModuleCategory::Editor, [](bool _){});
         modules[ModuleID::EXTRA_EDIT_BUTTONS] = Module(
             "extra_edit_buttons",
             "Extra Edit Buttons", 
@@ -569,13 +612,6 @@ private:
             false, ModuleCategory::Editor, [](bool _){
                 setEditButton(_);
             });
-#endif
-#if GAME_VERSION < GV_1_6
-        modules[ModuleID::OBJECT_COUNTER] = Module(
-            "object_counter",
-            "Object Counter", 
-            "Displays the object count of the level in the editor pause menu.", 
-            false, ModuleCategory::Editor, [](bool _){});
 #endif
         modules[ModuleID::OBJECT_LIMIT_BYPASS] = Module(
             "object_hack",
@@ -713,7 +749,7 @@ private:
         modules[ModuleID::_100_KB_FIX] = Module(
             "100_kb_fix",
             "100 KB Fix", 
-            "Fixes a bug in Cocos2d where CCStrings always allocate 100 KB, instead allocating a dynamic buffer size. This fixes large levels being cut off on upload (for versions before 1.5), as well as potentially increasing performance. (module by akqanile/Adelfa)", 
+            "Fixes a poor design choice in Cocos2d where CCStrings always allocate 100 KB, instead allocating a dynamic buffer size. This fixes large levels being cut off on upload (for versions before 1.5), as well as potentially increasing performance. (module by akqanile/Adelfa)", 
             true, ModuleCategory::Universal, [](bool _){});
 #ifndef FORCE_AUTO_SAFE_MODE
         modules[ModuleID::AUTO_SAFE_MODE] = Module(
@@ -860,6 +896,11 @@ private:
             "Player Rotation", 
             "Displays the player's rotation.", 
             false, ModuleCategory::Label, [](bool _){});
+        modules[ModuleID::LABEL_SPEEDHACK] = Module(
+            "label_speedhack",
+            "Speedhack Value", 
+            "Displays the speed the speedhack is set to.", 
+            false, ModuleCategory::Label, [](bool _){});
         modules[ModuleID::LABEL_TIME_SPENT] = Module(
             "label_time_spent",
             "Time Spent", 
@@ -950,6 +991,7 @@ private:
 #endif
         gdShareMessageID = 0;
         gdShareData = 0;
+        timeScale = 1;
 
         resetValues();
     }

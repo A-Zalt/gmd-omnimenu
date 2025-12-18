@@ -28,7 +28,7 @@ void UILayer::updateLabel() {
     fmt::BasicWriter<char> writer(buf);
     time_t now = time(NULL);
     if (hax.getModuleEnabled(ModuleID::LABEL_CLOCK)) {
-        if (cachedSeconds != now && !cachedTm) {  
+        if (cachedSeconds != now || !cachedTm) {  
             cachedTm = localtime(&now);
             cachedSeconds = now;
         }
@@ -68,6 +68,10 @@ void UILayer::updateLabel() {
     }
     if (hax.getModuleEnabled(ModuleID::LABEL_FRAMES)) {
         writer.write("Frames: {}\n", hax.frameCount);
+    }
+    if (hax.getModuleEnabled(ModuleID::SPEEDHACK) && 
+    hax.getModuleEnabled(ModuleID::LABEL_SPEEDHACK)) {
+        writer.write("Speedhack: x{:.2f}\n", hax.timeScale);
     }
     if (hax.getModuleEnabled(ModuleID::NOCLIP)) {    
         if (hax.getModuleEnabled(ModuleID::LABEL_NOCLIP_ACCURACY)) {
