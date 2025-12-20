@@ -1,7 +1,12 @@
 #pragma once
 
 #include <cocos2d.h>
-#include "EndPortalObject.hpp"
+#include "GameObject.hpp"
+
+enum GhostType {
+    None = 0,
+    Ghost = 1
+};
 
 class PlayerObject : public cocos2d::CCSprite {
 public:
@@ -18,6 +23,8 @@ public:
 
     void deactivateParticle();
     void flipMod();
+    void stopRotation();
+    void toggleGhostEffect(GhostType type);
+    void touchedObject(GameObject* object);
     virtual CCLayer* getGameLayer() const;
-    virtual EndPortalObject* getPortalObject();
 };

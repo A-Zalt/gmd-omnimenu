@@ -35,7 +35,7 @@ bool MenuLayer_init(cocos2d::CCLayer* self) {
     auto director = CCDirector::sharedDirector();
     auto winSize = director->getWinSize();
     HaxManager& hax = HaxManager::sharedState();
-    hax.loadSettingsFromFile();
+    if (!hax.hasInitialized) hax.loadSettingsFromFile();
 
     CCMenu* bottomMenu = static_cast<CCMenu*>(self->getChildren()->objectAtIndex(self->getChildrenCount() - 3));
 

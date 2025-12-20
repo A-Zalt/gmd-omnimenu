@@ -92,6 +92,7 @@ void PlayLayer_resetLevel(PlayLayer* self) {
     hax.noclipAccuracy = 100;
     hax.completed = false;
     hax.dead = false;
+    hax.hasTouchedTheEye = false;
     if (hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK) && getPlayLayerPractice(self)) {
         auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
         int seekTime = 0;
@@ -123,6 +124,9 @@ void PlayLayer_resetLevel(PlayLayer* self) {
         hax.percentageLabel->setPositionY(winSize.height - 7.5);
     }
     TRAM_PlayLayer_resetLevel(self);
+    // if (hax.getModuleEnabled(ModuleID::MUSIC_BUG_FIX) && !getPlayLayerPractice(self)) {
+    //     hax.updatedMusic = false;
+    // }
 #if GAME_VERSION == GV_1_4
     if (hax.getModuleEnabled(ModuleID::OBJ_COLOR_FIX)) {
         self->tintObjects(ccWHITE, 0.f);
@@ -152,6 +156,13 @@ void (*TRAM_PlayLayer_update)(PlayLayer* self, float dt);
 void PlayLayer_update(PlayLayer* self, float dt) {
     HaxManager& hax = HaxManager::sharedState();
     TRAM_PlayLayer_update(self, dt);
+    // if (!hax.updatedMusic && hax.getModuleEnabled(ModuleID::MUSIC_BUG_FIX)) {
+    //     float seekTime = getPlayer()->getPositionX() / 311.58f;
+    //     if (seekTime > 0) {
+    //         CocosDenshion::SimpleAudioEngine::sharedEngine()->setBackgroundMusicTime(seekTime);
+    //     }
+    //     hax.updatedMusic = true;
+    // }
     hax.frameCount++;
     if (hax.quitPlayLayer) return;
     UILayer* uiLayer = getUILayer(self);

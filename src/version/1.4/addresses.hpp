@@ -73,6 +73,8 @@
 /**/ #define PlayerObject__m_pShipLift         0x3e8 /**/ // PlayerObject::update (man idk how to describe where to find it)
 /**/ #define PlayerObject__m_pLanding          0x3f4 /**/ // PlayerObject::hitGround (second if statement)
 /**/ #define PlayerObject__m_pLanding2         0x3f8 /**/ // PlayerObject::hitGround (second if statement)
+/**/ #define PlayerObject__m_unk1              0x388 /**/ // PlayerObject::playerDestroyed (at the top)
+/**/ #define PlayerObject__m_unk2              0x407 /**/ // PlayerObject::playerDestroyed (slightly below, set to 1)
 /**/ #define PlayerObject__m_xVelocity         0x360 /**/ // PlayerObject::speedUp
 /**/ #define PlayerObject__m_yStart            0x368 /**/ // PlayerObject::yStartUp
 /*******************************************************/

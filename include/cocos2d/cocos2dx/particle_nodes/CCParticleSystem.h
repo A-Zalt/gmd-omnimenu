@@ -174,9 +174,10 @@ emitter.startSpin = 0;
 */
 class CC_DLL CCParticleSystem : public CCNode, public CCTextureProtocol
 {    
-protected:
+public:
     std::string m_sPlistFile;
     //! time elapsed since the start of the system (in seconds)
+protected:
     float m_fElapsed;
 
     // Different modes

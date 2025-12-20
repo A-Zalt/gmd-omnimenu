@@ -14,6 +14,8 @@
 #include "GJGameLevel.hpp"
 #include "MyLevelsLayer.hpp"
 #include "LevelBrowserLayer.hpp"
+#include "PauseLayer.hpp"
+#include "SpeedhackInput.hpp"
 
 enum class CheatIndicatorColor {
     Green,
@@ -41,6 +43,7 @@ enum ModuleID {
     FAST_MENU,
     FONT_OFFSET_FIX,
     FORCE_VISIBILITY,
+    // FPS_BYPASS,
     FREE_BUILD,
     FREE_SCROLL,
     GDSHARE,
@@ -48,6 +51,7 @@ enum ModuleID {
     LEVEL_COPYING,
     LEVEL_EDIT,
     HIDE_ATTEMPTS,
+    HIDE_PAUSE_MENU,
     INSTANT_COMPLETE,
     INPUT_BUG_FIX,
     JUMP_HACK,
@@ -72,6 +76,7 @@ enum ModuleID {
     MUSIC_BUG_FIX,
     NOCLIP,
     NOCLIP_TINT_ON_DEATH,
+    NO_DEATH_EFFECT,
     NO_GLOW,
     NO_MIRROR,
     NO_PULSE,
@@ -185,6 +190,14 @@ public:
 #endif
     float timeScale;
     bool dead;
+    // int fpsBypass;
+    // double originalAnimInterval;
+    bool hasInitialized;
+    PauseLayer* pauseLayer;
+    SpeedhackInput* speedInputWidget;
+    CCMenu* eyeMenu;
+    // bool updatedMusic;
+    bool hasTouchedTheEye;
 
     bool getModuleEnabled(ModuleID id) {
         return modules[id].enabled;
@@ -203,8 +216,9 @@ public:
         checkpointsInNormalMode || 
         getModuleEnabled(ModuleID::JUMP_HACK) || 
         getModuleEnabled(ModuleID::NO_MIRROR) || 
-        pSpeedModified != 0 || pGravityModified != 0 || pYStartModified != 0
-        || (getModuleEnabled(ModuleID::SPEEDHACK)) && timeScale != 1) return CheatIndicatorColor::Red;
+        pSpeedModified != 0 || pGravityModified != 0 || pYStartModified != 0 ||
+        hasTouchedTheEye || 
+        (getModuleEnabled(ModuleID::SPEEDHACK)) && timeScale != 1) return CheatIndicatorColor::Red;
         if (hasCheated) return CheatIndicatorColor::Orange;
 #ifndef FORCE_AUTO_SAFE_MODE
         if (getModuleEnabled(ModuleID::LEVEL_EDIT)) return CheatIndicatorColor::Yellow;
@@ -244,6 +258,7 @@ public:
 #endif
 
     void loadSettingsFromFile() {
+        // originalAnimInterval = CCDirector::sharedDirector()->getAnimationInterval();
         FILE* fp = fopen(MENU_SETTINGS_PATH MENU_SETTINGS, "rb");
         if (!fp) {
             cocos2d::CCLog("unable to open settings file for reading");
@@ -267,6 +282,7 @@ public:
                 record.setEnabled(doc[record.id].GetBool());
             }
         }
+        hasInitialized = true;
     }
     void makeDirectory() {
         int status = mkdir(MENU_SETTINGS_PATH, static_cast<mode_t>(0755));
@@ -374,6 +390,11 @@ public:
         ntOpacity = 0;
         startPositions = nullptr;
         dead = false;
+        pauseLayer = nullptr;
+        speedInputWidget = nullptr;
+        // updatedMusic = false;
+        eyeMenu = nullptr;
+        hasTouchedTheEye = false;
     }
 
 private:
@@ -449,9 +470,20 @@ private:
             false, ModuleCategory::Player, [](bool _){
                 HaxManager& hax = HaxManager::sharedState();
                 if (_) {
+                    if (hax.pauseLayer) {
+                        if (!hax.speedInputWidget) hax.pauseLayer->createSpeedhack();
+                        else {
+                            hax.speedInputWidget->setVisible(true);
+                            hax.speedInputWidget->setScale(1);
+                        }
+                    }
                     CCDirector::sharedDirector()->getScheduler()->setTimeScale(hax.timeScale);
                     if (hax.timeScale != 1) hax.setCheating(true);
                 } else {
+                    if (hax.pauseLayer && hax.speedInputWidget) {
+                        hax.speedInputWidget->setVisible(false);
+                        hax.speedInputWidget->setScale(0);
+                    }
                     CCDirector::sharedDirector()->getScheduler()->setTimeScale(1);
                 }
             });
@@ -473,10 +505,30 @@ private:
             "Hide Attempts", 
             "Hides the attempts label while playing.", 
             false, ModuleCategory::Visual, [](bool _){});
+        modules[ModuleID::HIDE_PAUSE_MENU] = Module(
+            "hide_pause_menu",
+            "Hide Pause Menu", 
+            "Adds a button to the pause menu that hides it, letting you see the level better.", 
+            false, ModuleCategory::Visual, [](bool _){
+                HaxManager& hax = HaxManager::sharedState();
+                if (hax.pauseLayer) {
+                    if (_) {
+                        if (!hax.eyeMenu) hax.pauseLayer->createEye();
+                        else hax.eyeMenu->setVisible(true);
+                    } else {
+                        if (hax.eyeMenu) hax.eyeMenu->setVisible(false);
+                    }
+                }
+            });
         modules[ModuleID::NOCLIP_TINT_ON_DEATH] = Module(
             "noclip_tint_on_death",
             "NoClip Tint On Death", 
             "Tints the screen red when the player dies with NoClip enabled.", 
+            false, ModuleCategory::Visual, [](bool _){});
+        modules[ModuleID::NO_DEATH_EFFECT] = Module(
+            "no_death_effect",
+            "No Death Effect", 
+            "Disables the death effect, leaving the player visible at the position it died.", 
             false, ModuleCategory::Visual, [](bool _){});
         modules[ModuleID::NO_GLOW] = Module(
             "no_glow",
@@ -789,6 +841,18 @@ private:
                 HaxManager& hax = HaxManager::sharedState();
                 if (_) hax.setCheating(true);
             });
+        // modules[ModuleID::FPS_BYPASS] = Module(
+        //     "fps_bypass",
+        //     "FPS Bypass", 
+        //     "Lets you increase your FPS past your device's refresh rate.", 
+        //     false, ModuleCategory::Universal, [](bool _){
+        //         HaxManager& hax = HaxManager::sharedState();
+        //         if (_) {
+        //             CCDirector::sharedDirector()->setAnimationInterval(1 / hax.fpsBypass);
+        //         } else {
+        //             CCDirector::sharedDirector()->setAnimationInterval(hax.originalAnimInterval);
+        //         }
+        //     });
         modules[ModuleID::GDSHARE] = Module(
             "gdshare",
             "GDShare", 
@@ -937,6 +1001,11 @@ private:
         //         "End Wall",
         //         "Toggles the visibility of the particles that are emitted by the end wall.", 
         //         true, ModuleCategory::Particles, [](bool _){})));
+        modules[ModuleID::PARTICLE_END_WALL] = Module(
+            "particle_end_wall",
+            "End Wall",
+            "Toggles the visibility of the particles that are emitted by the end wall.", 
+            true, ModuleCategory::Particles, [](bool _){});
         modules[ModuleID::PARTICLE_FIREWORKS] = Module(
             "particle_fireworks",
             "Fireworks",
@@ -992,6 +1061,9 @@ private:
         gdShareMessageID = 0;
         gdShareData = 0;
         timeScale = 1;
+        hasInitialized = false;
+        // fpsBypass = 240;
+        // originalAnimInterval = 1 / 60;
 
         resetValues();
     }

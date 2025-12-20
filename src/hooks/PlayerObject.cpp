@@ -81,6 +81,26 @@ void PlayerObject_playBurstEffect(PlayerObject* self) {
     if (hax.getModuleEnabled(ModuleID::PARTICLE_BURST)) TRAM_PlayerObject_playBurstEffect(self);
 }
 #endif
+void (*TRAM_PlayerObject_playerDestroyed)(PlayerObject* self);
+void PlayerObject_playerDestroyed(PlayerObject* self) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.getModuleEnabled(ModuleID::NO_DEATH_EFFECT)) {
+
+        if (MEMBER_BY_OFFSET(float, self, PlayerObject__m_unk1) != 0) {
+            getPlayLayer()->removeLastCheckpoint();
+            MEMBER_BY_OFFSET(float, self, PlayerObject__m_unk1) = 0;
+        }
+        MEMBER_BY_OFFSET(bool, self, PlayerObject__m_unk2) = true;
+        self->stopRotation();
+        self->deactivateParticle();
+        self->touchedObject(nullptr);
+        getShipFireParticles(self)->stopSystem();
+        getShipLiftParticles(self)->stopSystem();
+        getShipGroundParticles(self)->stopSystem();
+        self->toggleGhostEffect(GhostType::None);
+
+    } else TRAM_PlayerObject_playerDestroyed(self);
+}
 
 void PlayerObject_om() {
     Omni::hook("_ZN12PlayerObject14activateStreakEv",
@@ -111,4 +131,7 @@ void PlayerObject_om() {
         reinterpret_cast<void*>(PlayerObject_playBurstEffect),
         reinterpret_cast<void**>(&TRAM_PlayerObject_playBurstEffect));
 #endif
+    Omni::hook("_ZN12PlayerObject15playerDestroyedEv",
+        reinterpret_cast<void*>(PlayerObject_playerDestroyed),
+        reinterpret_cast<void**>(&TRAM_PlayerObject_playerDestroyed));
 }

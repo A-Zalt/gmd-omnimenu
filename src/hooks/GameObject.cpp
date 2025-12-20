@@ -19,6 +19,17 @@ void GameObject_setOpacity(void* self, GLubyte opacity) {
         setObjectUseAudioScale(self, false);
     }
 }
+// CCParticleSystemQuad* (*TRAM_GameObject_createAndAddParticle)(GameObject* obj, int a2, const char* name, int a4, tCCPositionType posType);
+// CCParticleSystemQuad* GameObject_createAndAddParticle(GameObject* obj, int a2, const char* name, int a4, tCCPositionType posType) {
+//     HaxManager& hax = HaxManager::sharedState();
+//     auto quad = TRAM_GameObject_createAndAddParticle(obj, a2, name, a4, posType);
+//     if (!hax.getModuleEnabled(ModuleID::PARTICLE_END_WALL) && !strcmp(name, "endEffectPortal.plist")) {
+        
+//         quad->setVisible(false);
+//         quad->stopSystem();
+//     }
+//     return quad;
+// }
 // Module by Akqanile/adelfa
 CCRect (*TRAM_GameObject_getObjectRect)(GameObject* self, float scaleX, float scaleY);
 CCRect GameObject_getObjectRect(GameObject* self, float scaleX, float scaleY) {
@@ -53,4 +64,7 @@ void GameObject_om() {
         reinterpret_cast<void*>(GameObject_getObjectRect),
         reinterpret_cast<void**>(&TRAM_GameObject_getObjectRect));
 #endif
+    // Omni::hook("_ZN10GameObject20createAndAddParticleEiPKciN7cocos2d15tCCPositionTypeE",
+    //     reinterpret_cast<void*>(GameObject_createAndAddParticle),
+    //     reinterpret_cast<void**>(&TRAM_GameObject_createAndAddParticle));
 }

@@ -66,7 +66,7 @@ void SpeedhackInput::textChanged(CCTextInputNode* node) {
     }
 
     float value = std::atof(bro);
-    if (value > 0.01 && value <= 500) {
+    if (value >= 0.01 && value <= 500) {
         hax.timeScale = value;
         if (hax.timeScale != 1) hax.setCheating(true);
         CCDirector::sharedDirector()->getScheduler()->setTimeScale(hax.timeScale);
@@ -76,6 +76,51 @@ void SpeedhackInput::textChanged(CCTextInputNode* node) {
 void SpeedhackInput::setupDelegates() {
     if (input) {
         setTextInputDelegate(input, this);
+    }
+}
+
+void PauseLayer::createSpeedhack() {
+    HaxManager& hax = HaxManager::sharedState();
+    auto widget = SpeedhackInput::create(this);
+    widget->setupDelegates();
+    addChild(widget);
+    hax.speedInputWidget = widget;
+}
+void PauseLayer::createEye() {
+    HaxManager& hax = HaxManager::sharedState();
+    auto menu = CCMenu::create();
+    auto director = CCDirector::sharedDirector();
+    auto winSize = director->getWinSize();
+    menu->setPosition(ccp(winSize.width - 35, 35));
+    auto eyeSpr = CCSprite::create("hideBtn_001.png");
+    auto eye = CCMenuItemSpriteExtra::create(eyeSpr, eyeSpr, this, menu_selector(PauseLayer::toggleVisibility));
+    eye->setOpacity(127);
+    eye->setTag(1);
+    eye->setSizeMult(1.5);
+    menu->addChild(eye);
+    addChild(menu);
+    hax.eyeMenu = menu;
+}
+static int oldOpacity = 0;
+void PauseLayer::toggleVisibility() {
+    auto children = getChildren();
+    HaxManager& hax = HaxManager::sharedState();
+    int temp = this->getOpacity();
+    this->setOpacity(oldOpacity);
+    oldOpacity = temp;
+    for (int i = 0; i < children->count(); i++) {
+        auto child = static_cast<CCNode*>(children->objectAtIndex(i));
+        if (!hax.eyeMenu || child != static_cast<CCNode*>(hax.eyeMenu)) {
+            child->setVisible(!child->isVisible());
+        }
+    }
+    if (!hax.dead) hax.hasTouchedTheEye = true;
+    auto eyeBtn = static_cast<CCMenuItemSpriteExtra*>(hax.eyeMenu->getChildByTag(1));
+    if (eyeBtn->getOpacity() != 127) eyeBtn->setOpacity(127);
+    else eyeBtn->setOpacity(43);
+    if (hax.speedInputWidget) {
+        if (hax.speedInputWidget->getScale() > 0) hax.speedInputWidget->setScale(0);
+        else hax.speedInputWidget->setScale(1);
     }
 }
 
@@ -95,6 +140,7 @@ void PauseLayer_customSetup(PauseLayer* self) {
         setRestartButton(false);
     }
     TRAM_PauseLayer_customSetup(self);
+    hax.pauseLayer = self;
     auto director = CCDirector::sharedDirector();
     auto winSize = director->getWinSize();
 
@@ -107,14 +153,26 @@ void PauseLayer_customSetup(PauseLayer* self) {
     btnMenu->addChild(menuBtn, 999);
     menuBtn->setPosition(ccp(50.f, -50.f));
     if (hax.getModuleEnabled(ModuleID::SPEEDHACK)) {
-        auto widget = SpeedhackInput::create(self);
-        widget->setupDelegates();
-        self->addChild(widget);
+        self->createSpeedhack();
     }
+    if (hax.getModuleEnabled(ModuleID::HIDE_PAUSE_MENU)) {
+        self->createEye();
+    }
+}
+void (*TRAM_PauseLayer_destructor)(PauseLayer* self);
+void PauseLayer_destructor(PauseLayer* self) {
+    TRAM_PauseLayer_destructor(self);
+    HaxManager& hax = HaxManager::sharedState();
+    hax.pauseLayer = nullptr;
+    hax.speedInputWidget = nullptr;
+    hax.eyeMenu = nullptr;
 }
 
 void PauseLayer_om() {
     Omni::hook("_ZN10PauseLayer11customSetupEv",
         reinterpret_cast<void*>(PauseLayer_customSetup),
         reinterpret_cast<void**>(&TRAM_PauseLayer_customSetup));
+    Omni::hook("_ZN10PauseLayerD1Ev",
+        reinterpret_cast<void*>(PauseLayer_destructor),
+        reinterpret_cast<void**>(&TRAM_PauseLayer_destructor));
 }
