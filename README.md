@@ -2,7 +2,7 @@
 
 Mod Menu for older versions of Geometry Dash (pre-1.9).
 
-Currently works for versions 1.02 - 1.71.
+Currently works for versions 1.02 - 1.6.
 
 ## Downloads
 Downloads are available in the Discord server: https://discord.gg/4AC23yn4yF
