@@ -8,5 +8,7 @@ public:
 
     void playUniqueEffect(const char*);
     void playEffect(const char*, float, float, float);
+#if GAME_VERSION < GV_1_7
     void playEffect(const char*); // 1.0, 0.0, 1.0
+#endif
 };

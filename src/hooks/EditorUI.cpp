@@ -68,7 +68,7 @@ void EditorUI_zoomOut(EditorUI* self) {
         TRAM_EditorUI_zoomOut(self);
     }
 }
-#else
+#elif GAME_VERSION < GV_1_7
 void EditorUI::zoomOutExtra() {
     HaxManager& hax = HaxManager::sharedState();
     if (hax.getModuleEnabled(ModuleID::ZOOM_BYPASS)) {
@@ -76,6 +76,16 @@ void EditorUI::zoomOutExtra() {
         if (gameLayer->getScale() > 0.11f) this->zoomOut(); // value to check against has to be bigger than 0.1 because otherwise it still lets you zoom to 0 anyways
     } else {
         this->zoomOut();
+    }
+}
+#else
+void EditorUI::zoomOutExtra(CCObject* sender) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.getModuleEnabled(ModuleID::ZOOM_BYPASS)) {
+        cocos2d::CCLayer* gameLayer = getEditorGameLayer(getUIEditorLayer(this));
+        if (gameLayer->getScale() > 0.11f) this->zoomOut(sender); // value to check against has to be bigger than 0.1 because otherwise it still lets you zoom to 0 anyways
+    } else {
+        this->zoomOut(sender);
     }
 }
 #endif
@@ -289,10 +299,12 @@ void EditorUI_setupCreateMenu(EditorUI* self) {
     TRAM_EditorUI_setupCreateMenu(self);
     HaxManager& hax = HaxManager::sharedState();
     if (hax.getModuleEnabled(ModuleID::UNLISTED_OBJECTS)) {
-        CCArray* createBtns = getCreateButtons(self);
-        CCArray* fuckingArray = CCArray::create();
         auto director = CCDirector::sharedDirector();
         auto winSize = director->getWinSize();
+#if GAME_VERSION < GV_1_7
+
+        CCArray* createBtns = getCreateButtons(self);
+        CCArray* fuckingArray = CCArray::create();
 
         for (int i = 0; i < createBtns->count(); i++) {
             CCObject* btn = createBtns->objectAtIndex(i);
@@ -389,6 +401,42 @@ void EditorUI_setupCreateMenu(EditorUI* self) {
         self->updateCreateMenu();
 #else
         self->updateCreateMenu(false);
+#endif
+
+#else
+
+        auto bars = getCreateButtonBars(self);
+        auto fuckingArray = CCArray::create();
+        auto triggerBtns = getBarButtons(static_cast<EditButtonBar*>(bars->lastObject()));
+        for (int i = 0; i < triggerBtns->count(); i++) {
+            CCObject* btn = triggerBtns->objectAtIndex(i);
+            static_cast<CCNode*>(btn)->removeFromParentAndCleanup(false);
+            fuckingArray->addObject(btn);
+        }
+        fuckingArray->insertObject(CCNode::create(), 8);
+        fuckingArray->addObject(CCNode::create());
+
+        fuckingArray->addObject(self->getCreateBtn("edit_eLevelEndBtn_001.png", 4)); // level end
+        fuckingArray->addObject(self->getCreateBtn("edit_eBGEOn_001.png", 4)); // bg effect on
+        fuckingArray->addObject(self->getCreateBtn("edit_eBGEOff_001.png", 4)); // bg effect off
+        fuckingArray->addObject(self->getCreateBtn("edit_eeFABtn_001.png", 4)); // scatter transition trigger
+        auto bar = EditButtonBar::create(fuckingArray, ccp(winSize.width * 0.5 - 5, getScreenBottom() + getUnkFloat(self) - 6.f), 8, true);
+        fuckingArray->removeLastObject();
+        fuckingArray->addObject(bar);
+
+        fuckingArray = CCArray::create();
+        auto interactBtns = getBarButtons(static_cast<EditButtonBar*>(bars->objectAtIndex(3))); // THREEEEEEEEEEEE
+        for (int i = 0; i < interactBtns->count(); i++) {
+            CCObject* btn = interactBtns->objectAtIndex(i);
+            static_cast<CCNode*>(btn)->removeFromParentAndCleanup(false);
+            fuckingArray->addObject(btn);
+        }
+        fuckingArray->addObject(CCNode::create());
+        fuckingArray->addObject(self->getCreateBtn("portal_10_back_001.png", 4)); // weird ufo object thing removed in 2.0
+        bar = EditButtonBar::create(fuckingArray, ccp(winSize.width * 0.5 - 5, getScreenBottom() + getUnkFloat(self) - 6.f), 3, true);
+        fuckingArray->removeObjectAtIndex(3);
+        fuckingArray->insertObject(bar, 3);
+
 #endif
     }
 }
@@ -713,8 +761,10 @@ void EditorUI_createMoveMenu(EditorUI* self) {
         auto winSize = director->getWinSize();
 #if GAME_VERSION < GV_1_6
         EditButtonBar* newBar = EditButtonBar::create(buttons, ccp(winSize.width * 0.5 - 5, getScreenBottom() + getUnkFloat(self) - 6.f));
-#else
+#elif GAME_VERSION == GV_1_6
         EditButtonBar* newBar = EditButtonBar::create(buttons, ccp(winSize.width * 0.5 - 5, getScreenBottom() + getUnkFloat(self) - 6.f), false);
+#else
+        EditButtonBar* newBar = EditButtonBar::create(buttons, ccp(winSize.width * 0.5 - 5, getScreenBottom() + getUnkFloat(self) - 6.f), 0, false);
 #endif
         setEditButtonBar(self, newBar);
         self->addChild(newBar, 11);

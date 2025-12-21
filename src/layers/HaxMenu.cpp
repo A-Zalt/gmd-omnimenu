@@ -36,14 +36,14 @@ float HaxMenu::getDuration() {
 
 ccColor3B color = ccc3(127, 255, 255);
 
-bool CCRectContainsPoint(CCRect rect, const CCPoint& point)
-{
-    if (point.x >= CCRect::CCRectGetMinX(rect) && point.x < CCRect::CCRectGetMaxX(rect)
-        && point.y >= CCRect::CCRectGetMinY(rect) && point.y < CCRect::CCRectGetMaxY(rect)) {
-        return true;
-    }
-    return false;
-}
+// bool CCRectContainsPoint(CCRect rect, const CCPoint& point)
+// {
+//     if (point.x >= CCRect::CCRectGetMinX(rect) && point.x < CCRect::CCRectGetMaxX(rect)
+//         && point.y >= CCRect::CCRectGetMinY(rect) && point.y < CCRect::CCRectGetMaxY(rect)) {
+//         return true;
+//     }
+//     return false;
+// }
 
 
 bool HaxMenu::init(CCLayer* referrer) {
@@ -295,7 +295,7 @@ void HaxMenu::toggler(CCObject* sender) {
                 nullptr
             ));
         } else {
-            GameSoundManager::sharedManager()->playEffect("pih.mp3");
+            GameSoundManager::sharedManager()->playEffect("pih.mp3", 1.0, 0.0, 1.0);
             hax.modules[tag].toggle();
             static_cast<CCMenuItemToggler*>(sender)->toggle(true);
             this->runAction(CCSequence::create(
@@ -339,7 +339,7 @@ void HaxMenu::onPih(CCObject* sender) {
     ));
 }
 void HaxMenu::onThree(CCObject* sender) {
-    GameSoundManager::sharedManager()->playEffect("three.mp3");
+    GameSoundManager::sharedManager()->playEffect("three.mp3", 1.0, 0.0, 1.0);
     CCDirector* director = CCDirector::sharedDirector();
     CCSize winSize = director->getWinSize();
     CCSprite* three = CCSprite::create("three.png");

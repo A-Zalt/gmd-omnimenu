@@ -13,7 +13,13 @@ class EditorUI : public cocos2d::CCLayer
 public:
     static EditorUI* create();
     bool init();
+#if GAME_VERSION < GV_1_7
     void zoomOut();
+    void zoomOutExtra();
+#else
+    void zoomOut(CCObject*);
+    void zoomOutExtra(CCObject*);
+#endif
 
 // #if GAME_VERSION < 7
 //     void keyBackClicked();
@@ -22,12 +28,15 @@ public:
     void deselectAll();
     void deselectObject();
     void selectObject(GameObject*);
+#if GAME_VERSION < GV_1_7
     void onDeleteSelected();
+#else
+    void onDeleteSelected(CCObject*);
+#endif
 #if GAME_VERSION < GV_1_5
     void updateCreateMenu();
 #else
     void updateCreateMenu(bool);
-    void zoomOutExtra();
 #endif
     CreateMenuItem* getCreateBtn(const char*, int);
 #if GAME_VERSION < GV_1_5
@@ -41,8 +50,13 @@ public:
     CCMenuItemSpriteExtra* getSpriteButton(const char* name, SEL_MenuHandler callback, CCMenu* menu, float scale);
     CCMenuItemSpriteExtra* getSpriteButton2(const char* name, SEL_MenuHandler callback, CCMenu* menu, float scale);
     CCMenuItemSpriteExtra* getSpriteButton3(const char* name, SEL_MenuHandler callback, CCMenu* menu, float scale, float scale2);
+#if GAME_VERSION < GV_1_7
     void moveObjectCall(CCNode* sender);
     void transformObjectCall(CCNode* sender);
+#else
+    void moveObjectCall(CCObject* sender);
+    void transformObjectCall(CCObject* sender);
+#endif
     void moveObject(GameObject* obj, CCPoint transform);
     void editObject();
 

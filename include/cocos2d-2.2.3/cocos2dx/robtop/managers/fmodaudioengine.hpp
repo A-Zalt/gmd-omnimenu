@@ -1,0 +1,27 @@
+#pragma once
+#ifndef _MANAGERS_FMODAUDIOENGINE_HPP
+#define _MANAGERS_FMODAUDIOENGINE_HPP
+
+#include <cocos2d.h>
+
+class FMODAudioEngine : public cocos2d::CCNode {
+public:
+    static FMODAudioEngine* sharedEngine();
+
+    //FMOD::Channel* currentSound();
+    void playBackgroundMusic(std::string path, bool loop, bool paused);
+    void pauseBackgroundMusic();
+    void stopBackgroundMusic(bool);
+    bool isBackgroundMusicPlaying();
+
+    void start();
+    void stop();
+    void pauseAllEffects();
+
+    void setTimeOffset(int);
+    int getTimeOffset() const;
+
+    void update(float dt) override;
+};
+
+#endif

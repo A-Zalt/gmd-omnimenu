@@ -58,7 +58,7 @@
 
 #include STR(PATH(constants.hpp))
 
-#if GAME_VERSION > 9
+#if GAME_VERSION >= GV_1_7
     #define MAIN_LIBRARY "libcocos2dcpp.so"
 #else
     #define MAIN_LIBRARY "libgame.so"

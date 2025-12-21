@@ -7,7 +7,11 @@
 
 struct OrderingData
 {
+#if GAME_VERSION < GV_1_7
     int order_of_arrival;
+#else
+    unsigned int order_of_arrival;
+#endif
     int z_order;
 };
 

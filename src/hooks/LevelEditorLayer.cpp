@@ -34,7 +34,11 @@ void LevelEditorLayer_update(LevelEditorLayer* self, float dt) {
             GameObject* object = static_cast<GameObject*>(section_objects->objectAtIndex(index));
             CCPoint object_pos = object->getPosition();
 
+#if GAME_VERSION < GV_1_7
             if (CCRect::CCRectContainsPoint(visible_rect, object_pos)) {
+#else
+            if (visible_rect.containsPoint(object_pos)) {
+#endif
                 if (!object->getParent()) {
                     OrderingData* s = static_cast<OrderingData*>(object->getUserData());
 

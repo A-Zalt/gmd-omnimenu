@@ -50,7 +50,11 @@ void LevelInfoLayer_onLevelInfo(LevelInfoLayer* self) {
     std::string::difference_type count = std::count(s.begin(), s.end(), ';');
     int objectCount = std::max(0, static_cast<int>(count) - 1);
     CCString* flAlertInsides = CCString::createWithFormat(
+// #if GAME_VERSION < GV_1_7
         "<cy>%s</c> by <cy>%s</c>\n<cg>Total Attempts</c>: %i\n<cl>Total Jumps</c>: %i\n<cp>Normal</c>: %i%%\n<co>Practice</c>: %i%%\n<cy>Audio Track</c>: %s (ID %i)\n<cr>Level ID</c>: %i\n<cb>User ID</c>: %i\n<cy>Feature Score</c>: %i\n<cz>Object Count</c>: %i",
+// #else
+//         "<cy>%s</c> by <cy>%s</c>\n<cg>Total Attempts</c>: %i\n<cl>Total Jumps</c>: %i\n<cp>Normal</c>: %i%%\n<co>Practice</c>: %i%%\n<cy>Audio Track</c>: %s (ID %i)\n<cr>Level ID</c>: %i\n<cb>User ID</c>: %i\n<cy>Feature Score</c>: %i\n<cg>Password</c>: %i\n<cz>Object Count</c>: %i",
+// #endif
         level->m_sLevelName.c_str(),
         level->m_sUserName.c_str(),
         level->m_nAttempts,
@@ -62,6 +66,9 @@ void LevelInfoLayer_onLevelInfo(LevelInfoLayer* self) {
         level->m_nLevelID,
         level->m_nUserID,
         level->m_nFeatureScore,
+// #if GAME_VERSION >= GV_1_7
+//         level->m_nPassword,
+// #endif
         objectCount
     );
     FLAlertLayer::create(
@@ -109,10 +116,17 @@ void LevelInfoLayer::onExport() {
 }
 bool (*TRAM_LevelInfoLayer_init)(LevelInfoLayer* self, GJGameLevel* level);
 bool LevelInfoLayer_init(LevelInfoLayer* self, GJGameLevel* level) {
+#if GAME_VERSION < GV_1_7
+    if (hax.getModuleEnabled(ModuleID::LEVEL_COPYING)) {
+        level->m_nPassword = 1;
+        level->m_nFailedPasswordAttempts = 0;
+    }
+#endif
     if (!TRAM_LevelInfoLayer_init(self, level)) return false;
     HaxManager& hax = HaxManager::sharedState();
     auto director = CCDirector::sharedDirector();
     auto winSize = director->getWinSize();
+#if GAME_VERSION < GV_1_7
     if (hax.getLeftLILButtons()) {
         CCMenu* leftMenu = CCMenu::create();
         self->addChild(leftMenu, 1000);
@@ -132,6 +146,18 @@ bool LevelInfoLayer_init(LevelInfoLayer* self, GJGameLevel* level) {
             exportBtn->setPosition(ccp(0.f, -25.f));
         }
     }
+#else
+    if (hax.getModuleEnabled(ModuleID::GDSHARE)) {
+        CCSprite* exportSpr = cocos2d::CCSprite::create("gdshare_export.png");
+        CCMenuItemSpriteExtra* exportBtn = CCMenuItemSpriteExtra::create(exportSpr, exportSpr, self, menu_selector(LevelInfoLayer::onExport));
+
+        auto menu = static_cast<CCMenu*>(self->getChildren()->objectAtIndex(5));
+        if (menu) {
+            menu->addChild(exportBtn);
+            exportBtn->setPosition(ccp(30.f, winSize.height / 2 - 60.f));
+        }
+    }
+#endif
 #if GAME_VERSION < GV_1_6
     if (hax.getModuleEnabled(ModuleID::VIEW_LEVEL_STATS)) {
         CCMenu* infoMenu = CCMenu::create();

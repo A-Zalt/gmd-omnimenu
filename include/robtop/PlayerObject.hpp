@@ -26,5 +26,4 @@ public:
     void stopRotation();
     void toggleGhostEffect(GhostType type);
     void touchedObject(GameObject* object);
-    virtual CCLayer* getGameLayer() const;
 };

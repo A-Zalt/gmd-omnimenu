@@ -201,7 +201,7 @@ void setObjectLimit(int limit) {
     } else {
         DobbyCodePatch(
             reinterpret_cast<void*>(get_address(object_limit)),
-#if GAME_VERSION == GV_1_5
+#if GAME_VERSION == GV_1_5 || GAME_VERSION == GV_1_7
             std::vector<uint8_t>({0xdd}).data(), 1
 #elif GAME_VERSION == GV_1_6
             std::vector<uint8_t>({0xdb}).data(), 1
@@ -209,7 +209,7 @@ void setObjectLimit(int limit) {
         );
         DobbyCodePatch(
             reinterpret_cast<void*>(get_address(object_limit_duplicate)),
-#if GAME_VERSION == GV_1_5
+#if GAME_VERSION == GV_1_5 || GAME_VERSION == GV_1_7
             std::vector<uint8_t>({0xdd}).data(), 1
 #elif GAME_VERSION == GV_1_6
             std::vector<uint8_t>({0xdb}).data(), 1
@@ -481,6 +481,7 @@ bool getOnGround(PlayerObject* player) {
 void setOnGround(PlayerObject* player, bool onGround) {
     MEMBER_BY_OFFSET(bool, player, PlayerObject__m_onGround) = onGround;
 }
+#if GAME_VERSION < GV_1_7
 CCArray* getCreateButtons(EditorUI* uiLayer) {
     return MEMBER_BY_OFFSET(CCArray*, uiLayer, EditorUI__m_createButtons);
 }
@@ -493,6 +494,11 @@ EditButtonBar* getCreateButtonBar(EditorUI* uiLayer) {
 void setCreateButtonBar(EditorUI* uiLayer, EditButtonBar* bar) {
     MEMBER_BY_OFFSET(EditButtonBar*, uiLayer, EditorUI__m_createButtonBar) = bar;
 }
+#else
+CCArray* getCreateButtonBars(EditorUI* uiLayer) {
+    return MEMBER_BY_OFFSET(CCArray*, uiLayer, EditorUI__m_createButtonBars);
+}
+#endif
 float getScreenBottom() {
     CCDirector* director = CCDirector::sharedDirector();
     return MEMBER_BY_OFFSET(float, director->getOpenGLView(), CCEGLViewProtocol__m_screenBottom);
@@ -620,7 +626,7 @@ void setIconHack(bool enable) {
             std::vector<uint8_t>({0x30, 0xb5, 0x85, 0xb0}).data(), 4
 #elif GAME_VERSION == GV_1_5
             std::vector<uint8_t>({0x13, 0xb5, 0x12, 0xb9}).data(), 4
-#elif GAME_VERSION == GV_1_6
+#elif GAME_VERSION >= GV_1_6
             std::vector<uint8_t>({0x13, 0xb5, 0x0a, 0xb9}).data(), 4
 #endif
         );
@@ -710,6 +716,8 @@ void setBlockVerify(bool enable) {
             std::vector<uint8_t>({0x80, 0xf8, 0x59, 0x11}).data(), 2
 #elif GAME_VERSION == GV_1_6
             std::vector<uint8_t>({0x80, 0xf8, 0x5d, 0x11}).data(), 2
+#elif GAME_VERSION == GV_1_7
+            std::vector<uint8_t>({0x80, 0xf8, 0x29, 0x11}).data(), 2
 #endif
         );
     }

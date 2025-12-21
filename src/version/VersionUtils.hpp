@@ -116,10 +116,14 @@ CCMenu* getEditorUIButtonMenu(EditorUI* uiLayer);
 bool getOnGround(PlayerObject* player);
 void setOnGround(PlayerObject* player, bool onGround);
 
+#if GAME_VERSION < GV_1_7
 CCArray* getCreateButtons(EditorUI* uiLayer);
 void setCreateButtons(EditorUI* uiLayer, CCArray* array);
 EditButtonBar* getCreateButtonBar(EditorUI* uiLayer);
 void setCreateButtonBar(EditorUI* uiLayer, EditButtonBar* bar);
+#else
+CCArray* getCreateButtonBars(EditorUI* uiLayer);
+#endif
 float getScreenBottom();
 float getUnkFloat(EditorUI* uiLayer);
 

@@ -44,11 +44,16 @@ enum ModuleID {
     FONT_OFFSET_FIX,
     FORCE_VISIBILITY,
     // FPS_BYPASS,
+#if GAME_VERSION >= GV_1_7
+    LEVEL_COPYING,
+#endif
     FREE_BUILD,
     FREE_SCROLL,
     GDSHARE,
     GOLDEN_BEST,
+#if GAME_VERSION < GV_1_7
     LEVEL_COPYING,
+#endif
     LEVEL_EDIT,
     HIDE_ATTEMPTS,
     HIDE_PAUSE_MENU,
@@ -590,11 +595,13 @@ private:
 
 
         // 16k fix code: https://github.com/cierra-kb/legacy-starry-sky/blob/main/src/modules/editor.cpp
+#if GAME_VERSION < GV_1_8
         modules[ModuleID::_16K_FIX] = Module(
             "16k_fix",
             "16K Fix (Read Desc)", 
             "Fixes a bug where only 16,384 objects can render in the editor by culling the objects. (module by akqanile/Adelfa)\nNOTE: this can be potentially incompatible with vanilla layering, and makes the editor way laggier on dense levels.", 
             false, ModuleCategory::Editor, [](bool _){});
+#endif
 // #if GAME_VERSION < GV_1_6
 //         modules.insert(std::pair<std::string, Module*>("back_button_pause", new Module(
 //                 "Back Button Pause", 
@@ -653,8 +660,13 @@ private:
             false, ModuleCategory::Editor, [](bool _){});
         modules[ModuleID::LEVEL_COPYING] = Module(
             "level_copy",
+#if GAME_VERSION < GV_1_7
             "Level Copying", 
-            "Adds a button to copy any level.", 
+            "Adds a button to copy any level.",
+#else
+            "Free Copy", 
+            "Allows you to freely copy any level.",
+#endif
             false, ModuleCategory::Editor, [](bool _){});
 #ifndef FORCE_AUTO_SAFE_MODE
         modules[ModuleID::LEVEL_EDIT] = Module(

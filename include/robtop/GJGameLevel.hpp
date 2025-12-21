@@ -12,6 +12,9 @@ typedef enum {
 
 class GJGameLevel : public cocos2d::CCNode {
 public:
+#if GAME_VERSION >= GV_1_7
+    cocos2d::CCDictionary* m_obLastBuildSave;
+#endif
     int m_nLevelID; // 0x128
     std::string m_sLevelName; // 0x12c
     std::string m_sLevelDesc; // 0x130
@@ -19,6 +22,10 @@ public:
     std::string m_sUserName; // 0x138
 #if GAME_VERSION >= GV_1_6
     std::string m_sRecordString; // 0x13c
+#endif
+#if GAME_VERSION >= GV_1_7
+    std::string m_sUploadDate;
+    std::string m_sUpdateDate;
 #endif
     int m_nUserID; // 0x140
     int m_nDifficulty; // 0x144
@@ -32,6 +39,9 @@ public:
     bool m_bIsUploaded; // 0x15e
     int m_nLevelVersion; // 0x160
     int m_nGameVersion; // 0x164
+#if GAME_VERSION >= GV_1_7
+    int m_nBuildVersion;
+#endif
     int m_nAttempts; // 0x168
 #if GAME_VERSION >= GV_1_6
     int m_nJumps; // 0x16c
@@ -51,6 +61,11 @@ public:
 #if GAME_VERSION >= GV_1_6
     int m_bAutoLevel; // 0x190
     int m_nCoins; // 0x194
+#if GAME_VERSION >= GV_1_7
+    int m_nLevelSize;
+    int m_nPassword;
+    int m_nFailedPasswordAttempts;
+#endif
     int m_nStarRatings; // 0x198
     int m_nStarRatingsSum; // 0x19c
     int m_nMaxStarRatings; // 0x1a0
@@ -67,7 +82,10 @@ public:
 #endif
     cocos2d::CCPoint m_obLastCameraPos; // 0x1b8
     float m_fLastEditorZoom; // 0x1d8
-#if GAME_VERSION > GV_1_4
+#if GAME_VERSION >= GV_1_7
+    int m_nLastBuildTab;
+#endif
+#if GAME_VERSION >= GV_1_5
     int m_nLastBuildPage; // 0x1dc
 #endif
     GJLevelType m_eLevelType; // 0x1e0

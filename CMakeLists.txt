@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 project(menu)
 
-set(VERSIONS 1 2 3 4 5 6 7 10)
+set(VERSIONS 1 2 3 4 5 6 7 10 18)
 
 add_library(menu SHARED src/main.cc src/layers/HaxMenu.cpp src/version/VersionUtils.cpp src/Utils.cpp)
 
@@ -56,7 +56,11 @@ elseif(GAME_VERSION EQUAL 7)
     target_link_libraries(menu ${CMAKE_CURRENT_SOURCE_DIR}/src/version/1.6/libgame.so log android)
 elseif(GAME_VERSION EQUAL 10)
     message("Linking with 1.7")
-    target_link_libraries(menu ${CMAKE_CURRENT_SOURCE_DIR}/src/version/1.6/libgame.so log android)
+    target_link_libraries(menu ${CMAKE_CURRENT_SOURCE_DIR}/src/version/1.7/libcocos2dcpp.so log android)
+elseif(GAME_VERSION EQUAL 18)
+    message(FATAL_ERROR "1.8 is not supported yet")
+    message("Linking with 1.8")
+    target_link_libraries(menu ${CMAKE_CURRENT_SOURCE_DIR}/src/version/1.8/libcocos2dcpp.so log android)
 endif()
 
 if(GAME_VERSION LESS 10)

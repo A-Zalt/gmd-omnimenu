@@ -23,8 +23,12 @@
 #include "hooks/CCParticleSystemQuad.cpp"
 #include "hooks/GameObject.cpp"
 #include "hooks/MyLevelsLayer.cpp"
+#if GAME_VERSION < GV_1_5
 #include "hooks/CCLabelBMFont.cpp"
+#endif
+#if GAME_VERSION < GV_1_7
 #include "hooks/CCLabelTTF.cpp"
+#endif
 #include "hooks/CCScheduler.cpp"
 #include "hooks/GameSoundManager.cpp"
 #include "hooks/SimpleAudioEngine.cpp"
@@ -63,8 +67,12 @@ void initialize_hooks() {
     CCParticleSystemQuad_om();
     GameObject_om();
     MyLevelsLayer_om();
+#if GAME_VERSION < GV_1_5
     CCLabelBMFont_om();
+#endif
+#if GAME_VERSION < GV_1_7
     CCLabelTTF_om();
+#endif
     CCScheduler_om();
     GameSoundManager_om();
     SimpleAudioEngine_om();
