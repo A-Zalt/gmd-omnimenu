@@ -33,8 +33,6 @@ THE SOFTWARE.
 #include "platform/CCAccelerometerDelegate.h"
 #include "keypad_dispatcher/CCKeypadDelegate.h"
 #include "cocoa/CCArray.h"
-#include "custom/Delegates/CCKeyboardDelegate.h"
-#include "custom/Delegates/CCMouseDelegate.h"
 #ifdef EMSCRIPTEN
 #include "base_nodes/CCGLBufferedNode.h"
 #endif // EMSCRIPTEN
@@ -62,8 +60,7 @@ All features from CCNode are valid, plus the following new features:
 - It can receive iPhone Touches
 - It can receive Accelerometer input
 */
-class CC_DLL CCLayer : public CCNode, public CCTouchDelegate, public CCAccelerometerDelegate, public CCKeypadDelegate, 
-    public CCKeyboardDelegate, public CCMouseDelegate
+class CC_DLL CCLayer : public CCNode, public CCTouchDelegate, public CCAccelerometerDelegate, public CCKeypadDelegate
 {
 public:
     /**
@@ -94,7 +91,7 @@ public:
      *  @lua NA
      */
     virtual void onEnterTransitionDidFinish();
-
+    
     // default implements are used to call script callback if exist
     virtual bool ccTouchBegan(CCTouch *pTouch, CCEvent *pEvent);
     virtual void ccTouchMoved(CCTouch *pTouch, CCEvent *pEvent);
@@ -160,12 +157,6 @@ public:
     */
     virtual bool isKeypadEnabled();
     virtual void setKeypadEnabled(bool value);
-    
-    //Robtop Modifications:
-    virtual bool isKeyboardEnabled();
-    virtual void setKeyboardEnabled(bool value);
-    virtual bool isMouseEnabled();
-    virtual void setMouseEnabled(bool value);
 
     /** Register keypad events handler */
     void registerScriptKeypadHandler(int nHandler);
@@ -175,27 +166,23 @@ public:
     virtual void keyBackClicked(void);
     virtual void keyMenuClicked(void);
     
-    //Robtop Modification
-    virtual void keyDown(enumKeyCodes key);
-    
     inline CCTouchScriptHandlerEntry* getScriptTouchHandlerEntry() { return m_pScriptTouchHandlerEntry; };
     inline CCScriptHandlerEntry* getScriptKeypadHandlerEntry() { return m_pScriptKeypadHandlerEntry; };
     inline CCScriptHandlerEntry* getScriptAccelerateHandlerEntry() { return m_pScriptAccelerateHandlerEntry; };
-protected:   
-    bool m_bTouchEnabled; //assume this is 0x100
-    bool m_bAccelerometerEnabled; //0x101
-    bool m_bKeypadEnabled;   //0x102
-    bool m_bKeyboardEnabled;//0x103
-    bool m_bMouseEnabled;   //0x104
+protected:
+
+    bool m_bTouchEnabled;
+    bool m_bAccelerometerEnabled;
+    bool m_bKeypadEnabled;
     
 private:
     // Script touch events handler
-    CCTouchScriptHandlerEntry* m_pScriptTouchHandlerEntry; //0x108
-    CCScriptHandlerEntry* m_pScriptKeypadHandlerEntry;     //0x10C
-    CCScriptHandlerEntry* m_pScriptAccelerateHandlerEntry; //0x110
+    CCTouchScriptHandlerEntry* m_pScriptTouchHandlerEntry;
+    CCScriptHandlerEntry* m_pScriptKeypadHandlerEntry;
+    CCScriptHandlerEntry* m_pScriptAccelerateHandlerEntry;
     
-    int m_nTouchPriority; //0x114
-    ccTouchesMode m_eTouchMode; //0X118
+    int m_nTouchPriority;
+    ccTouchesMode m_eTouchMode;
     
     int  excuteScriptTouchHandler(int nEventType, CCTouch *pTouch);
     int  excuteScriptTouchHandler(int nEventType, CCSet *pTouches);
@@ -228,21 +215,21 @@ public:
     virtual ~CCLayerRGBA();
     
     virtual bool init();
-
+    
     virtual GLubyte getOpacity();
     virtual GLubyte getDisplayedOpacity();
     virtual void setOpacity(GLubyte opacity);
     virtual void updateDisplayedOpacity(GLubyte parentOpacity);
     virtual bool isCascadeOpacityEnabled();
     virtual void setCascadeOpacityEnabled(bool cascadeOpacityEnabled);
-
+    
     virtual const ccColor3B& getColor();
     virtual const ccColor3B& getDisplayedColor();
     virtual void setColor(const ccColor3B& color);
     virtual void updateDisplayedColor(const ccColor3B& parentColor);
     virtual bool isCascadeColorEnabled();
     virtual void setCascadeColorEnabled(bool cascadeColorEnabled);
-
+    
     virtual void setOpacityModifyRGB(bool bValue) {CC_UNUSED_PARAM(bValue);}
     virtual bool isOpacityModifyRGB() { return false; }
 protected:
@@ -282,9 +269,9 @@ public:
 
     virtual void draw();
     virtual void setContentSize(const CCSize & var);
-
+    
     static CCLayerColor* create();
-
+    
     /** creates a CCLayer with color, width and height in Points */
     static CCLayerColor * create(const ccColor4B& color, GLfloat width, GLfloat height);
     /** creates a CCLayer with color. Width and height are the window size. */
@@ -307,7 +294,7 @@ public:
 
     /** BlendFunction. Conforms to CCBlendProtocol protocol */
     CC_PROPERTY(ccBlendFunc, m_tBlendFunc, BlendFunc)
-
+   
     virtual void setColor(const ccColor3B &color);
     virtual void setOpacity(GLubyte opacity);
 

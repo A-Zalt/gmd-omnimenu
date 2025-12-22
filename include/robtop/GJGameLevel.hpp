@@ -61,11 +61,13 @@ public:
 #if GAME_VERSION >= GV_1_6
     int m_bAutoLevel; // 0x190
     int m_nCoins; // 0x194
+#endif
 #if GAME_VERSION >= GV_1_7
     int m_nLevelSize;
     int m_nPassword;
     int m_nFailedPasswordAttempts;
 #endif
+#if GAME_VERSION >= GV_1_6
     int m_nStarRatings; // 0x198
     int m_nStarRatingsSum; // 0x19c
     int m_nMaxStarRatings; // 0x1a0

@@ -47,73 +47,117 @@ ccColor3B color = ccc3(127, 255, 255);
 
 
 bool HaxMenu::init(CCLayer* referrer) {
+    CCLog("1");
     if (!CCLayerColor::initWithColor(ccc4(0, 0, 0, 180)))
         return false;
 
+    CCLog("2");
     canSpoofPih = true;
 
+    CCLog("3");
     auto& hax = HaxManager::sharedState();
 
+    CCLog("4");
     this->referrer = referrer;
+    CCLog("5");
     CCDirector* director = CCDirector::sharedDirector();
+    CCLog("6");
     CCSize winSize = director->getWinSize();
 
+    CCLog("7");
     CCTouchDispatcher* touchDispatch = director->getTouchDispatcher();
+    CCLog("8");
     touchDispatch->setForcePrio(true);
+    CCLog("9");
     touchDispatch->setTargetPrio(0x80000002);
 
+    CCLog("10");
     this->catButtons = CCArray::create();
+    CCLog("11");
     this->catButtons->retain();
 
+    CCLog("12");
     CCNode* leftParent = CCNode::create();
+    CCLog("13");
     addChild(leftParent);
+    CCLog("14");
     leftParent->setPosition(-100.f, winSize.height / 2);
+    CCLog("15");
     this->leftParent = leftParent;
     
+    CCLog("16");
     CCSprite* leftPanel = CCSprite::create("menupanel.png");
+    CCLog("17");
     leftParent->addChild(leftPanel);
+    CCLog("18");
     leftPanel->setPosition({0.f, 0.f});
+    CCLog("19");
     leftPanel->setScaleY(2.0f);
+    CCLog("20");
     this->leftPanel = leftPanel;
 
+    CCLog("21");
     auto logo = CCSprite::create("omnimenu_logo.png");
+    CCLog("22");
     leftParent->addChild(logo, 1001);
+    CCLog("23");
     logo->setPosition(ccp(0, winSize.height / 2 - 30));
+    CCLog("24");
     logo->setScale(0.8f);
     
+    CCLog("25");
     leftParent->runAction(CCEaseOut::create(
         CCMoveTo::create(getDuration(), ccp(100.0f, winSize.height / 2)), 3
     ));
 
+    CCLog("26");
     CCNode* rightParent = CCNode::create();
+    CCLog("27");
     addChild(rightParent);
+    CCLog("28");
     rightParent->setPosition(winSize.width + 100.f, winSize.height / 2);
+    CCLog("29");
     this->rightParent = rightParent;
     
+    CCLog("30");
     CCSprite* rightPanel = CCSprite::create("menupanel.png");
+    CCLog("31");
     rightParent->addChild(rightPanel);
+    CCLog("32");
     rightPanel->setPosition({0.f, 0.f});
+    CCLog("33");
     rightPanel->setScaleY(2.0f);
+    CCLog("34");
     this->rightPanel = rightPanel;
     
+    CCLog("35");
     rightParent->runAction(CCEaseOut::create(
         CCMoveTo::create(getDuration(), ccp(winSize.width - 100.f, winSize.height / 2)), 3
     ));
 
+    CCLog("36");
     this->catMenu = CCMenu::create();
+    CCLog("37");
     this->leftParent->addChild(catMenu, 1001);
+    CCLog("38");
     catMenu->setPosition(ccp(-75, 0));
 
+    CCLog("39");
     this->modMenu = CCMenu::create();
+    CCLog("40");
     addChild(modMenu, 1002);
+    CCLog("41");
     this->modMenu->setPosition(this->rightParent->getPosition());
 
+    CCLog("42");
     modMenu->runAction(CCEaseOut::create(
         CCMoveTo::create(getDuration(), ccp(winSize.width - 80.f, winSize.height / 2)), 3
     ));
     // modMenu->setPosition(ccp(winSize.width - 75, 0));
 
+    CCLog("43");
     addButton(" Player ", 14, 80, this, menu_selector(HaxMenu::onPlayer));
+    CCLog("44");
     addButton(" Visual ", 14, 60, this, menu_selector(HaxMenu::onVisual));
     addButton(" Editor ", 14, 40, this, menu_selector(HaxMenu::onEditor));
     addButton(" Bypass ", 14, 20, this, menu_selector(HaxMenu::onBypass));
@@ -122,12 +166,17 @@ bool HaxMenu::init(CCLayer* referrer) {
     addButton(" Label ", 14, -40, this, menu_selector(HaxMenu::onLabel));
     addButton(" Particles ", 14, -60, this, menu_selector(HaxMenu::onParticles));
 
+    CCLog("45");
     setTouchEnabled(true);
+    CCLog("46");
     setKeypadEnabled(true);
     // referrer->setTouchEnabled(false);
     // referrer->setScale(0.2f);
 
+    CCLog("47");
     onCategory(hax.lastCategory);
+
+    CCLog("END");
 
     return true;
 }
@@ -139,10 +188,21 @@ void HaxMenu::setColorAtIndex(int ind) {
 
     static_cast<CCLabelTTF*>(static_cast<CCMenuItemLabel*>(this->catButtons->objectAtIndex(index))->getLabel())->setColor(color);
 
+#if GAME_VERSION < GV_1_7
     for (int i = 0; i < this->catButtons->count(); i++) {
         if (i == index) continue;
         static_cast<CCLabelTTF*>(static_cast<CCMenuItemLabel*>(this->catButtons->objectAtIndex(i))->getLabel())->setColor(ccWHITE);
     }
+#else
+    for (int i = 0; i < this->catButtons->count(); i++) {
+        if (i == index) continue;
+
+        auto mLabel = static_cast<CCMenuItemLabel*>(this->catButtons->objectAtIndex(i));
+        if (!mLabel) continue;
+        auto ttfLabel = static_cast<CCLabelTTF*>(MEMBER_BY_OFFSET(CCNode*, mLabel, 0x10C));
+        ttfLabel->setColor(ccWHITE);
+    }
+#endif
 }
 void HaxMenu::addButton(const char* text, float fontSize, float yOffset, CCObject* target, SEL_MenuHandler selector) {
     CCDirector* director = CCDirector::sharedDirector();
@@ -155,28 +215,28 @@ void HaxMenu::addButton(const char* text, float fontSize, float yOffset, CCObjec
     item->setAnchorPoint({0, 0.5});
     item->setPosition(ccp(-25, 10 + yOffset));
 }
-void HaxMenu::onPlayer() {
+void HaxMenu::onPlayer(SEL_MenuHandler_1_7_compat) {
     onCategory(ModuleCategory::Player);
 }
-void HaxMenu::onVisual() {
+void HaxMenu::onVisual(SEL_MenuHandler_1_7_compat) {
     onCategory(ModuleCategory::Visual);
 }
-void HaxMenu::onEditor() {
+void HaxMenu::onEditor(SEL_MenuHandler_1_7_compat) {
     onCategory(ModuleCategory::Editor);
 }
-void HaxMenu::onBypass() {
+void HaxMenu::onBypass(SEL_MenuHandler_1_7_compat) {
     onCategory(ModuleCategory::Bypass);
 }
-void HaxMenu::onInformational() {
+void HaxMenu::onInformational(SEL_MenuHandler_1_7_compat) {
     onCategory(ModuleCategory::Informational);
 }
-void HaxMenu::onUniversal() {
+void HaxMenu::onUniversal(SEL_MenuHandler_1_7_compat) {
     onCategory(ModuleCategory::Universal);
 }
-void HaxMenu::onLabel() {
+void HaxMenu::onLabel(SEL_MenuHandler_1_7_compat) {
     onCategory(ModuleCategory::Label);
 }
-void HaxMenu::onParticles() {
+void HaxMenu::onParticles(SEL_MenuHandler_1_7_compat) {
     onCategory(ModuleCategory::Particles);
 }
 

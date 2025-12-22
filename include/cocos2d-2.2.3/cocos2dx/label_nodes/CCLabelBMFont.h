@@ -220,7 +220,7 @@ public:
      */
     static CCLabelBMFont * create();
 
-    bool init();
+    virtual bool init();
     /** init a bitmap font atlas with an initial string and the FNT file */
     bool initWithString(const char *str, const char *fntFile, float width = kCCLabelAutomaticWidth, CCTextAlignment alignment = kCCTextAlignmentLeft, CCPoint imageOffset = CCPointZero);
 

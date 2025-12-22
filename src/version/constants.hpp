@@ -107,3 +107,16 @@
         nullptr,\
         300.f\
     )->show();
+
+
+#if GAME_VERSION >= GV_1_7
+    #define SEL_MenuHandler_1_7_compat CCObject*
+    #define FLAlertLayer_1_7_compat_this this
+    #define FLAlertLayer_1_7_compat_self self
+    #define _Cocos2dxMusic "org/cocos2dx/lib/Cocos2dxMusic"
+#else
+    #define SEL_MenuHandler_1_7_compat
+    #define FLAlertLayer_1_7_compat_this nullptr
+    #define FLAlertLayer_1_7_compat_self nullptr
+    #define _Cocos2dxMusic "org/cocos2dx/lib/p"
+#endif

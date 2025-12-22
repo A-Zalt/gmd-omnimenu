@@ -70,6 +70,7 @@ if(GAME_VERSION LESS 10)
         ${CMAKE_CURRENT_SOURCE_DIR}/include/cocos2d/cocos2dx/platform/android
         ${CMAKE_CURRENT_SOURCE_DIR}/include/cocos2d/cocos2dx/kazmath/include)
 else()
+    target_compile_options(menu PRIVATE -fvisibility=default)
     target_include_directories(menu PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/cocos2d-2.2.3/cocos2dx/include
         ${CMAKE_CURRENT_SOURCE_DIR}/include/cocos2d-2.2.3/cocos2dx

@@ -161,11 +161,17 @@ void PauseLayer_customSetup(PauseLayer* self) {
 }
 void (*TRAM_PauseLayer_destructor)(PauseLayer* self);
 void PauseLayer_destructor(PauseLayer* self) {
+    CCLog("1");
     TRAM_PauseLayer_destructor(self);
+    CCLog("2");
     HaxManager& hax = HaxManager::sharedState();
+    CCLog("3");
     hax.pauseLayer = nullptr;
+    CCLog("4");
     hax.speedInputWidget = nullptr;
+    CCLog("5");
     hax.eyeMenu = nullptr;
+    CCLog("6");
 }
 
 void PauseLayer_om() {

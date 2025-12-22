@@ -264,24 +264,40 @@ void seekBackgroundMusicTo(int ms) {
         cocos2d::CCLog("Failed to get JNI environment");
         return;
     }
+#if GAME_VERSION < GV_1_7
     jclass Cocos2dxActivity = env->FindClass("org/cocos2dx/lib/Cocos2dxActivity");
     if (Cocos2dxActivity == nullptr) {
         cocos2d::CCLog("Failed to find Cocos2dxActivity class");
         return;
     }
+#else
+    jclass Cocos2dxHelper = env->FindClass("org/cocos2dx/lib/Cocos2dxHelper");
+    if (Cocos2dxHelper == nullptr) {
+        cocos2d::CCLog("Failed to find Cocos2dxHelper class");
+        return;
+    }
+#endif
     // some cocos2d java class names have been obfuscated, but not all
-    jfieldID fieldID_backgroundMusicPlayer = env->GetStaticFieldID(Cocos2dxActivity, "backgroundMusicPlayer", "Lorg/cocos2dx/lib/p;");
+#if GAME_VERSION < GV_1_7
+    jfieldID fieldID_backgroundMusicPlayer = env->GetStaticFieldID(Cocos2dxActivity, "backgroundMusicPlayer", "L" _Cocos2dxMusic ";");
+#else
+    jfieldID fieldID_backgroundMusicPlayer = env->GetStaticFieldID(Cocos2dxHelper, "sCocos2dMusic", "L" _Cocos2dxMusic ";");
+#endif
     if (fieldID_backgroundMusicPlayer == nullptr) {
         cocos2d::CCLog("Failed to get field ID of backgroundMusicPlayer");
         return;
     }
+#if GAME_VERSION < GV_1_7
     jobject backgroundMusicPlayer = env->GetStaticObjectField(Cocos2dxActivity, fieldID_backgroundMusicPlayer);
+#else
+    jobject backgroundMusicPlayer = env->GetStaticObjectField(Cocos2dxHelper, fieldID_backgroundMusicPlayer);
+#endif
     if (backgroundMusicPlayer == nullptr) {
         cocos2d::CCLog("Failed to get backgroundMusicPlayer");
         return;
     }
 
-    jclass Cocos2dxMusic = env->FindClass("org/cocos2dx/lib/p");
+    jclass Cocos2dxMusic = env->FindClass(_Cocos2dxMusic);
     if (Cocos2dxMusic == nullptr) {
         cocos2d::CCLog("Failed to get Cocos2dxMusic");
         return;

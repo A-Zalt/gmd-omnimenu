@@ -308,9 +308,9 @@ THE SOFTWARE.
 #include "support/component/CCComponentContainer.h"
 
 //New Classes
-#include "custom/Delegates/CCKeyboardDispatcher.h"
-#include "custom/Delegates/CCMouseDispatcher.h"
-#include "custom/Sprites/CCSpriteExtra/CCSpriteExtra.h"
+// #include "custom/Delegates/CCKeyboardDispatcher.h"
+// #include "custom/Delegates/CCMouseDispatcher.h"
+// #include "custom/Sprites/CCSpriteExtra/CCSpriteExtra.h"
 NS_CC_BEGIN
 
 CC_DLL const char* cocos2dVersion();

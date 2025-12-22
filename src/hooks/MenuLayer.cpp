@@ -11,14 +11,15 @@
 // void MenuLayer_onMoreGames(void* self) {
 //     CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.5f, HaxLayer::scene(false)));
 // }
-void MenuLayer::onOpenMenu() {
+void MenuLayer::onOpenMenu(SEL_MenuHandler_1_7_compat) {
     auto haxOverlay = HaxMenu::create(this); //HaxOverlay::create(this);
     this->addChild(haxOverlay, 1000);
     this->setTouchEnabled(false);
 }
-void MenuLayer::onMenuInfo() {
+void MenuLayer::onMenuInfo(SEL_MenuHandler_1_7_compat) {
+    CCLog("say something");
     FLAlertLayer::create(
-        nullptr,
+        FLAlertLayer_1_7_compat_this,
         "Game Information",
         CCString::createWithFormat(
             "<cg>OMNImenu</c> %s\n<cl>Geometry Dash</c> %s\n<cr>Special Thanks</c>: <cy>akqanile</c>, <cy>Hris69</c>, <cy>Pololak</c>, <cy>Nikolyas</c>, <cy>Capeling</c>, <cy>Cvolton</c>, <cy>dank_meme01</c>, <cy>prevter</c>, <cy>Thelazycat</c>, <cy>HJFod</c>, <cy>iAndyHD_3</c>, <cy>JJ Reed</c>\nWith love from <cy>AntiMatter</c> <cr><3</c>", 

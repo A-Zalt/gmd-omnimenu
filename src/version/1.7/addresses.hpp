@@ -95,13 +95,13 @@
 /**/ #define __GameManager_isColorUnlocked  0x184560 /**/ // fuck dobbyhook fuck this stupid game fuck everyone kill 7 billion people
 /**/ #define __GameManager_isIconUnlocked   0x184460 /**/ // fuck dobbyhook fuck this stupid game fuck everyone kill 7 billion people
 /**/ #define __GJGameLevel_setIsVerified    0x1AC23E /**/
-/**/ #define clubstep_bypass                0x1BAC9E /**/ // LevelPage::onPlay
+/**/ #define clubstep_bypass                0x1BAC9F /**/ // LevelPage::onPlay
 /**/ #define move_x_min                     0x19B8A0 /**/ // EditorUI::moveObject - 00 80 96 43
 /**/ #define move_x_max                     0x19B8A4 /**/ // EditorUI::moveObject - 00 60 EA 46
 /**/ #define move_y_max                     0x19B8AC /**/ // EditorUI::moveObject - 00 C0 C6 44
 /**/ #define move_y_min                     0x19B8A8 /**/ // EditorUI::moveObject - 00 00 B6 42
-/**/ #define object_limit                   0x19C9B2 /**/ // EditorUI::onCreate
-/**/ #define object_limit_duplicate         0x19B3F4 /**/ // EditorUI::onDuplicate
+/**/ #define object_limit                   0x19C9B3 /**/ // EditorUI::onCreate
+/**/ #define object_limit_duplicate         0x19B3F5 /**/ // EditorUI::onDuplicate
 /**/ #define pause_edit_button              0x1A0702 /**/ // PauseLayer::customSetup
 /**/ #define pause_restart_button           0x1A0840 /**/ // PauseLayer::customSetup
 /**/ #define place_x_max                    0x19C95C /**/ // EditorUI::onCreateObject - 00 B9 2F 47

@@ -30,8 +30,8 @@ public:
     virtual void ccTouchEnded(CCTouch *pTouch, CCEvent *pEvent);
     virtual void ccTouchCancelled(CCTouch *pTouch, CCEvent *pEvent);
     virtual void registerWithTouchDispatcher();
-    virtual bool show();
     virtual void keyBackClicked();
+    virtual bool show();
 
     virtual FLAlertLayerProtocol* getPParent() const;
     virtual void setPParent(FLAlertLayerProtocol*);

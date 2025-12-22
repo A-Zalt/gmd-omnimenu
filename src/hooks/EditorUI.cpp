@@ -405,24 +405,39 @@ void EditorUI_setupCreateMenu(EditorUI* self) {
 
 #else
 
+        CCLog("1");
         auto bars = getCreateButtonBars(self);
+        CCLog("2");
         auto fuckingArray = CCArray::create();
+        CCLog("3");
         auto triggerBtns = getBarButtons(static_cast<EditButtonBar*>(bars->lastObject()));
+        CCLog("4");
         for (int i = 0; i < triggerBtns->count(); i++) {
+            CCLog("5");
             CCObject* btn = triggerBtns->objectAtIndex(i);
+            CCLog("6");
             static_cast<CCNode*>(btn)->removeFromParentAndCleanup(false);
+            CCLog("7");
             fuckingArray->addObject(btn);
+            CCLog("8");
         }
-        fuckingArray->insertObject(CCNode::create(), 8);
-        fuckingArray->addObject(CCNode::create());
+        CCLog("9");
+        auto sep1 = CCNode::create();
+        sep1->setTag(0);
+        fuckingArray->insertObject(sep1, 8);
+        auto sep2 = CCNode::create();
+        sep2->setTag(0);
+        CCLog("10");
+        fuckingArray->addObject(sep2);
 
+        CCLog("11");
         fuckingArray->addObject(self->getCreateBtn("edit_eLevelEndBtn_001.png", 4)); // level end
         fuckingArray->addObject(self->getCreateBtn("edit_eBGEOn_001.png", 4)); // bg effect on
         fuckingArray->addObject(self->getCreateBtn("edit_eBGEOff_001.png", 4)); // bg effect off
         fuckingArray->addObject(self->getCreateBtn("edit_eeFABtn_001.png", 4)); // scatter transition trigger
         auto bar = EditButtonBar::create(fuckingArray, ccp(winSize.width * 0.5 - 5, getScreenBottom() + getUnkFloat(self) - 6.f), 8, true);
-        fuckingArray->removeLastObject();
-        fuckingArray->addObject(bar);
+        triggerBtns->removeLastObject();
+        triggerBtns->addObject(bar);
 
         fuckingArray = CCArray::create();
         auto interactBtns = getBarButtons(static_cast<EditButtonBar*>(bars->objectAtIndex(3))); // THREEEEEEEEEEEE
@@ -434,8 +449,8 @@ void EditorUI_setupCreateMenu(EditorUI* self) {
         fuckingArray->addObject(CCNode::create());
         fuckingArray->addObject(self->getCreateBtn("portal_10_back_001.png", 4)); // weird ufo object thing removed in 2.0
         bar = EditButtonBar::create(fuckingArray, ccp(winSize.width * 0.5 - 5, getScreenBottom() + getUnkFloat(self) - 6.f), 3, true);
-        fuckingArray->removeObjectAtIndex(3);
-        fuckingArray->insertObject(bar, 3);
+        triggerBtns->removeObjectAtIndex(3);
+        triggerBtns->insertObject(bar, 3);
 
 #endif
     }
@@ -789,6 +804,7 @@ void EditorUI_deselectObject(EditorUI* self) {
     TRAM_EditorUI_deselectObject(self);
     updateObjectInfoLabel(self);
 }
+#if GAME_VERSION < GV_1_7
 void (*TRAM_EditorUI_deselectAll)(EditorUI* self);
 void EditorUI_deselectAll(EditorUI* self) {
     TRAM_EditorUI_deselectAll(self);
@@ -804,6 +820,23 @@ void EditorUI_transformObjectCall(EditorUI* self, CCNode* node) {
     TRAM_EditorUI_transformObjectCall(self, node);
     updateObjectInfoLabel(self);
 }
+#else
+void (*TRAM_EditorUI_deselectAll)(EditorUI* self, CCObject* sender);
+void EditorUI_deselectAll(EditorUI* self, CCObject* sender) {
+    TRAM_EditorUI_deselectAll(self, sender);
+    updateObjectInfoLabel(self);
+}
+void (*TRAM_EditorUI_moveObjectCall)(EditorUI* self, CCObject* node);
+void EditorUI_moveObjectCall(EditorUI* self, CCObject* node) {
+    TRAM_EditorUI_moveObjectCall(self, node);
+    updateObjectInfoLabel(self);
+}
+void (*TRAM_EditorUI_transformObjectCall)(EditorUI* self, CCObject* node);
+void EditorUI_transformObjectCall(EditorUI* self, CCObject* node) {
+    TRAM_EditorUI_transformObjectCall(self, node);
+    updateObjectInfoLabel(self);
+}
+#endif
 
 void (*TRAM_EditorUI_destructor)(EditorUI* self);
 void EditorUI_destructor(EditorUI* self) {
@@ -913,6 +946,7 @@ void EditorUI_om() {
     Omni::hook("_ZN8EditorUI14deselectObjectEv",
         reinterpret_cast<void*>(EditorUI_deselectObject),
         reinterpret_cast<void**>(&TRAM_EditorUI_deselectObject));
+#if GAME_VERSION < GV_1_7
     Omni::hook("_ZN8EditorUI11deselectAllEv",
         reinterpret_cast<void*>(EditorUI_deselectAll),
         reinterpret_cast<void**>(&TRAM_EditorUI_deselectAll));
@@ -922,6 +956,17 @@ void EditorUI_om() {
     Omni::hook("_ZN8EditorUI19transformObjectCallEPN7cocos2d6CCNodeE",
         reinterpret_cast<void*>(EditorUI_transformObjectCall),
         reinterpret_cast<void**>(&TRAM_EditorUI_transformObjectCall));
+#else
+    Omni::hook("_ZN8EditorUI11deselectAllEPN7cocos2d8CCObjectE",
+        reinterpret_cast<void*>(EditorUI_deselectAll),
+        reinterpret_cast<void**>(&TRAM_EditorUI_deselectAll));
+    Omni::hook("_ZN8EditorUI14moveObjectCallEPN7cocos2d8CCObjectE",
+        reinterpret_cast<void*>(EditorUI_moveObjectCall),
+        reinterpret_cast<void**>(&TRAM_EditorUI_moveObjectCall));
+    Omni::hook("_ZN8EditorUI19transformObjectCallEPN7cocos2d8CCObjectE",
+        reinterpret_cast<void*>(EditorUI_transformObjectCall),
+        reinterpret_cast<void**>(&TRAM_EditorUI_transformObjectCall));
+#endif
         
 #if GAME_VERSION < GV_1_5
     Omni::hook("_ZN8EditorUID1Ev",

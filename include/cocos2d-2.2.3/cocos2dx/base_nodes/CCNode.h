@@ -668,7 +668,7 @@ public:
     virtual void removeFromParentAndCleanup(bool cleanup);
 
     //Robtop Modification
-    virtual void removeMeAndCleanup();
+    void removeMeAndCleanup();
     /** 
      * Removes a child from the container with a cleanup
      *
@@ -1459,23 +1459,23 @@ protected:
     
     CCActionManager *m_pActionManager;  ///< a pointer to ActionManager singleton, which is used to handle all the actions
     
-    bool m_bRunning;                    ///< is running
+    bool m_bRunning;                    ///< is running D0
     
-    bool m_bTransformDirty;             ///< transform dirty flag
-    bool m_bInverseDirty;               ///< transform dirty flag
-    bool m_bAdditionalTransformDirty;   ///< The flag to check whether the additional transform is dirty
-    bool m_bVisible;                    ///< is this node visible
+    bool m_bTransformDirty;             ///< transform dirty flag D1 
+    bool m_bInverseDirty;               ///< transform dirty flag D2
+    bool m_bAdditionalTransformDirty;   ///< The flag to check whether the additional transform is dirty D3
+    bool m_bVisible;                    ///< is this node visible D4
     
     bool m_bIgnoreAnchorPointForPosition; ///< true if the Anchor Point will be (0,0) when you position the CCNode, false otherwise.
-                                          ///< Used by CCLayer and CCScene.
+                                          ///< Used by CCLayer and CCScene. D5
     
-    bool m_bReorderChildDirty;          ///< children order dirty flag
+    bool m_bReorderChildDirty;          ///< children order dirty flag D6
     
-    int m_nScriptHandler;               ///< script handler for onEnter() & onExit(), used in Javascript binding and Lua binding.
-    int m_nUpdateScriptHandler;         ///< script handler for update() callback per frame, which is invoked from lua & javascript.
-    ccScriptType m_eScriptType;         ///< type of script binding, lua or javascript
+    int m_nScriptHandler;               ///< script handler for onEnter() & onExit(), used in Javascript binding and Lua binding. D8
+    int m_nUpdateScriptHandler;         ///< script handler for update() callback per frame, which is invoked from lua & javascript. DC
+    ccScriptType m_eScriptType;         ///< type of script binding, lua or javascript E0
     
-    CCComponentContainer *m_pComponentContainer;        ///< Dictionary of components
+    CCComponentContainer *m_pComponentContainer;        ///< Dictionary of components E4
 
 };
 
