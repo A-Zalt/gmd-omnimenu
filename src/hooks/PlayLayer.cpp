@@ -25,11 +25,12 @@ void PlayLayer_destroyPlayer(PlayLayer* self) {
     }
     hax.dead = true;
     TRAM_PlayLayer_destroyPlayer(self);
+    if (hax.completed) return;
     if (hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK) && getPlayLayerPractice(self)) {
         auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
         audioEngine->pauseBackgroundMusic();
     }
-    if (hax.getModuleEnabled(ModuleID::CUSTOM_RESPAWN_TIME) && !hax.completed) {
+    if (hax.getModuleEnabled(ModuleID::CUSTOM_RESPAWN_TIME)) {
 #if GAME_VERSION >= GV_1_6
         // 1.6 and above start using a tag for this action, so it's trivial to stop it
         self->stopActionByTag(16);
@@ -38,6 +39,7 @@ void PlayLayer_destroyPlayer(PlayLayer* self) {
     #if GAME_VERSION > GV_1_0
         // The ability to disable Auto-Retry was added in 1.11
         if (!getAutoRetry()) return;
+    #else
         auto seq2 = CCSequence::create(
             CCDelayTime::create(1.05),
             CCCallFunc::create(self, callfunc_selector(PlayLayer::turnOffTheThing)),
@@ -46,6 +48,7 @@ void PlayLayer_destroyPlayer(PlayLayer* self) {
         seq2->setTag(17);
         self->runAction(seq2);
     #endif
+#endif // GAME_VERSION >= GV_1_6
 
         // What we'll do is hook delayedResetLevel and make it stop execution if this is still true
         // Our custom action will call a function that sets this variable to false and then calls resetLevel
@@ -54,8 +57,6 @@ void PlayLayer_destroyPlayer(PlayLayer* self) {
         // But that also means that any other call to resetLevel will have to first set this variable to false
         // Which is why there is a 1.0-exclusive hook of PauseLayer::onRestart
         hax.customRespawn = true;
-
-#endif // GAME_VERSION >= GV_1_6
         auto seq = CCSequence::create(
             CCDelayTime::create(hax.respawnTime),
 #if GAME_VERSION < GV_1_6
@@ -65,18 +66,20 @@ void PlayLayer_destroyPlayer(PlayLayer* self) {
 #endif
             nullptr);
         
-        // In 1.5-, this is necessary to identify the action in resetLevel and stop it if it exists
-        // In 1.6+, it's necessary for obvious reasons
         seq->setTag(16);
         self->runAction(seq);
+    } else {
+        hax.customRespawn = false;
     }
 }
 
 #if GAME_VERSION < GV_1_6
 void PlayLayer::customResetLevel() {
     HaxManager& hax = HaxManager::sharedState();
+#if GAME_VERSION < GV_1_1
     PlayLayer::resetLevelLogic(this);
-#if GAME_VERSION >= GV_1_1
+#else
+    resetLevel();
     setShouldRunDelayedReset(this, false);
 #endif
 }
@@ -132,10 +135,10 @@ void PlayLayer_levelComplete(PlayLayer* self) {
     hax.completed = true;
     TRAM_PlayLayer_levelComplete(self);
     // bandaid fix
-    if (hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK) && getPlayLayerPractice(self)) {
-        auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
-        audioEngine->resumeBackgroundMusic();
-    }
+    // if (hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK) && getPlayLayerPractice(self)) {
+    //     auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
+    //     audioEngine->resumeBackgroundMusic();
+    // }
 }
 
 void (*TRAM_PlayLayer_resetLevel)(PlayLayer* self);

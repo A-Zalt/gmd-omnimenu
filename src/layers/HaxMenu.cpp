@@ -330,9 +330,11 @@ void HaxMenu::onCategory(ModuleCategory category) {
         userData = nullptr;
         this->modMenu->removeChild(node, true);
     }
-    if (hax.respawnInput) {
-        this->removeChild(hax.respawnInput, true);
+    if (hax.respawnInput && hax.respawnInput->input) {
+        setTextInputDelegate(hax.respawnInput->input, nullptr);
+        hax.respawnInput->removeFromParentAndCleanup(true);
     }
+    hax.respawnInput = nullptr;
     CCDirector* director = CCDirector::sharedDirector();
     CCSize winSize = director->getWinSize();
 

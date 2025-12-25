@@ -123,6 +123,7 @@
     #define _Cocos2dxMusic "org/cocos2dx/lib/Cocos2dxMusic"
 #else
     #define SEL_MenuHandler_1_7_compat
+    #define SEL_MenuHandler_1_7_compat2
     #define sender_param_1_7
     #define dummy_sender_param_1_7
     #define _Cocos2dxMusic "org/cocos2dx/lib/p"
