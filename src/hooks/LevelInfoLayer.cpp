@@ -43,8 +43,10 @@ void LevelInfoLayer::onViewLevelInfo() {
     )->show();
 }
 #else
-void (*TRAM_LevelInfoLayer_onLevelInfo)(LevelInfoLayer* self);
-void LevelInfoLayer_onLevelInfo(LevelInfoLayer* self) {
+void (*TRAM_LevelInfoLayer_onLevelInfo)(LevelInfoLayer* self SEL_MenuHandler_1_7_compat2);
+void LevelInfoLayer_onLevelInfo(LevelInfoLayer* self SEL_MenuHandler_1_7_compat2) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (!hax.getModuleEnabled(ModuleID::VIEW_LEVEL_STATS)) return TRAM_LevelInfoLayer_onLevelInfo(self sender_param_1_7);
     GJGameLevel* level = getInfoLayerLevel(self);
     std::string s = level->m_sLevelString;
     std::string::difference_type count = std::count(s.begin(), s.end(), ';');
@@ -116,14 +118,14 @@ void LevelInfoLayer::onExport() {
 }
 bool (*TRAM_LevelInfoLayer_init)(LevelInfoLayer* self, GJGameLevel* level);
 bool LevelInfoLayer_init(LevelInfoLayer* self, GJGameLevel* level) {
-#if GAME_VERSION < GV_1_7
+    HaxManager& hax = HaxManager::sharedState();
+#if GAME_VERSION >= GV_1_7
     if (hax.getModuleEnabled(ModuleID::LEVEL_COPYING)) {
         level->m_nPassword = 1;
         level->m_nFailedPasswordAttempts = 0;
     }
 #endif
     if (!TRAM_LevelInfoLayer_init(self, level)) return false;
-    HaxManager& hax = HaxManager::sharedState();
     auto director = CCDirector::sharedDirector();
     auto winSize = director->getWinSize();
 #if GAME_VERSION < GV_1_7
@@ -151,10 +153,12 @@ bool LevelInfoLayer_init(LevelInfoLayer* self, GJGameLevel* level) {
         CCSprite* exportSpr = cocos2d::CCSprite::create("gdshare_export.png");
         CCMenuItemSpriteExtra* exportBtn = CCMenuItemSpriteExtra::create(exportSpr, exportSpr, self, menu_selector(LevelInfoLayer::onExport));
 
-        auto menu = static_cast<CCMenu*>(self->getChildren()->objectAtIndex(5));
-        if (menu) {
-            menu->addChild(exportBtn);
-            exportBtn->setPosition(ccp(30.f, winSize.height / 2 - 60.f));
+        for (int i = 0; i < self->getChildrenCount(); i++) {
+            auto menu = dynamic_cast<CCMenu*>(self->getChildren()->objectAtIndex(i));
+            if (menu && menu->getChildrenCount() > 1) {
+                menu->addChild(exportBtn);
+                exportBtn->setPosition(ccp(-winSize.width / 2 + 30, 72.f));
+            }
         }
     }
 #endif
@@ -200,13 +204,35 @@ bool LevelInfoLayer_init(LevelInfoLayer* self, GJGameLevel* level) {
     return true;
 }
 
+#if GAME_VERSION >= GV_1_7
+void (*TRAM_LevelInfoLayer_levelDownloadFinished)(LevelInfoLayer* self, GJGameLevel* level);
+void LevelInfoLayer_levelDownloadFinished(LevelInfoLayer* self, GJGameLevel* level) {
+    TRAM_LevelInfoLayer_levelDownloadFinished(self, level);
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.getModuleEnabled(ModuleID::LEVEL_COPYING)) {
+        level->m_nPassword = 1;
+        level->m_nFailedPasswordAttempts = 0;
+    }
+}
+#endif
+
 void LevelInfoLayer_om() {
     Omni::hook("_ZN14LevelInfoLayer4initEP11GJGameLevel",
         reinterpret_cast<void*>(LevelInfoLayer_init),
         reinterpret_cast<void**>(&TRAM_LevelInfoLayer_init));
 #if GAME_VERSION >= GV_1_6
-    Omni::hook("_ZN14LevelInfoLayer11onLevelInfoEv",
+    Omni::hook(
+    #if GAME_VERSION < GV_1_7
+        "_ZN14LevelInfoLayer11onLevelInfoEv",
+    #else
+        "_ZN14LevelInfoLayer11onLevelInfoEPN7cocos2d8CCObjectE",
+    #endif
         reinterpret_cast<void*>(LevelInfoLayer_onLevelInfo),
         reinterpret_cast<void**>(&TRAM_LevelInfoLayer_onLevelInfo));
+#endif
+#if GAME_VERSION >= GV_1_7
+    Omni::hook("_ZN14LevelInfoLayer21levelDownloadFinishedEP11GJGameLevel",
+        reinterpret_cast<void*>(LevelInfoLayer_levelDownloadFinished),
+        reinterpret_cast<void**>(&TRAM_LevelInfoLayer_levelDownloadFinished));
 #endif
 }

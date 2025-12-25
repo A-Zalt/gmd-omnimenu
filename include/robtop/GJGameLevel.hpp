@@ -101,4 +101,7 @@ public:
     virtual bool init();
     virtual void setIsVerified(bool isVerified);
     int getAverageDifficulty();
+#if GAME_VERSION >= GV_1_7
+    int getLastBuildPageForTab(int tab);
+#endif
 };

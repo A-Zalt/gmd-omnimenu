@@ -7,3 +7,7 @@
 #define GV_1_6 7
 #define GV_1_7 10
 #define GV_1_8 18
+
+#define GDPS_NONE 0
+#define GDPS_NEOPOINTFOUR 1
+#define GDPS_1_7 2

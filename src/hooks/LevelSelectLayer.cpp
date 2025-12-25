@@ -51,17 +51,16 @@ void showRandomMessage() {
         300.f
     )->show();
 }
-
 #if GAME_VERSION >= GV_1_6
-void (*TRAM_LevelSelectLayer_onInfo)(LevelSelectLayer* self);
-void LevelSelectLayer_onInfo(LevelSelectLayer* self) {
+void (*TRAM_LevelSelectLayer_onInfo)(LevelSelectLayer* self SEL_MenuHandler_1_7_compat2);
+void LevelSelectLayer_onInfo(LevelSelectLayer* self SEL_MenuHandler_1_7_compat2) {
     int levelID = getCurrentScrollIndex(getSelectLayerScroll(self)) + 1;
     HaxManager& hax = HaxManager::sharedState();
     if (levelID > LAST_MAIN_LEVEL_ID && hax.getModuleEnabled(ModuleID::VIEW_LEVEL_STATS)) {
         showRandomMessage();
         return;
     }
-    TRAM_LevelSelectLayer_onInfo(self);
+    TRAM_LevelSelectLayer_onInfo(self sender_param_1_7);
 }
 #else
 void LevelSelectLayer::onViewLevelInfo() {
@@ -118,7 +117,12 @@ void LevelSelectLayer_om() {
         reinterpret_cast<void*>(LevelSelectLayer_init),
         reinterpret_cast<void**>(&TRAM_LevelSelectLayer_init));
 #else
-    Omni::hook("_ZN16LevelSelectLayer6onInfoEv",
+    Omni::hook(
+#if GAME_VERSION < GV_1_7
+        "_ZN16LevelSelectLayer6onInfoEv",
+#else
+        "_ZN16LevelSelectLayer6onInfoEPN7cocos2d8CCObjectE",
+#endif
         reinterpret_cast<void*>(LevelSelectLayer_onInfo),
         reinterpret_cast<void**>(&TRAM_LevelSelectLayer_onInfo));
 #endif

@@ -161,18 +161,57 @@ void PauseLayer_customSetup(PauseLayer* self) {
 }
 void (*TRAM_PauseLayer_destructor)(PauseLayer* self);
 void PauseLayer_destructor(PauseLayer* self) {
-    CCLog("1");
     TRAM_PauseLayer_destructor(self);
-    CCLog("2");
     HaxManager& hax = HaxManager::sharedState();
-    CCLog("3");
     hax.pauseLayer = nullptr;
-    CCLog("4");
     hax.speedInputWidget = nullptr;
-    CCLog("5");
     hax.eyeMenu = nullptr;
-    CCLog("6");
 }
+
+#if GAME_VERSION >= GV_1_7
+void (*TRAM_PauseLayer_onQuit)(PauseLayer* self, CCObject* sender);
+#else
+void (*TRAM_PauseLayer_onQuit)(PauseLayer* self);
+#endif
+
+void ConfirmExit::FLAlert_Clicked(FLAlertLayer*, bool btn2) {
+    if (btn2 && pauseLayer) {
+        TRAM_PauseLayer_onQuit(pauseLayer dummy_sender_param_1_7);
+    }
+}
+
+#if GAME_VERSION >= GV_1_7
+void PauseLayer_onQuit(PauseLayer* self, CCObject* sender) {
+#else
+void PauseLayer_onQuit(PauseLayer* self) {
+#endif
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.getModuleEnabled(ModuleID::CONFIRM_EXIT)) {
+        auto delegate = new ConfirmExit();
+        delegate->pauseLayer = self;
+        FLAlertLayer::create(
+            delegate,
+            "Exit Level",
+            "Are you sure you want to <cr>exit</c>?",
+            "Cancel",
+            "Exit",
+            300.f
+        )->show();
+        return;
+    }
+    TRAM_PauseLayer_onQuit(self sender_param_1_7);
+}
+
+// There is no delayedResetLevel in 1.0, so any resetLevel calls will be blocked while we are dead with custom respawn time
+#if GAME_VERSION < GV_1_1
+void (*TRAM_PauseLayer_onRestart)(PauseLayer* self);
+void PauseLayer_onRestart(PauseLayer* self) {
+    HaxManager& hax = HaxManager::sharedState();
+    getPlayLayer()->resume();
+    PlayLayer::resetLevelLogic(getPlayLayer());
+    self->removeMeAndCleanup();
+}
+#endif
 
 void PauseLayer_om() {
     Omni::hook("_ZN10PauseLayer11customSetupEv",
@@ -181,4 +220,17 @@ void PauseLayer_om() {
     Omni::hook("_ZN10PauseLayerD1Ev",
         reinterpret_cast<void*>(PauseLayer_destructor),
         reinterpret_cast<void**>(&TRAM_PauseLayer_destructor));
+#if GAME_VERSION < GV_1_1
+    Omni::hook("_ZN10PauseLayer9onRestartEv",
+        reinterpret_cast<void*>(PauseLayer_onRestart),
+        reinterpret_cast<void**>(&TRAM_PauseLayer_onRestart));
+#endif
+    Omni::hook(
+#if GAME_VERSION < GV_1_7
+    "_ZN10PauseLayer6onQuitEv",
+#else
+    "_ZN10PauseLayer6onQuitEPN7cocos2d8CCObjectE",
+#endif
+        reinterpret_cast<void*>(PauseLayer_onQuit),
+        reinterpret_cast<void**>(&TRAM_PauseLayer_onQuit));
 }

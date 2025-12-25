@@ -56,6 +56,7 @@ public:
 #else
     void moveObjectCall(CCObject* sender);
     void transformObjectCall(CCObject* sender);
+    void selectBuildTab(int tab);
 #endif
     void moveObject(GameObject* obj, CCPoint transform);
     void editObject();

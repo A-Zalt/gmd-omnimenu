@@ -3,22 +3,27 @@
 
 
 
-#define MENU_VERSION "v1.0.3"
+#define MENU_VERSION "v1.0.4"
 #define MENU_SETTINGS "settings" READABLE_GAME_VERSION ".json"
 #define MENU_SETTINGS_PATH "/storage/emulated/0/OMNImenu/"
 
 #define FORCE_AUTO_SAFE_MODE // Comment this out to disable force auto safe mode
 #define PING_SPOOFING // Comment this out to disable Pig Spoofing (brutal)
 // #define STAR_RATED_LEVELS_GRANT_COINS // Uncomment this to enable star rated levels granting secret coins even in Force Auto Safe Mode (1.6+)
-// #define NP4 // Uncomment this to target the Neopointfour GDPS, which adds a lot of custom songs and feature rings
+#define GDPS GDPS_NONE // Possible values: GDPS_NONE, GDPS_NEOPOINTFOUR and GDPS_1_7 (1.7 GDPS) 
 
-#ifndef NP4
+#if GDPS == GDPS_NONE
     // You have to replace both of these if necessary
     #define JAVA_PATH_MAIN "com/robtopx/geometryjump"
     #define JAVA_PATH_MAIN_JNI_HOOK com_robtopx_geometryjump
-#else
+#elif GDPS == GDPS_1_7
+    #define JAVA_PATH_MAIN "com/ariccox/aricco17gdps"
+    #define JAVA_PATH_MAIN_JNI_HOOK com_ariccox_aricco17gdps
+#elif GDPS == GDPS_NEOPOINTFOUR
     #define JAVA_PATH_MAIN "com/cynigdx/onepointfour"
     #define JAVA_PATH_MAIN_JNI_HOOK com_cynigdx_onepointfour
+#else
+    #error "Unknown GDPS"
 #endif
 
 
@@ -110,13 +115,15 @@
 
 
 #if GAME_VERSION >= GV_1_7
-    #define SEL_MenuHandler_1_7_compat CCObject*
-    #define FLAlertLayer_1_7_compat_this this
-    #define FLAlertLayer_1_7_compat_self self
+    #define SEL_MenuHandler_1_7_compat CCObject* sender
+    #define SEL_MenuHandler_1_7_compat2 \
+     , CCObject* sender
+    #define sender_param_1_7 , sender
+    #define dummy_sender_param_1_7 , nullptr
     #define _Cocos2dxMusic "org/cocos2dx/lib/Cocos2dxMusic"
 #else
     #define SEL_MenuHandler_1_7_compat
-    #define FLAlertLayer_1_7_compat_this nullptr
-    #define FLAlertLayer_1_7_compat_self nullptr
+    #define sender_param_1_7
+    #define dummy_sender_param_1_7
     #define _Cocos2dxMusic "org/cocos2dx/lib/p"
 #endif

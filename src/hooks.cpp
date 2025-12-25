@@ -36,9 +36,14 @@
 #include "hooks/LevelBrowserLayer.cpp"
 #include "hooks/GJGarageLayer.cpp"
 #include "hooks/EndPortalObject.cpp"
+#if GAME_VERSION >= GV_1_3
+#include "hooks/LeaderboardsLayer.cpp"
+#endif
 
-#ifdef NP4
+#if GDPS == GDPS_NEOPOINTFOUR
 #include "hooks/Neopointfour.cpp"
+#elif GDPS == GDPS_1_7
+#include "hooks/17GDPS.cpp"
 #endif
 
 void initialize_hooks() {
@@ -58,7 +63,7 @@ void initialize_hooks() {
     CCNode_om();
     LevelSelectLayer_om();
     LevelCell_om();
-#if GAME_VERSION > GV_1_0
+#if GAME_VERSION >= GV_1_1
     CommentCell_om();
 #endif
     GJGameLevel_om();
@@ -78,12 +83,15 @@ void initialize_hooks() {
     SimpleAudioEngine_om();
     CCControlColourPicker_om();
     LevelBrowserLayer_om();
-#if GAME_VERSION > GV_1_2
+#if GAME_VERSION >= GV_1_3
     GJGarageLayer_om();
+    LeaderboardsLayer_om();
 #endif
     EndPortalObject_om();
 
-#ifdef NP4
+#if GDPS == GDPS_NEOPOINTFOUR
     Neopointfour_om();
+#elif GDPS == GDPS_1_7
+    GDPS17_om();
 #endif
 }

@@ -33,6 +33,7 @@
 /**/ #define EditorUI__m_selectedObject        0x248 /**/ // EditorUI::selectObject
 /**/ #define EditorUI__m_selectedObjects       0x180 /**/ // EditorUI::deselectAll 
 /**/ #define EditorUI__m_unkFloat              0x158 /**/ // EditorUI::setupCreateMenu (at the bottom)
+/**/ #define GameManager__m_autoRetry          0x18c /**/ // GameManager::getAutoRetryLevel
 /**/ #define GameManager__m_playLayer          0x150 /**/ // GameManager::getPlayLayer
 /**/ #define GameManager__m_playerName         0x168 /**/ // GameManager::getPlayerName
 /**/ #define GameManager__m_playerUDID         0x164 /**/ // GameManager::getPlayerUDID
@@ -69,6 +70,7 @@
 /**/ #define PlayLayer__m_pGlitter             0x1a0 /**/ // PlayLayer::toggleGlitter
 /**/ #define PlayLayer__m_playerObject         0x22c /**/ // PlayLayer::getPlayer
 /**/ #define PlayLayer__m_sections             0x184 /**/ // PlayLayer::removeObjectFromSection
+/**/ #define PlayLayer__m_shouldRunDelayReset  0x295 /**/ // PlayLayer::delayedResetLevel
 /**/ #define PlayLayer__m_startPos             0x268 /**/ // PlayLayer::getStartPos
 /**/ #define PlayLayer__m_uiLayer              0x228 /**/ // PlayLayer::getUILayer
 /**/ #define PlayLayer__m_unkPrac              0x267 /**/ // PlayLayer::togglePracticeMode (set to 1 at the bottom)
@@ -84,6 +86,7 @@
 /**/ #define PlayerObject__m_unk2              0x3df /**/ // PlayerObject::playerDestroyed (slightly below, set to 1)
 /**/ #define PlayerObject__m_xVelocity         0x340 /**/ // PlayerObject::speedUp
 /**/ #define PlayerObject__m_yStart            0x348 /**/ // PlayerObject::yStartUp
+/**/ #define UILayer__m_checkpointMenu         0x1b4 /**/ // UILayer::toggleCheckpointsMenu
 /*******************************************************/
 /*/                     ADDRESSES                     /*/
 /*******************************************************/

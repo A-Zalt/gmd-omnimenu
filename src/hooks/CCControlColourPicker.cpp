@@ -260,9 +260,15 @@ bool ColorSelectPopup_init(ColorSelectPopup* self, GameObject* obj) {
     return true;
 };
 
+#if GAME_VERSION < GV_1_7
 bool (*TRAM_ColorPickerPopup_init)(ColorPickerPopup* self);
 bool ColorPickerPopup_init(ColorPickerPopup* self) {
     if (!TRAM_ColorPickerPopup_init(self)) return false;
+#else
+bool (*TRAM_ColorPickerPopup_init)(ColorPickerPopup* self, int r, int g, int b);
+bool ColorPickerPopup_init(ColorPickerPopup* self, int r, int g, int b) {
+    if (!TRAM_ColorPickerPopup_init(self, r, g, b)) return false;
+#endif
     HaxManager& hax = HaxManager::sharedState();
     if (hax.getModuleEnabled(ModuleID::RGB_COLOR_INPUTS)) {
         auto colorPicker = getColorPicker(self);
@@ -284,7 +290,12 @@ void CCControlColourPicker_om() {
     Omni::hook("_ZN16ColorSelectPopup4initEP10GameObject",
         reinterpret_cast<void*>(ColorSelectPopup_init),
         reinterpret_cast<void**>(&TRAM_ColorSelectPopup_init));
-    Omni::hook("_ZN16ColorPickerPopup4initEv",
+    Omni::hook(
+#if GAME_VERSION < GV_1_7
+        "_ZN16ColorPickerPopup4initEv",
+#else
+        "_ZN16ColorPickerPopup4initEiii",
+#endif
         reinterpret_cast<void*>(ColorPickerPopup_init),
         reinterpret_cast<void**>(&TRAM_ColorPickerPopup_init));
     Omni::hook("_ZN7cocos2d9extension21CCControlColourPicker24colourSliderValueChangedEPNS_8CCObjectEj",

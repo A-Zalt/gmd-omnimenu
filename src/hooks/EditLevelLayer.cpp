@@ -95,7 +95,11 @@ bool EditLevelLayer_init(EditLevelLayer* self, GJGameLevel* level) {
 
         self->addChild(shareMenu, 1001);
         shareMenu->addChild(exportBtn);
+#if GAME_VERSION < GV_1_7
         shareMenu->setPosition(ccp(winSize.width - 29, winSize.height - 150.f));
+#else
+        shareMenu->setPosition(ccp(29, winSize.height / 2));
+#endif
     }
     return TRAM_EditLevelLayer_init(self, level);
 }

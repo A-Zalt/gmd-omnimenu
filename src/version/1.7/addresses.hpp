@@ -15,10 +15,14 @@
 /**/ #define CheckpointObject__m_playerPos      0xec /**/ // CheckpointObject::getPlayerPos
 /**/ #define ColorPickerPopup__m_colorWheel    0x1ac /**/ // ColorPickerPopup::selectColor
 /**/ #define ColorSelectPopup__m_colorWheel    0x1a4 /**/ // ColorSelectPopup::selectColor
-/**/ #define EditButtonBar__m_buttons           0xec /**/ // EditButtonBar::init
+
+/**/ #define DrawGridLayer__m_speedObjects     0x124 /**/ // DrawGridLayer::addToSpeedObjects
+
+/**/ #define EditButtonBar__m_pages             0xec /**/ // EditButtonBar::init
 /**/ #define EditLevelLayer__m_level           0x118 /**/ // EditLevelLayer::init
 /**/ #define EditorPauseLayer__m_editorLayer   0x1a4 /**/ // EditorPauseLayer::init
 /**/ #define EditorUI__m_buttonMenu            0x13c /**/ // EditorUI::setupDeleteMenu
+/**/ #define EditorUI__m_createButtonBar       0x114 /**/ // EditorUI::setupCreateMenu (at the bottom)
 /**/ #define EditorUI__m_createButtonBars      0x174 /**/ // EditorUI::setupCreateMenu (at the bottom)
 /**/ #define EditorUI__m_createButtons         0x18c /**/ // EditorUI::getCreateBtn (at the bottom)
 /**/ #define EditorUI__m_editButtonBar         0x118 /**/ // EditorUI::createMoveMenu (at the bottom)
@@ -27,8 +31,9 @@
 /**/ #define EditorUI__m_selectedObjects       0x138 /**/ // EditorUI::deselectAll 
 /**/ #define EditorUI__m_unkFloat              0x128 /**/ // EditorUI::setupCreateMenu
 
-/**/ #define EditorUI__m_zoomOutButton         0x154 /**/ // EditorUI::init
+/**/ #define EditorUI__m_zoomOutButton         0x158 /**/ // EditorUI::init
 
+/**/ #define GameManager__m_autoRetry          0x16c /**/ // GameManager::getAutoRetryLevel
 /**/ #define GameManager__m_playLayer          0x114 /**/ // GameManager::getPlayLayer
 /**/ #define GameManager__m_playerName         0x12c /**/ // GameManager::getPlayerName
 /**/ #define GameManager__m_playerUDID         0x128 /**/ // GameManager::getPlayerUDID
@@ -45,16 +50,23 @@
 /**/ #define GJComment__m_commentID             0xf0 /**/ // GJComment::getCommentID
 
 /**/ #define GJSearchObject__m_type             0xe8 /**/ // GJSearchObject::getType
+/**/ #define LeaderboardsLayer__m_boardType    0x118 /**/ // LeaderboardsLayer::selectLeaderboard
 /**/ #define LevelBrowserLayer__m_searchObject 0x124 /**/ // LevelBrowserLayer::setSearchObject
 
 /**/ #define LevelCell__m_level                0x150 /**/ // LevelCell::loadFromLevel
 /**/ #define LevelEditorLayer__m_batchNode     0x114 /**/ // LevelEditorLayer::createObject (1st function call after GameObject::createObject)
 /**/ #define LevelEditorLayer__m_gameLayer     0x12c /**/ // LevelEditorLayer::getGameLayer
 /**/ #define LevelEditorLayer__m_gridLayer     0x128 /**/ // LevelEditorLayer::getGridLayer
+
+/**/ #define LevelEditorLayer__m_level         0x130 /**/ // LevelEditorLayer::getLevel
+
 /**/ #define LevelEditorLayer__m_objectCount   0x124 /**/ // LevelEditorLayer::getObjectCount
 /**/ #define LevelEditorLayer__m_sections      0x118 /**/ // LevelEditorLayer::getSectionCount
 /**/ #define LevelEditorLayer__m_settings      0x134 /**/ // LevelEditorLayer::getLevelSettings
 /**/ #define LevelEditorLayer__m_redoArray     0x120 /**/ // LevelEditorLayer::addToRedoList
+
+/**/ #define LevelSettingsObject__m_startSpeed 0x110 /**/ // LevelSettingsObject::getStartSpeed
+
 /**/ #define LevelInfoLayer__m_level           0x130 /**/ // LevelInfoLayer::init
 /**/ #define LevelSelectLayer__m_scrollLayer   0x11c /**/ // LevelSelectLayer::onNext (param in BoomScrollLayer::quickUpdate)
 /**/ #define LocalLevelManager__m_localLevels   0xf4 /**/ // LocalLevelManager::getLocalLevels
@@ -85,6 +97,7 @@
 /**/ #define PlayerObject__m_unk2              0x384 /**/ // PlayerObject::playerDestroyed (slightly below, set to 1)
 /**/ #define PlayerObject__m_xVelocity         0x2f0 /**/ // PlayerObject::speedUp
 /**/ #define PlayerObject__m_yStart            0x2f8 /**/ // PlayerObject::yStartUp
+/**/ #define UILayer__m_checkpointMenu         0x18c /**/ // UILayer::toggleCheckpointsMenu
 /*******************************************************/
 /*/                     ADDRESSES                     /*/
 /*******************************************************/
@@ -96,6 +109,7 @@
 /**/ #define __GameManager_isIconUnlocked   0x184460 /**/ // fuck dobbyhook fuck this stupid game fuck everyone kill 7 billion people
 /**/ #define __GJGameLevel_setIsVerified    0x1AC23E /**/
 /**/ #define clubstep_bypass                0x1BAC9F /**/ // LevelPage::onPlay
+/**/ #define __LevelEditorLayer_update_v    0x486664 /**/ // LevelEditorLayer::~
 /**/ #define move_x_min                     0x19B8A0 /**/ // EditorUI::moveObject - 00 80 96 43
 /**/ #define move_x_max                     0x19B8A4 /**/ // EditorUI::moveObject - 00 60 EA 46
 /**/ #define move_y_max                     0x19B8AC /**/ // EditorUI::moveObject - 00 C0 C6 44

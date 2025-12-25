@@ -85,6 +85,7 @@
 /**/ #define PlayerObject__m_unk2              0x3d6 /**/ // PlayerObject::playerDestroyed (slightly below, set to 1)
 /**/ #define PlayerObject__m_xVelocity         0x340 /**/ // PlayerObject::speedUp
 /**/ #define PlayerObject__m_yStart            0x348 /**/ // PlayerObject::yStartUp
+/**/ #define UILayer__m_checkpointMenu         0x1b4 /**/ // UILayer::toggleCheckpointsMenu
 /*******************************************************/
 /*/                     ADDRESSES                     /*/
 /*******************************************************/

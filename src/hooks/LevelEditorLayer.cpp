@@ -80,6 +80,7 @@ bool LevelEditorLayer_init(LevelEditorLayer* self, GJGameLevel* level) {
 
     if (hax.getModuleEnabled(ModuleID::_16K_FIX)) {
         // https://gist.github.com/netguy204/6097063
+#if GAME_VERSION < GV_1_7
         void** vtable = *(void***)self;
         void (LevelEditorLayer::* ptr)(float) = &LevelEditorLayer::update;
         void* offset = *(void**)&ptr;
@@ -88,6 +89,10 @@ bool LevelEditorLayer_init(LevelEditorLayer* self, GJGameLevel* level) {
         vtable[((uintptr_t)offset)/sizeof(void*)] = (void*)&LevelEditorLayer_update;
 #else
         DobbyCodePatch(&vtable[((uintptr_t)offset)/sizeof(void*)], uintptrToBytes((uintptr_t)&LevelEditorLayer_update).data(), 4);
+#endif
+#else
+        DobbyCodePatch(reinterpret_cast<void*>(get_address(__LevelEditorLayer_update_v)),
+        uintptrToBytes((uintptr_t)&LevelEditorLayer_update).data(), 4);
 #endif
         CCLog("update schedule");
         self->scheduleUpdate();

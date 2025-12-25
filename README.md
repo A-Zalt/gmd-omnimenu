@@ -14,10 +14,10 @@ Downloads are available in the Discord server: https://discord.gg/4AC23yn4yF
 - Nikolyas, Caster, Tabbi - betatesters
 - HJFod - BetterEdit code (particularly the RGB Color Inputs)
 - iAndy_HD3 - Helping out with fmtlib
-- Pololak - GD 1.7 Cocos 2.2.3 headers
+- Pololak - GD 1.7 (1.9?) Cocos 2.2.3 headers
 
 ## Build Instructions
-Note: the minimum Android version is currently KitKat (4.4). Android 14+ devices won't work without solutions like Shizuku or Virtual Master.
+Note: the minimum supported Android version is currently KitKat (4.4). Android 14+ devices won't work without solutions like Shizuku or Virtual Master.
 
 0. NOTE: You should remove the build folder reguarly.
 1. [Download and run APK Editor Studio](<https://qwertycube.com/apk-editor-studio/download/>)

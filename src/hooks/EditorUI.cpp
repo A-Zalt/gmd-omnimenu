@@ -296,8 +296,8 @@ void EditorUI::onDeleteStartPos() {
 
 void (*TRAM_EditorUI_setupCreateMenu)(EditorUI* self);
 void EditorUI_setupCreateMenu(EditorUI* self) {
-    TRAM_EditorUI_setupCreateMenu(self);
     HaxManager& hax = HaxManager::sharedState();
+    TRAM_EditorUI_setupCreateMenu(self);
     if (hax.getModuleEnabled(ModuleID::UNLISTED_OBJECTS)) {
         auto director = CCDirector::sharedDirector();
         auto winSize = director->getWinSize();
@@ -405,56 +405,159 @@ void EditorUI_setupCreateMenu(EditorUI* self) {
 
 #else
 
-        CCLog("1");
         auto bars = getCreateButtonBars(self);
-        CCLog("2");
         auto fuckingArray = CCArray::create();
-        CCLog("3");
-        auto triggerBtns = getBarButtons(static_cast<EditButtonBar*>(bars->lastObject()));
-        CCLog("4");
-        for (int i = 0; i < triggerBtns->count(); i++) {
-            CCLog("5");
-            CCObject* btn = triggerBtns->objectAtIndex(i);
-            CCLog("6");
-            static_cast<CCNode*>(btn)->removeFromParentAndCleanup(false);
-            CCLog("7");
-            fuckingArray->addObject(btn);
-            CCLog("8");
-        }
-        CCLog("9");
-        auto sep1 = CCNode::create();
-        sep1->setTag(0);
-        fuckingArray->insertObject(sep1, 8);
-        auto sep2 = CCNode::create();
-        sep2->setTag(0);
-        CCLog("10");
-        fuckingArray->addObject(sep2);
+        auto triggerPages = getBarPages(static_cast<EditButtonBar*>(bars->lastObject()));
+        auto createBtns = getCreateButtons(self);
 
-        CCLog("11");
+        static_cast<CCNode*>(bars->objectAtIndex(3))->removeFromParentAndCleanup(true);
+
+        for (int i = 0; i < 20; i++) {
+            createBtns->removeObjectAtIndex(126);
+        }
+        for (int i = 0; i < 19; i++) {
+            createBtns->removeLastObject();
+        }
+
+        fuckingArray->addObject(self->getCreateBtn("bump_01_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("bump_03_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("gravbump_01_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("ring_01_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("ring_03_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("gravring_01_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("portal_01_front_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("portal_02_front_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("portal_03_front_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("portal_04_front_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("portal_07_front_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("portal_10_front_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("portal_05_front_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("portal_06_front_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("portal_08_front_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("portal_09_front_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("boost_01_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("boost_02_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("boost_03_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("boost_04_001.png", 4));
+
+        auto sep = CCNode::create();
+        sep->setTag(0);
+        fuckingArray->addObject(sep);
+        fuckingArray->addObject(self->getCreateBtn("portal_10_back_001.png", 4)); // weird ufo object thing removed in 2.0
+        
+        if (bars->objectAtIndex(3)) bars->objectAtIndex(3)->release();
+        bars->removeObjectAtIndex(3);
+        auto bar = EditButtonBar::create(fuckingArray, ccp(winSize.width * 0.5 - 5, getScreenBottom() + getUnkFloat(self) - 6.f), 3, true);
+        self->addChild(bar, 10);
+        bars->insertObject(bar, 3);
+        bar->setVisible(false);
+
+        fuckingArray->removeAllObjects();
+
+        static_cast<CCNode*>(bars->lastObject())->removeFromParentAndCleanup(true);
+        fuckingArray->addObject(self->getCreateBtn("edit_eTintBGBtn_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("edit_eTintGBtn_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("edit_eTintLBtn_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("edit_eTintObjBtn_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("edit_eTintColObjBtn_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("edit_eStartPosBtn_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("edit_eGhostDBtn_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("edit_eGhostEBtn_001.png", 4));
+
+        sep = CCNode::create();
+        sep->setTag(0);
+        fuckingArray->addObject(sep);
+
+        fuckingArray->addObject(self->getCreateBtn("edit_eeNoneBtn_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("edit_eeFTBtn_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("edit_eeFBBtn_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("edit_eeFLBtn_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("edit_eeFRBtn_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("edit_eeSUBtn_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("edit_eeSDBtn_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("edit_eeFALBtn_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("edit_eeFARBtn_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("edit_eeFRHBtn_001.png", 4));
+        fuckingArray->addObject(self->getCreateBtn("edit_eeFRHInvBtn_001.png", 4));
+        
+        sep = CCNode::create();
+        sep->setTag(0);
+        fuckingArray->addObject(sep);
+
         fuckingArray->addObject(self->getCreateBtn("edit_eLevelEndBtn_001.png", 4)); // level end
         fuckingArray->addObject(self->getCreateBtn("edit_eBGEOn_001.png", 4)); // bg effect on
         fuckingArray->addObject(self->getCreateBtn("edit_eBGEOff_001.png", 4)); // bg effect off
         fuckingArray->addObject(self->getCreateBtn("edit_eeFABtn_001.png", 4)); // scatter transition trigger
-        auto bar = EditButtonBar::create(fuckingArray, ccp(winSize.width * 0.5 - 5, getScreenBottom() + getUnkFloat(self) - 6.f), 8, true);
-        triggerBtns->removeLastObject();
-        triggerBtns->addObject(bar);
 
-        fuckingArray = CCArray::create();
-        auto interactBtns = getBarButtons(static_cast<EditButtonBar*>(bars->objectAtIndex(3))); // THREEEEEEEEEEEE
-        for (int i = 0; i < interactBtns->count(); i++) {
-            CCObject* btn = interactBtns->objectAtIndex(i);
-            static_cast<CCNode*>(btn)->removeFromParentAndCleanup(false);
-            fuckingArray->addObject(btn);
+        if (bars->lastObject()) bars->lastObject()->release();
+        bars->removeLastObject();
+        bar = EditButtonBar::create(fuckingArray, ccp(winSize.width * 0.5 - 5, getScreenBottom() + getUnkFloat(self) - 6.f), 8, true);
+        bar->setVisible(false);
+        self->addChild(bar, 10);
+        bars->addObject(bar);
+
+        auto lvl = getLELLevel(getUIEditorLayer(self));
+
+        for (int i = 0; i < bars->count(); i++) {
+            auto bar = static_cast<EditButtonBar*>(bars->objectAtIndex(i));
+            bar->goToPage(lvl->getLastBuildPageForTab(i));
         }
-        fuckingArray->addObject(CCNode::create());
-        fuckingArray->addObject(self->getCreateBtn("portal_10_back_001.png", 4)); // weird ufo object thing removed in 2.0
-        bar = EditButtonBar::create(fuckingArray, ccp(winSize.width * 0.5 - 5, getScreenBottom() + getUnkFloat(self) - 6.f), 3, true);
-        triggerBtns->removeObjectAtIndex(3);
-        triggerBtns->insertObject(bar, 3);
+
+        self->selectBuildTab(lvl->m_nLastBuildTab);
+        getCreateButtonBar(self)->goToPage(lvl->m_nLastBuildPage);
+        self->updateCreateMenu(false);
 
 #endif
     }
 }
+
+        // for (int i = 0; i < triggerPages->count(); i++) {
+        //     CCLog("5");
+        //     CCObject* page = triggerPages->objectAtIndex(i);
+        //     CCLog("6");
+        //     auto menu = static_cast<CCMenu*>(static_cast<CCLayer*>(page)->getChildren()->objectAtIndex(0));
+        //     auto children = menu->getChildren();
+        //     for (int j = 0; j < menu->getChildrenCount(); j++) {
+        //         CCLog("7");
+        //         CCObject* btn = children->objectAtIndex(i);
+        //         CCLog("8");
+        //         static_cast<CCNode*>(btn)->removeFromParentAndCleanup(false);
+        //         CCLog("9");
+        //         fuckingArray->addObject(btn);
+        //         CCLog("10");
+        //     }
+        // }
+        // CCLog("9");
+        // auto sep1 = CCNode::create();
+        // CCLog("10");
+        // sep1->setTag(0);
+        // CCLog("11");
+        // fuckingArray->insertObject(sep1, 8);
+        // auto sep2 = CCNode::create();
+        // sep2->setTag(0);
+        // CCLog("10");
+        // fuckingArray->addObject(sep2);
+        // auto interactPages = getBarPages(static_cast<EditButtonBar*>(bars->objectAtIndex(3))); // THREEEEEE
+        // CCLog("4");
+        // for (int i = 0; i < interactPages->count(); i++) {
+        //     CCLog("5");
+        //     CCObject* page = interactPages->objectAtIndex(i);
+        //     CCLog("6");
+        //     auto menu = static_cast<CCMenu*>(static_cast<CCLayer*>(page)->getChildren()->objectAtIndex(0));
+        //     auto children = menu->getChildren();
+        //     for (int j = 0; j < menu->getChildrenCount(); j++) {
+        //         CCLog("7");
+        //         CCObject* btn = children->objectAtIndex(i);
+        //         CCLog("8");
+        //         static_cast<CCNode*>(btn)->removeFromParentAndCleanup(false);
+        //         CCLog("9");
+        //         fuckingArray->addObject(btn);
+        //         CCLog("10");
+        //     }
+        // }
+        // sep1 = CCNode::create();
+        // sep1->setTag(0);
+        // fuckingArray->addObject(sep1);
 // credit to akqanile/adelfa
 CCMenuItemSpriteExtra* EditorUI::getSpriteButton2(const char* name, SEL_MenuHandler callback, CCMenu* menu, float scale)
 {

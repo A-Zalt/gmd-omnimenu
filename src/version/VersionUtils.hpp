@@ -16,6 +16,7 @@
 #include "LevelBrowserLayer.hpp"
 #include "LevelSettingsObject.hpp"
 #include "GameLevelManager.hpp"
+#include "LeaderboardsLayer.hpp"
 
 #define MEMBER_BY_OFFSET(type, var, offset) \
     (*reinterpret_cast<type*>(reinterpret_cast<uintptr_t>(var) + static_cast<uintptr_t>(offset)))
@@ -116,13 +117,13 @@ CCMenu* getEditorUIButtonMenu(EditorUI* uiLayer);
 bool getOnGround(PlayerObject* player);
 void setOnGround(PlayerObject* player, bool onGround);
 
-#if GAME_VERSION < GV_1_7
-CCArray* getCreateButtons(EditorUI* uiLayer);
-void setCreateButtons(EditorUI* uiLayer, CCArray* array);
 EditButtonBar* getCreateButtonBar(EditorUI* uiLayer);
 void setCreateButtonBar(EditorUI* uiLayer, EditButtonBar* bar);
-#else
+CCArray* getCreateButtons(EditorUI* uiLayer);
+void setCreateButtons(EditorUI* uiLayer, CCArray* array);
+#if GAME_VERSION >= GV_1_7
 CCArray* getCreateButtonBars(EditorUI* uiLayer);
+void setCreateButtonBars(EditorUI* uiLayer, CCArray* bars);
 #endif
 float getScreenBottom();
 float getUnkFloat(EditorUI* uiLayer);
@@ -142,6 +143,7 @@ CCLabelBMFont* getAttemptLabel(PlayLayer* layer);
 CCLabelBMFont* getAttemptLabel();
 CCArray* getPlaySections(PlayLayer* playLayer);
 CCArray* getPlaySections();
+bool compareXes2(CCObject* p1, CCObject* p2);
 CCArray* getStartPositions_(PlayLayer* playLayer);
 CCArray* getStartPositions_();
 void setStartPos(PlayLayer* playLayer, CCPoint point);
@@ -167,7 +169,11 @@ void setIconHack(bool enable);
 
 EditButtonBar* getEditButtonBar(EditorUI* uiLayer);
 void setEditButtonBar(EditorUI* uiLayer, EditButtonBar* bar);
+#if GAME_VERSION < GV_1_7
 CCArray* getBarButtons(EditButtonBar* bar);
+#else
+CCArray* getBarPages(EditButtonBar* bar);
+#endif
 void setOriginalScale(CCMenuItemSpriteExtra* btn, float scale);
 
 #if GAME_VERSION < GV_1_4
@@ -202,4 +208,20 @@ int getSectionIdx(GameObject* obj);
 
 #if GAME_VERSION < GV_1_1
 CCDictionary* getKeyTimers();
+#else
+bool getAutoRetry();
+#if GAME_VERSION < GV_1_6
+void setShouldRunDelayedReset(PlayLayer* playLayer, bool value);
+#endif
+#endif
+#if GAME_VERSION >= GV_1_7
+GJGameLevel* getLELLevel(LevelEditorLayer* lel);
+CCArray* getSpeedObjects(DrawGridLayer* gridLayer);
+int getStartSpeed(LevelSettingsObject* settings);
+// float getLevelDistance(LevelEditorLayer* lel);
+#endif
+CCMenu* getCheckpointMenu(UILayer* self);
+#if GAME_VERSION >= GV_1_3
+LeaderboardState getLeaderboardState(LeaderboardsLayer* self);
+void setLeaderboardState(LeaderboardsLayer* self, int value);
 #endif

@@ -14,6 +14,7 @@
 #include <algorithm>
 #include "CCTextInputNode.hpp"
 #include "LevelBrowserLayer.hpp"
+#include "LeaderboardsLayer.hpp"
 
 #define ARM_NOP {0x00, 0xbf}
 #define ARM_FLOAT_INF {0x00, 0x00, 0x80, 0x7f}
@@ -481,22 +482,24 @@ bool getOnGround(PlayerObject* player) {
 void setOnGround(PlayerObject* player, bool onGround) {
     MEMBER_BY_OFFSET(bool, player, PlayerObject__m_onGround) = onGround;
 }
-#if GAME_VERSION < GV_1_7
-CCArray* getCreateButtons(EditorUI* uiLayer) {
-    return MEMBER_BY_OFFSET(CCArray*, uiLayer, EditorUI__m_createButtons);
-}
-void setCreateButtons(EditorUI* uiLayer, CCArray* array) {
-    MEMBER_BY_OFFSET(CCArray*, uiLayer, EditorUI__m_createButtons) = array;
-}
 EditButtonBar* getCreateButtonBar(EditorUI* uiLayer) {
     return MEMBER_BY_OFFSET(EditButtonBar*, uiLayer, EditorUI__m_createButtonBar);
 }
 void setCreateButtonBar(EditorUI* uiLayer, EditButtonBar* bar) {
     MEMBER_BY_OFFSET(EditButtonBar*, uiLayer, EditorUI__m_createButtonBar) = bar;
 }
-#else
+CCArray* getCreateButtons(EditorUI* uiLayer) {
+    return MEMBER_BY_OFFSET(CCArray*, uiLayer, EditorUI__m_createButtons);
+}
+void setCreateButtons(EditorUI* uiLayer, CCArray* array) {
+    MEMBER_BY_OFFSET(CCArray*, uiLayer, EditorUI__m_createButtons) = array;
+}
+#if GAME_VERSION >= GV_1_7
 CCArray* getCreateButtonBars(EditorUI* uiLayer) {
     return MEMBER_BY_OFFSET(CCArray*, uiLayer, EditorUI__m_createButtonBars);
+}
+void setCreateButtonBars(EditorUI* uiLayer, CCArray* bars) {
+    MEMBER_BY_OFFSET(CCArray*, uiLayer, EditorUI__m_createButtonBars) = bars;
 }
 #endif
 float getScreenBottom() {
@@ -549,6 +552,9 @@ CCArray* getPlaySections() {
 
 bool compareXes(CCObject* p1, CCObject* p2) {
   return getRealPosition(static_cast<GameObject*>(p1)).x < getRealPosition(static_cast<GameObject*>(p2)).x;
+}
+bool compareXes2(CCObject* p1, CCObject* p2) {
+  return static_cast<GameObject*>(p1)->getPositionX() < static_cast<GameObject*>(p2)->getPositionX();
 }
 
 CCArray* getStartPositions_(PlayLayer* playLayer) {
@@ -647,9 +653,15 @@ EditButtonBar* getEditButtonBar(EditorUI* uiLayer) {
 void setEditButtonBar(EditorUI* uiLayer, EditButtonBar* bar) {
     MEMBER_BY_OFFSET(EditButtonBar*, uiLayer, EditorUI__m_editButtonBar) = bar;
 }
+#if GAME_VERSION < GV_1_7
 CCArray* getBarButtons(EditButtonBar* bar) {
     return MEMBER_BY_OFFSET(CCArray*, bar, EditButtonBar__m_buttons);
 }
+#else
+CCArray* getBarPages(EditButtonBar* bar) {
+    return MEMBER_BY_OFFSET(CCArray*, bar, EditButtonBar__m_pages);
+}
+#endif
 void setOriginalScale(CCMenuItemSpriteExtra* btn, float scale) {
     MEMBER_BY_OFFSET(float, btn, CCMenuItemSpriteExtra__m_ogScale) = scale;
 }
@@ -811,5 +823,40 @@ int getSectionIdx(GameObject* obj) {
 #if GAME_VERSION < GV_1_1
 CCDictionary* getKeyTimers() {
     return MEMBER_BY_OFFSET(CCDictionary*, GameLevelManager::sharedState(), GameLevelManager__m_keyTimers);
+}
+#else
+bool getAutoRetry() {
+    return MEMBER_BY_OFFSET(bool, GameManager::sharedState(), GameManager__m_autoRetry);
+}
+#if GAME_VERSION < GV_1_6
+void setShouldRunDelayedReset(PlayLayer* playLayer, bool value) {
+    MEMBER_BY_OFFSET(bool, playLayer, PlayLayer__m_shouldRunDelayReset) = value;
+}
+#endif
+#endif
+
+#if GAME_VERSION >= GV_1_7
+GJGameLevel* getLELLevel(LevelEditorLayer* lel) {
+    return MEMBER_BY_OFFSET(GJGameLevel*, lel, LevelEditorLayer__m_level);
+}
+CCArray* getSpeedObjects(DrawGridLayer* gridLayer) {
+    return MEMBER_BY_OFFSET(CCArray*, gridLayer, DrawGridLayer__m_speedObjects);
+}
+int getStartSpeed(LevelSettingsObject* settings) {
+    return MEMBER_BY_OFFSET(int, settings, LevelSettingsObject__m_startSpeed);
+}
+// float getLevelDistance(LevelEditorLayer* lel) {
+//     return MEMBER_BY_OFFSET(float, lel, LevelEditorLayer__m_distance);
+// }
+#endif
+CCMenu* getCheckpointMenu(UILayer* self) {
+    return MEMBER_BY_OFFSET(CCMenu*, self, UILayer__m_checkpointMenu);
+}
+#if GAME_VERSION >= GV_1_3
+LeaderboardState getLeaderboardState(LeaderboardsLayer* self) {
+    return MEMBER_BY_OFFSET(LeaderboardState, self, LeaderboardsLayer__m_boardType);
+}
+void setLeaderboardState(LeaderboardsLayer* self, int value) {
+    MEMBER_BY_OFFSET(int, self, LeaderboardsLayer__m_boardType) = value;
 }
 #endif

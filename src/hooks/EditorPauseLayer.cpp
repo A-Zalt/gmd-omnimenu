@@ -60,7 +60,39 @@ bool EditorPauseLayer_init(cocos2d::CCLayer* self, LevelEditorLayer* editLayer) 
             }
         }
 
+#if GAME_VERSION < GV_1_7
+        // This should be 311.58, but editor code uses 311 flat, and dropping the .58 only causes 6-7 seconds of discrepancy on an hour long level
         int dist = floorf((maxX + 340) / 311.0f);
+#else
+        auto speeds = getSpeedObjects(getGridLayer(editLayer));
+        auto speedsSorted = CCArray::create();
+        speedsSorted->initWithArray(speeds);
+
+        // sort by x position
+        std::sort(speedsSorted->data->arr, speedsSorted->data->arr + speedsSorted->data->num, compareXes2);
+
+        float mult = 0.9;
+        switch (getStartSpeed(getEditorSettingsObject(editLayer))) {
+            case 1: mult = 0.7; break;
+            case 2: mult = 1.1; break;
+            case 3: mult = 1.3; break;
+        }
+        float time = 340 / (346.2 * mult);
+        float lastSpeedX = 0;
+        for (int i = 0; i < speedsSorted->count(); i++) {
+            auto obj = static_cast<GameObject*>(speedsSorted->objectAtIndex(i));
+            lastSpeedX = obj->getPositionX();
+            time += lastSpeedX / (346.2 * mult);
+            switch (getObjectKey(obj)) {
+                case 200: mult = 0.7; break;
+                case 201: mult = 0.9; break;
+                case 202: mult = 1.1; break;
+                case 203: mult = 1.3; break;
+            }
+        }
+        time += (maxX - lastSpeedX) / (346.2 * mult);
+        int dist = floorf(time);
+#endif
         int seconds = dist % 60;
         int minutes = dist / 60;
 

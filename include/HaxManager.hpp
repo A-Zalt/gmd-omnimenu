@@ -16,6 +16,7 @@
 #include "LevelBrowserLayer.hpp"
 #include "PauseLayer.hpp"
 #include "SpeedhackInput.hpp"
+#include "RespawnTimeInput.hpp"
 
 enum class CheatIndicatorColor {
     Green,
@@ -29,12 +30,15 @@ enum class CheatIndicatorColor {
 enum ModuleID {
     _100_KB_FIX,
     _16K_FIX,
+    ACCURATE_PERCENTAGE,
     AUTO_SAFE_MODE,
     CHARACTER_FILTER_BYPASS,
     CHEAT_INDICATOR,
     COMMENT_IDS,
     COMMENT_OFFSET_FIX,
+    CONFIRM_EXIT,
     COPY_PASTE,
+    CUSTOM_RESPAWN_TIME,
     DELETE_SELECTED,
     DELETE_START_POS,
     DEMONS_IN_GARAGE,
@@ -56,6 +60,7 @@ enum ModuleID {
 #endif
     LEVEL_EDIT,
     HIDE_ATTEMPTS,
+    HIDE_CHECKPOINT_BUTTONS,
     HIDE_PAUSE_MENU,
     INSTANT_COMPLETE,
     INPUT_BUG_FIX,
@@ -106,6 +111,7 @@ enum ModuleID {
     PARTICLE_SHIP_FIRE,
     PARTICLE_SHIP_GROUND,
     PARTICLE_SHIP_LIFT,
+    PARTICLE_SPEED_PORTALS,
 
     PCOMMAND,
     PIG_SPOOFING,
@@ -190,7 +196,7 @@ public:
 #if GAME_VERSION > GV_1_4
     bool blockVerify;
 #endif
-#ifdef NP4
+#if GDPS == GDPS_NEOPOINTFOUR
     std::map<GJGameLevel*, int> featureTypeMap;
 #endif
     float timeScale;
@@ -203,6 +209,9 @@ public:
     CCMenu* eyeMenu;
     // bool updatedMusic;
     bool hasTouchedTheEye;
+    float respawnTime;
+    RespawnTimeInput* respawnInput;
+    bool customRespawn;
 
     bool getModuleEnabled(ModuleID id) {
         return modules[id].enabled;
@@ -281,6 +290,9 @@ public:
         if (doc.HasMember("pref_timeScale") && doc["pref_timeScale"].IsFloat()) {
             timeScale = doc["pref_timeScale"].GetFloat();
         }
+        if (doc.HasMember("pref_respawnTime") && doc["pref_respawnTime"].IsFloat()) {
+            respawnTime = doc["pref_respawnTime"].GetFloat();
+        }
         for (Module& record : modules) {
             if (!record.exists) continue;
             if (doc.HasMember(record.id) && doc[record.id].IsBool()) {
@@ -329,6 +341,8 @@ public:
 
             rapidjson::Value jk("pref_timeScale", static_cast<rapidjson::SizeType>(strlen("pref_timeScale")), allocator);
             document.AddMember(jk, timeScale, allocator);
+            rapidjson::Value jk2("pref_respawnTime", static_cast<rapidjson::SizeType>(strlen("pref_respawnTime")), allocator);
+            document.AddMember(jk2, respawnTime, allocator);
 
             rapidjson::StringBuffer buffer;
             rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
@@ -400,10 +414,25 @@ public:
         // updatedMusic = false;
         eyeMenu = nullptr;
         hasTouchedTheEye = false;
+        respawnInput = nullptr;
+        customRespawn = false;
     }
 
 private:
     HaxManager() {
+        modules[ModuleID::CONFIRM_EXIT] = Module(
+            "confirm_exit",
+            "Confirm Exit", 
+            "Gives a confirmation popup when exiting the level.", 
+            false, ModuleCategory::Player, [](bool _){});
+        modules[ModuleID::CUSTOM_RESPAWN_TIME] = Module(
+            "custom_respawn_time",
+            "Custom Respawn Time", 
+            "Allows you to modify the respawn time after a death.", 
+            false, ModuleCategory::Player, [](bool _){
+                HaxManager& hax = HaxManager::sharedState();
+                if (hax.respawnInput) hax.respawnInput->setVisible(_);
+            });
         modules[ModuleID::INSTANT_COMPLETE] = Module(
             "instant_complete",
             "Instant Complete", 
@@ -499,7 +528,13 @@ private:
             false, ModuleCategory::Player, [](bool _){});
 
 
-
+#if GAME_VERSION >= GV_1_7
+        modules[ModuleID::ACCURATE_PERCENTAGE] = Module(
+            "accurate_percentage",
+            "Golden Best", 
+            "Makes the Show Percentage label account for speed portals.", 
+            false, ModuleCategory::Visual, [](bool _){});
+#endif
         modules[ModuleID::GOLDEN_BEST] = Module(
             "golden_best",
             "Golden Best", 
@@ -509,6 +544,11 @@ private:
             "hide_attempts",
             "Hide Attempts", 
             "Hides the attempts label while playing.", 
+            false, ModuleCategory::Visual, [](bool _){});
+        modules[ModuleID::HIDE_CHECKPOINT_BUTTONS] = Module(
+            "hide_checkpoint_buttons",
+            "Hide Checkpoint Buttons", 
+            "Makes the practice checkpoint buttons significantly lower opacity.", 
             false, ModuleCategory::Visual, [](bool _){});
         modules[ModuleID::HIDE_PAUSE_MENU] = Module(
             "hide_pause_menu",
@@ -880,7 +920,7 @@ private:
         modules[ModuleID::PAGE_REFRESH] = Module(
             "page_refresh",
             "Page Refresh", 
-            "Adds a refresh button to the search page, like in the modern versions.", 
+            "Adds a refresh button to the search page and leaderboards.", 
             false, ModuleCategory::Universal, [](bool _){});
 #ifdef PING_SPOOFING
         modules[ModuleID::PIG_SPOOFING] = Module(
@@ -1065,6 +1105,13 @@ private:
             "Ship Lift",
             "Toggles the visibility of the particles that appear when the ship is flying.", 
             true, ModuleCategory::Particles, [](bool _){});
+#if GAME_VERSION >= GV_1_7
+        modules[ModuleID::PARTICLE_SPEED_PORTALS] = Module(
+            "particle_speed_portals",
+            "Speed Portals",
+            "Toggles the visibility of the particles that appear when a speed portal is activated.", 
+            true, ModuleCategory::Particles, [](bool _){});
+#endif
 
         lastCategory = ModuleCategory::Player;
 #if GAME_VERSION > GV_1_4
@@ -1073,6 +1120,7 @@ private:
         gdShareMessageID = 0;
         gdShareData = 0;
         timeScale = 1;
+        respawnTime = 0.5;
         hasInitialized = false;
         // fpsBypass = 240;
         // originalAnimInterval = 1 / 60;

@@ -9,7 +9,7 @@ public:
     std::string saveRootSubDictToString();
     bool loadRootSubDictFromString(std::string);
 
-#ifdef NP4
+#if GDPS == GDPS_NEOPOINTFOUR
     void setIntegerForKey(const char*, int);
     int getIntegerForKey(const char*);
 #endif

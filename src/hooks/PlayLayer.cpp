@@ -29,7 +29,66 @@ void PlayLayer_destroyPlayer(PlayLayer* self) {
         auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
         audioEngine->pauseBackgroundMusic();
     }
+    if (hax.getModuleEnabled(ModuleID::CUSTOM_RESPAWN_TIME) && !hax.completed) {
+#if GAME_VERSION >= GV_1_6
+        // 1.6 and above start using a tag for this action, so it's trivial to stop it
+        self->stopActionByTag(16);
+#else
+        // However, before 1.5, there is no trivial way to stop the action, since it doesn't get assigned a tag.
+    #if GAME_VERSION > GV_1_0
+        // The ability to disable Auto-Retry was added in 1.11
+        if (!getAutoRetry()) return;
+        auto seq2 = CCSequence::create(
+            CCDelayTime::create(1.05),
+            CCCallFunc::create(self, callfunc_selector(PlayLayer::turnOffTheThing)),
+            nullptr
+        );
+        seq2->setTag(17);
+        self->runAction(seq2);
+    #endif
+
+        // What we'll do is hook delayedResetLevel and make it stop execution if this is still true
+        // Our custom action will call a function that sets this variable to false and then calls resetLevel
+        // However, on 1.0 there is no delayedResetLevel
+        // So we'll have to check this variable in resetLevel
+        // But that also means that any other call to resetLevel will have to first set this variable to false
+        // Which is why there is a 1.0-exclusive hook of PauseLayer::onRestart
+        hax.customRespawn = true;
+
+#endif // GAME_VERSION >= GV_1_6
+        auto seq = CCSequence::create(
+            CCDelayTime::create(hax.respawnTime),
+#if GAME_VERSION < GV_1_6
+            CCCallFunc::create(self, callfunc_selector(PlayLayer::customResetLevel)),
+#else
+            CCCallFunc::create(self, callfunc_selector(PlayLayer::delayedResetLevel)),
+#endif
+            nullptr);
+        
+        // In 1.5-, this is necessary to identify the action in resetLevel and stop it if it exists
+        // In 1.6+, it's necessary for obvious reasons
+        seq->setTag(16);
+        self->runAction(seq);
+    }
 }
+
+#if GAME_VERSION < GV_1_6
+void PlayLayer::customResetLevel() {
+    HaxManager& hax = HaxManager::sharedState();
+    PlayLayer::resetLevelLogic(this);
+#if GAME_VERSION >= GV_1_1
+    setShouldRunDelayedReset(this, false);
+#endif
+}
+#if GAME_VERSION >= GV_1_1
+void (*TRAM_PlayLayer_delayedResetLevel)(PlayLayer* self);
+void PlayLayer_delayedResetLevel(PlayLayer* self) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.customRespawn) return;
+    TRAM_PlayLayer_delayedResetLevel(self);
+}
+#endif // GAME_VERSION >= GV_1_1
+#endif // GAME_VERSION < GV_1_6
 
 void (*TRAM_PlayLayer_togglePracticeMode)(PlayLayer* self, bool toggle);
 void PlayLayer_togglePracticeMode(PlayLayer* self, bool toggle) {
@@ -82,6 +141,17 @@ void PlayLayer_levelComplete(PlayLayer* self) {
 void (*TRAM_PlayLayer_resetLevel)(PlayLayer* self);
 void PlayLayer_resetLevel(PlayLayer* self) {
     HaxManager& hax = HaxManager::sharedState();
+#if GAME_VERSION < GV_1_1
+    if (hax.customRespawn) return;
+    PlayLayer::resetLevelLogic(self);
+}
+void PlayLayer::turnOffTheThing() {
+    HaxManager& hax = HaxManager::sharedState();
+    hax.customRespawn = false;
+}
+void PlayLayer::resetLevelLogic(PlayLayer* self) {
+    HaxManager& hax = HaxManager::sharedState();
+#endif
     if (hax.getCheatIndicatorColor() == CheatIndicatorColor::Orange) hax.hasCheated = false;
     hax.instantComped = false;
     hax.lastDeadFrame = -1;
@@ -97,11 +167,19 @@ void PlayLayer_resetLevel(PlayLayer* self) {
         auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
         int seekTime = 0;
         CCPoint startPos = getStartPos(self);
+#if GAME_VERSION < GV_1_7
         seekTime = floorf((startPos.x / 311.58f) * 1000.f);
+#else
+        seekTime = floorf(self->timeForXPos(startPos.x, true) * 1000);
+#endif
         CCNode* lastCheckpoint = self->getLastCheckpoint();
         if (lastCheckpoint != nullptr) {
             CCPoint lastCheckpointPos = getCheckpointPosition(lastCheckpoint);
+#if GAME_VERSION < GV_1_7
             seekTime = floorf((lastCheckpointPos.x / 311.58f) * 1000.f);
+#else
+            seekTime = floorf(self->timeForXPos(lastCheckpointPos.x, true) * 1000);
+#endif
         }
         if (seekTime > 0) {
             JNIEnv* env = getEnv();
@@ -122,6 +200,10 @@ void PlayLayer_resetLevel(PlayLayer* self) {
         hax.percentageLabel->setFntFile("bigFont.fnt");
         hax.percentageLabel->setScale(0.5f);
         hax.percentageLabel->setPositionY(winSize.height - 7.5);
+    }
+    auto respawnAction = self->getActionByTag(16);
+    if (respawnAction) {
+        self->stopAction(respawnAction);
     }
     TRAM_PlayLayer_resetLevel(self);
     // if (hax.getModuleEnabled(ModuleID::MUSIC_BUG_FIX) && !getPlayLayerPractice(self)) {
@@ -311,6 +393,13 @@ void PlayLayer_update(PlayLayer* self, float dt) {
             hax.noclipTint->setOpacity(0);
         }
     }
+    auto chMenu = getCheckpointMenu(getUILayer(self));
+    if (chMenu->isVisible()) {
+        if (hax.getModuleEnabled(ModuleID::HIDE_CHECKPOINT_BUTTONS)) {
+            if (chMenu->getOpacity() > 60) chMenu->setOpacity(60);
+        } else if (chMenu->getOpacity() < 255)
+            chMenu->setOpacity(255);
+    }
     if (hax.frameCount > 0 && !hax.completed) {
         hax.noclipAccuracy = static_cast<float>(hax.frameCount - hax.deadFrames) / static_cast<float>(hax.frameCount) * 100;
     }
@@ -358,6 +447,12 @@ void PlayLayer_toggleProgressbar(PlayLayer* self) {
             hax.percentageLabel->setPositionX(winSize.width / 2);
         }
     }
+}
+void (*TRAM_PlayLayer_showNewBest)(PlayLayer* self); 
+void PlayLayer_showNewBest(PlayLayer* self) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.isSafeMode()) return;
+    TRAM_PlayLayer_showNewBest(self);
 }
 #endif
 // CCParticleSystemQuad* (*TRAM_PlayLayer_createParticle)(void* self, int a1, int a2, const char* file, int a4, tCCPositionType a5);
@@ -411,6 +506,15 @@ void PlayLayer_processItems(PlayLayer* self) {
 }
 #endif
 
+#if GAME_VERSION >= GV_1_7
+void (*TRAM_PlayLayer_playSpeedParticle)(PlayLayer* self, float speed);
+void PlayLayer_playSpeedParticle(PlayLayer* self, float speed) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (!hax.getModuleEnabled(ModuleID::PARTICLE_SPEED_PORTALS)) return;
+    TRAM_PlayLayer_playSpeedParticle(self, speed);
+}
+#endif
+
 void PlayLayer_om() {
     Omni::hook("_ZN9PlayLayer13destroyPlayerEv", 
         reinterpret_cast<void*>(PlayLayer_destroyPlayer),
@@ -425,6 +529,11 @@ void PlayLayer_om() {
     Omni::hook("_ZN9PlayLayer13toggleFlippedEbb",
         reinterpret_cast<void*>(PlayLayer_toggleFlipped),
         reinterpret_cast<void**>(&TRAM_PlayLayer_toggleFlipped));
+#if GAME_VERSION < GV_1_6
+    Omni::hook("_ZN9PlayLayer17delayedResetLevelEv",
+        reinterpret_cast<void*>(PlayLayer_delayedResetLevel),
+        reinterpret_cast<void**>(&TRAM_PlayLayer_delayedResetLevel));
+#endif
 #endif
     Omni::hook("_ZN9PlayLayer10resetLevelEv",
         reinterpret_cast<void*>(PlayLayer_resetLevel),
@@ -445,6 +554,9 @@ void PlayLayer_om() {
     Omni::hook("_ZN9PlayLayer17toggleProgressbarEv",
         reinterpret_cast<void*>(PlayLayer_toggleProgressbar),
         reinterpret_cast<void**>(&TRAM_PlayLayer_toggleProgressbar));
+    Omni::hook("_ZN9PlayLayer11showNewBestEv",
+        reinterpret_cast<void*>(PlayLayer_showNewBest),
+        reinterpret_cast<void**>(&TRAM_PlayLayer_showNewBest));
 #endif
 #if GAME_VERSION >= GV_1_6
     Omni::hook("_ZN9PlayLayer13spawnParticleEPKciN7cocos2d15tCCPositionTypeENS2_7CCPointE",
@@ -453,6 +565,11 @@ void PlayLayer_om() {
     Omni::hook("_ZN9PlayLayer12processItemsEv",
         reinterpret_cast<void*>(PlayLayer_processItems),
         reinterpret_cast<void**>(&TRAM_PlayLayer_processItems));
+#endif
+#if GAME_VERSION >= GV_1_7
+    Omni::hook("_ZN9PlayLayer17playSpeedParticleEf",
+        reinterpret_cast<void*>(PlayLayer_playSpeedParticle),
+        reinterpret_cast<void**>(&TRAM_PlayLayer_playSpeedParticle));
 #endif
     // Omni::hook("_ZN9PlayLayer14createParticleEiPKciN7cocos2d15tCCPositionTypeE",
     //     reinterpret_cast<void*>(PlayLayer_createParticle),

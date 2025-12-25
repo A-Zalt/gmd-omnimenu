@@ -29,6 +29,7 @@
 
 /**/ #define EditorUI__m_zoomOutButton         0x1a0 /**/ // EditorUI::init
 
+/**/ #define GameManager__m_autoRetry          0x198 /**/ // GameManager::getAutoRetryLevel
 /**/ #define GameManager__m_playLayer          0x150 /**/ // GameManager::getPlayLayer
 /**/ #define GameManager__m_playerName         0x168 /**/ // GameManager::getPlayerName
 /**/ #define GameManager__m_playerUDID         0x164 /**/ // GameManager::getPlayerUDID
@@ -45,6 +46,7 @@
 /**/ #define GJComment__m_commentID            0x130 /**/ // GJComment::getCommentID
 
 /**/ #define GJSearchObject__m_type            0x128 /**/ // GJSearchObject::getType
+/**/ #define LeaderboardsLayer__m_boardType    0x148 /**/ // LeaderboardsLayer::selectLeaderboard
 /**/ #define LevelBrowserLayer__m_searchObject 0x154 /**/ // LevelBrowserLayer::setSearchObject
 
 /**/ #define LevelCell__m_level                0x180 /**/ // LevelCell::loadFromLevel
@@ -70,6 +72,7 @@
 /**/ #define PlayLayer__m_pGlitter             0x1a0 /**/ // PlayLayer::toggleGlitter
 /**/ #define PlayLayer__m_playerObject         0x250 /**/ // PlayLayer::getPlayer
 /**/ #define PlayLayer__m_sections             0x184 /**/ // PlayLayer::removeObjectFromSection
+/**/ #define PlayLayer__m_shouldRunDelayReset  0x2be /**/ // PlayLayer::delayedResetLevel
 /**/ #define PlayLayer__m_startPos             0x290 /**/ // PlayLayer::getStartPos
 /**/ #define PlayLayer__m_uiLayer              0x24c /**/ // PlayLayer::getUILayer
 /**/ #define PlayLayer__m_unkPrac              0x28f /**/ // PlayLayer::togglePracticeMode (set to 1 at the bottom)
@@ -85,6 +88,7 @@
 /**/ #define PlayerObject__m_unk2              0x41c /**/ // PlayerObject::playerDestroyed (slightly below, set to 1)
 /**/ #define PlayerObject__m_xVelocity         0x370 /**/ // PlayerObject::speedUp
 /**/ #define PlayerObject__m_yStart            0x378 /**/ // PlayerObject::yStartUp
+/**/ #define UILayer__m_checkpointMenu         0x1b4 /**/ // UILayer::toggleCheckpointsMenu
 /*******************************************************/
 /*/                     ADDRESSES                     /*/
 /*******************************************************/

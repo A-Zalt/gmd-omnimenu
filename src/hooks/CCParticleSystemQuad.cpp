@@ -4,7 +4,7 @@ CCParticleSystemQuad* (*TRAM_CCParticleSystemQuad_create)(const char* file);
 CCParticleSystemQuad* CCParticleSystemQuad_create(const char* file) {
     CCParticleSystemQuad* particle = TRAM_CCParticleSystemQuad_create(file);
     HaxManager& hax = HaxManager::sharedState();
-    if ((!hax.getModuleEnabled(ModuleID::PARTICLE_DEATH_EFFECT) || !hax.getModuleEnabled(ModuleID::NO_DEATH_EFFECT)) 
+    if ((!hax.getModuleEnabled(ModuleID::PARTICLE_DEATH_EFFECT) || hax.getModuleEnabled(ModuleID::NO_DEATH_EFFECT)) 
         && !strcmp(file, "explodeEffect.plist")) {
         particle->setVisible(false);
         return particle;

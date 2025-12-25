@@ -334,7 +334,14 @@ void UILayer_ccTouchBegan(UILayer* self, CCTouch* touch, CCEvent* event) {
     HaxManager& hax = HaxManager::sharedState();
     hax.clicks++;
 }
-
+void (*TRAM_UILayer_toggleCheckpointsMenu)(UILayer* self, bool toggle);
+void UILayer_toggleCheckpointsMenu(UILayer* self, bool toggle) {
+    TRAM_UILayer_toggleCheckpointsMenu(self, toggle);
+    HaxManager& hax = HaxManager::sharedState();
+    if (toggle && hax.getModuleEnabled(ModuleID::HIDE_CHECKPOINT_BUTTONS)) {
+        getCheckpointMenu(self)->setOpacity(60);
+    }
+}
 
 void UILayer_om() {
     Omni::hook("_ZN7UILayer4initEv",
@@ -346,4 +353,7 @@ void UILayer_om() {
     Omni::hook("_ZN7UILayer12ccTouchBeganEPN7cocos2d7CCTouchEPNS0_7CCEventE",
         reinterpret_cast<void*>(UILayer_ccTouchBegan),
         reinterpret_cast<void**>(&TRAM_UILayer_ccTouchBegan));
+    Omni::hook("_ZN7UILayer21toggleCheckpointsMenuEb",
+        reinterpret_cast<void*>(UILayer_toggleCheckpointsMenu),
+        reinterpret_cast<void**>(&TRAM_UILayer_toggleCheckpointsMenu));
 }

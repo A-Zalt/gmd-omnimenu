@@ -8,8 +8,77 @@
 #include "Utils.hpp"
 #include "GameSoundManager.hpp"
 #include "ButtonSprite.hpp"
+#include "RespawnTimeInput.hpp"
+#include <fmt/format.h>
 
 using namespace cocos2d;
+
+RespawnTimeInput* RespawnTimeInput::create(HaxMenu* parent) {
+    auto ret = new RespawnTimeInput;
+    if (ret->init(parent)) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
+}
+bool RespawnTimeInput::init(HaxMenu* parent) {
+    if (!CCLayer::init()) return false;
+    this->parent = parent;
+
+    HaxManager& hax = HaxManager::sharedState();
+    auto director = CCDirector::sharedDirector();
+    auto winSize = director->getWinSize();
+
+    // auto clock = CCSprite::createWithSpriteFrameName("GJ_timeIcon_001.png");
+    // clock->setPosition(ccp(winSize.width - 105, winSize.height - 53));
+    // clock->setScale(0.75);
+    // addChild(clock);
+
+    this->input = CCTextInputNode::create(90.0, 40.0, "Respawn Time", "Thonburi", 12, "bigFont.fnt");
+    input->setPosition(ccp(winSize.width / 2 + 40, winSize.height - 20));
+    input->setMaxLabelScale(0.7);
+    input->setLabelPlaceholderScale(0.4);
+    setCharLimit(input, 5);
+    input->setAllowedChars("0123456789.");
+    input->setAnchorPoint({0, 0.5});
+    input->setLabelPlaceholderColor(ccc3(127, 127, 127));
+    input->setString(fmt::format("{:.2f}", hax.respawnTime).c_str());
+    addChild(input);
+
+    auto bg = extension::CCScale9Sprite::create("square02_small.png", CCRectMake(0,0,40,40));
+    bg->setContentSize(CCSizeMake(90, 20));
+    bg->_setZOrder(-1);
+    bg->setPosition({winSize.width / 2 + 39, winSize.height - 20});
+    addChild(bg);
+    bg->setScale(0.9);
+
+    return true;
+}
+
+void RespawnTimeInput::textChanged(CCTextInputNode* node) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (!node) return;
+
+    auto booba = *(CCTextFieldTTF**)((char*)node + CCTextInputNode__m_textField);
+    if (!booba) return;
+    if (!booba->m_pInputText) return;
+    auto bro = booba->m_pInputText->c_str();
+    if (!bro || bro == nullptr) {
+        return;
+    }
+
+    float value = std::atof(bro);
+    if (value >= 0 && value <= 500) {
+        hax.respawnTime = value;
+    }
+}
+
+void RespawnTimeInput::setupDelegates() {
+    if (input) {
+        setTextInputDelegate(input, this);
+    }
+}
 
 HaxMenu* HaxMenu::create(CCLayer* referrer) {
     auto ret = new HaxMenu();
@@ -261,6 +330,9 @@ void HaxMenu::onCategory(ModuleCategory category) {
         userData = nullptr;
         this->modMenu->removeChild(node, true);
     }
+    if (hax.respawnInput) {
+        this->removeChild(hax.respawnInput, true);
+    }
     CCDirector* director = CCDirector::sharedDirector();
     CCSize winSize = director->getWinSize();
 
@@ -309,6 +381,13 @@ void HaxMenu::onCategory(ModuleCategory category) {
         this->modMenu->addChild(infoBtn, 1003);
         y -= 16;
         key++;
+    }
+    if (category == ModuleCategory::Player) {
+        auto respawnInput = RespawnTimeInput::create(this);
+        respawnInput->setupDelegates();
+        this->addChild(respawnInput, 1003);
+        hax.respawnInput = respawnInput;
+        if (!hax.getModuleEnabled(ModuleID::CUSTOM_RESPAWN_TIME)) hax.respawnInput->setVisible(false);
     }
     if (category == ModuleCategory::Universal) {
         auto udidSpr = ButtonSprite::create("Copy UDID", 50, 0, 1, false, "bigFont.fnt", "GJ_button_04.png");
@@ -444,26 +523,39 @@ void HaxMenu::onClose(CCObject* sender) {
         CCCallFunc::create(this, callfunc_selector(CCNode::removeFromParentAndCleanup)), // CCRemoveSelf does not exist in old cocos
         nullptr
     ));
+    hax.respawnInput = nullptr;
 }
 
 bool HaxMenu::ccTouchBegan(cocos2d::CCTouch* t, cocos2d::CCEvent*)
 {
-    // CCPoint pg = t->locationInView();
-    // CCPoint gl = t->locationInView();
-    // CCPoint p1 = leftPanel->convertToNodeSpace(pg);
-    // CCPoint p2 = rightPanel->convertToNodeSpace(pg);
-    // CCRect bb1 = leftPanel->boundingBox();
-    // CCRect bb2 = rightPanel->boundingBox();
-    // CCLog("bb1: %i %i %i %i", CCRect::CCRectGetMinX(bb1), CCRect::CCRectGetMinY(bb1), CCRect::CCRectGetMaxX(bb1), CCRect::CCRectGetMaxY(bb1));
-    // CCLog("bb2: %i %i %i %i", CCRect::CCRectGetMinX(bb2), CCRect::CCRectGetMinY(bb2), CCRect::CCRectGetMaxX(bb2), CCRect::CCRectGetMaxY(bb2));
-    // CCLog("p1: %i %i", p1.x, p1.y);
-    // CCLog("p2: %i %i", p2.x, p2.y);
-    // CCLog("pg: %i %i", pg.x, pg.y);
-    // if (!CCRectContainsPoint(leftPanel->boundingBox(), leftPanel->convertToNodeSpace(t->locationInView()))
-    // && !CCRectContainsPoint(rightPanel->boundingBox(), rightPanel->convertToNodeSpace(t->locationInView()))) {
-    //     onClose(nullptr);
-    // }
-    onClose(nullptr);
+#if GAME_VERSION >= GV_1_7
+    auto pos = t->getLocation(); 
+    CCRect bb1 = leftPanel->boundingBox();
+    CCRect bb2 = rightPanel->boundingBox();
+
+    CCRect bb3 = CCRect(bb1.getMinX() + leftParent->getPositionX(), bb1.getMinY() + leftParent->getPositionY(),
+        bb1.getMaxX() + leftParent->getPositionX(), bb1.getMaxY() + leftParent->getPositionY());
+
+    CCRect bb4 = CCRect(bb2.getMinX() + rightParent->getPositionX(), bb2.getMinY() + rightParent->getPositionY(),
+        bb2.getMaxX() + rightParent->getPositionX(), bb2.getMaxY() + rightParent->getPositionY());
+
+    if (!(bb3.containsPoint(pos)) && !(bb4.containsPoint(pos))) {
+        onClose(nullptr);
+    }
+#else
+    auto pos = cocos2d::CCDirector::sharedDirector()->convertToGL(t->locationInView());
+    CCRect bb1 = leftPanel->boundingBox();
+    CCRect bb2 = rightPanel->boundingBox();
+    CCRect bb3 = CCRect(CCRect::CCRectGetMinX(bb1) + leftParent->getPositionX(), CCRect::CCRectGetMinY(bb1) + leftParent->getPositionY(),
+        CCRect::CCRectGetMaxX(bb1) + leftParent->getPositionX(), CCRect::CCRectGetMaxY(bb1) + leftParent->getPositionY());
+
+    CCRect bb4 = CCRect(CCRect::CCRectGetMinX(bb2) + rightParent->getPositionX(), CCRect::CCRectGetMinY(bb2) + rightParent->getPositionY(),
+        CCRect::CCRectGetMaxX(bb2) + rightParent->getPositionX(), CCRect::CCRectGetMaxY(bb2) + rightParent->getPositionY());
+
+    if (!CCRect::CCRectContainsPoint(bb3, pos) && !CCRect::CCRectContainsPoint(bb4, pos)) {
+        onClose(nullptr);
+    }
+#endif
     return true;
 }
 
