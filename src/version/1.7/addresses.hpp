@@ -11,7 +11,6 @@
 /**/ #define CCTextInputNode__m_charLimit      0x140 /**/ // CCTextInputNode::getCharLimit
 /**/ #define CCTextInputNode__m_inputDelegate  0x13c /**/ // CCTextInputNode::getDelegate
 /**/ #define CCTextInputNode__m_textField      0x138 /**/ // CCTextInputNode::getTextField
-/**/ #define CCEGLViewProtocol__m_screenBottom  0x30 /**/ // cocos2d::CCEGLViewProtocol::getScreenBottom
 /**/ #define CheckpointObject__m_playerPos      0xec /**/ // CheckpointObject::getPlayerPos
 /**/ #define ColorPickerPopup__m_colorWheel    0x1ac /**/ // ColorPickerPopup::selectColor
 /**/ #define ColorSelectPopup__m_colorWheel    0x1a4 /**/ // ColorSelectPopup::selectColor

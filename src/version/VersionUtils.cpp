@@ -504,7 +504,11 @@ void setCreateButtonBars(EditorUI* uiLayer, CCArray* bars) {
 #endif
 float getScreenBottom() {
     CCDirector* director = CCDirector::sharedDirector();
+#if GAME_VERSION < GV_1_7
     return MEMBER_BY_OFFSET(float, director->getOpenGLView(), CCEGLViewProtocol__m_screenBottom);
+#else
+    return director->getScreenBottom();
+#endif
 }
 float getUnkFloat(EditorUI* uiLayer) {
     return MEMBER_BY_OFFSET(float, uiLayer, EditorUI__m_unkFloat);

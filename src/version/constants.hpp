@@ -10,7 +10,7 @@
 #define FORCE_AUTO_SAFE_MODE // Comment this out to disable force auto safe mode
 #define PING_SPOOFING // Comment this out to disable Pig Spoofing (brutal)
 // #define STAR_RATED_LEVELS_GRANT_COINS // Uncomment this to enable star rated levels granting secret coins even in Force Auto Safe Mode (1.6+)
-#define GDPS GDPS_NONE // Possible values: GDPS_NONE, GDPS_NEOPOINTFOUR and GDPS_1_7 (1.7 GDPS) 
+#define GDPS GDPS_1_7 // Possible values: GDPS_NONE, GDPS_NEOPOINTFOUR and GDPS_1_7 (1.7 GDPS by Aricco) 
 
 #if GDPS == GDPS_NONE
     // You have to replace both of these if necessary

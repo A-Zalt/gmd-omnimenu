@@ -30,7 +30,6 @@ enum class CheatIndicatorColor {
 enum ModuleID {
     _100_KB_FIX,
     _16K_FIX,
-    ACCURATE_PERCENTAGE,
     AUTO_SAFE_MODE,
     CHARACTER_FILTER_BYPASS,
     CHEAT_INDICATOR,
@@ -528,13 +527,6 @@ private:
             false, ModuleCategory::Player, [](bool _){});
 
 
-#if GAME_VERSION >= GV_1_7
-        modules[ModuleID::ACCURATE_PERCENTAGE] = Module(
-            "accurate_percentage",
-            "Golden Best", 
-            "Makes the Show Percentage label account for speed portals.", 
-            false, ModuleCategory::Visual, [](bool _){});
-#endif
         modules[ModuleID::GOLDEN_BEST] = Module(
             "golden_best",
             "Golden Best", 
