@@ -12,9 +12,13 @@
 /**/ #define CCTextInputNode__m_inputDelegate  0x16c /**/ // CCTextInputNode::getDelegate
 /**/ #define CCTextInputNode__m_textField      0x168 /**/ // CCTextInputNode::getTextField
 /**/ #define CCEGLViewProtocol__m_screenBottom  0xe4 /**/ // cocos2d::CCEGLViewProtocol::getScreenBottom
+/**/ #define CheckpointObject__m_isFlipped     0x158 /**/ // CheckpointObject::getIsFlipped
 /**/ #define CheckpointObject__m_playerPos     0x12c /**/ // CheckpointObject::getPlayerPos
 /**/ #define ColorPickerPopup__m_colorWheel    0x1cc /**/ // ColorPickerPopup::selectColor
 /**/ #define ColorSelectPopup__m_colorWheel    0x1cc /**/ // ColorSelectPopup::selectColor
+/**/ #define ColorSelectPopup__m_duration      0x1e4 /**/ // ColorSelectPopup::sliderChanged
+/**/ #define ColorSelectPopup__m_durLabel      0x1d4 /**/ // ColorSelectPopup::updateDurLabel
+/**/ #define ColorSelectPopup__m_slider        0x1d8 /**/ // ColorSelectPopup::init
 /**/ #define EditButtonBar__m_buttons          0x12c /**/ // EditButtonBar::init
 /**/ #define EditLevelLayer__m_level           0x148 /**/ // EditLevelLayer::init
 /**/ #define EditorPauseLayer__m_editorLayer   0x1c8 /**/ // EditorPauseLayer::init
@@ -38,6 +42,9 @@
 
 /**/ #define GameObject__m_objectKey           0x32c /**/ // GameObject::getObjectKey
 /**/ #define GameObject__m_particles           0x288 /**/ // GameObject::setOpacity
+
+/**/ #define GameObject__m_radius              0x2b4 /**/ // GameObject::getRadius
+
 /**/ #define GameObject__m_realPosition        0x2d4 /**/ // GameObject::getRealPosition
 /**/ #define GameObject__m_sectionIdx          0x2cc /**/ // GameObject::getSectionIdx
 /**/ #define GameObject__m_shouldSpawn         0x2d0 /**/ // GameObject::getShouldSpawn
@@ -62,15 +69,18 @@
 /**/ #define LocalLevelManager__m_localLevels  0x130 /**/ // LocalLevelManager::getLocalLevels
 /**/ #define PlayLayer__m_attempts             0x2d8 /**/ // PlayLayer::getAttempts
 /**/ #define PlayLayer__m_attemptLabel         0x1e4 /**/ // PlayLayer::updateAttempts (assigned to a var right after the if statement)
+/**/ #define PlayLayer__m_cameraPos            0x27c /**/ // PlayLayer::getCameraPos
 /**/ #define PlayLayer__m_checkpoints          0x158 /**/ // PlayLayer::removeLastCheckpoint
 /**/ #define PlayLayer__m_clkTimer             0x2e4 /**/ // PlayLayer::getClkTimer
 /**/ #define PlayLayer__m_hazards              0x18c /**/ // PlayLayer::checkCollisions (the for loop at the bottom which checks for rect intersections and calls destroyPlayer)
+/**/ #define PlayLayer__m_isFlipped            0x264 /**/ // PlayLayer::getIsFlipped
 /**/ #define PlayLayer__m_isPractice           0x29d /**/ // PlayLayer::getPracticeMode
 /**/ #define PlayLayer__m_jumps                0x2dc /**/ // PlayLayer::getJumps
 /**/ #define PlayLayer__m_lastX                0x1dc /**/ // PlayLayer::destroyPlayer (find the multiplication by 100, and the denominator in the division right before it is this field)
 /**/ #define PlayLayer__m_level                0x278 /**/ // PlayLayer::getLevel
 /**/ #define PlayLayer__m_pGlitter             0x1a4 /**/ // PlayLayer::toggleGlitter
 /**/ #define PlayLayer__m_playerObject         0x274 /**/ // PlayLayer::getPlayer
+/**/ #define PlayLayer__m_progressBar          0x214 /**/ // PlayLayer::init - slidergroove2.png
 /**/ #define PlayLayer__m_sections             0x188 /**/ // PlayLayer::removeObjectFromSection
 /**/ #define PlayLayer__m_startPos             0x2b8 /**/ // PlayLayer::getStartPos
 /**/ #define PlayLayer__m_uiLayer              0x270 /**/ // PlayLayer::getUILayer
@@ -91,6 +101,7 @@
 /*******************************************************/
 /*/                     ADDRESSES                     /*/
 /*******************************************************/
+/**/ #define _0_1f                          0x30140B /**/ // string search: %0.1f, the "1"
 /**/ #define basicstring_assign             0x2B4854 /**/ // differs between versions :/
 /**/ #define global_order_of_arrival        0x46E02C /**/ // CCNode::reorderChild
 /**/ #define __CCTextInputNode_setCharLimit 0x12AD6E /**/

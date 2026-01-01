@@ -119,9 +119,7 @@ void LevelEditorLayer_createObjectsFromSetup(LevelEditorLayer* self, std::string
     if (!std::getline(ss, split_buffer, ';'))
         return; // no level settings string?
 
-    setEditorSettingsObject(self, LevelSettingsObject::objectFromString(
-        CCString::createWithFormat("%s", split_buffer.c_str())->m_sString
-    ));
+    setEditorSettingsObject(self, LevelSettingsObject::objectFromString(split_buffer));
     getEditorSettingsObject(self)->retain();
 
 #if GAME_VERSION < GV_1_6

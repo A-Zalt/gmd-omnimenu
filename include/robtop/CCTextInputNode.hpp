@@ -21,6 +21,7 @@ public:
 };
 
 class TextInputDelegate {
+public:
     virtual void textChanged(CCTextInputNode*) {}
     virtual void textInputOpened(CCTextInputNode*) {}
     virtual void textInputClosed(CCTextInputNode*) {}

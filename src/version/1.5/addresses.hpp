@@ -12,9 +12,13 @@
 /**/ #define CCTextInputNode__m_inputDelegate  0x16c /**/ // CCTextInputNode::getDelegate
 /**/ #define CCTextInputNode__m_textField      0x168 /**/ // CCTextInputNode::getTextField
 /**/ #define CCEGLViewProtocol__m_screenBottom  0xe4 /**/ // cocos2d::CCEGLViewProtocol::getScreenBottom
+/**/ #define CheckpointObject__m_isFlipped     0x15c /**/ // CheckpointObject::getIsFlipped
 /**/ #define CheckpointObject__m_playerPos     0x12c /**/ // CheckpointObject::getPlayerPos
 /**/ #define ColorPickerPopup__m_colorWheel    0x1cc /**/ // ColorPickerPopup::selectColor
 /**/ #define ColorSelectPopup__m_colorWheel    0x1cc /**/ // ColorSelectPopup::selectColor
+/**/ #define ColorSelectPopup__m_duration      0x1e4 /**/ // ColorSelectPopup::sliderChanged
+/**/ #define ColorSelectPopup__m_durLabel      0x1d4 /**/ // ColorSelectPopup::updateDurLabel
+/**/ #define ColorSelectPopup__m_slider        0x1d8 /**/ // ColorSelectPopup::init
 /**/ #define EditButtonBar__m_buttons          0x12c /**/ // EditButtonBar::init
 /**/ #define EditLevelLayer__m_level           0x148 /**/ // EditLevelLayer::init
 /**/ #define EditorPauseLayer__m_editorLayer   0x1c8 /**/ // EditorPauseLayer::init
@@ -38,6 +42,9 @@
 
 /**/ #define GameObject__m_objectKey           0x328 /**/ // GameObject::getObjectKey
 /**/ #define GameObject__m_particles           0x288 /**/ // GameObject::setOpacity
+
+/**/ #define GameObject__m_radius              0x2b4 /**/ // GameObject::getRadius
+
 /**/ #define GameObject__m_realPosition        0x2d4 /**/ // GameObject::getRealPosition
 /**/ #define GameObject__m_sectionIdx          0x2cc /**/ // GameObject::getSectionIdx
 /**/ #define GameObject__m_shouldSpawn         0x2d0 /**/ // GameObject::getShouldSpawn
@@ -62,15 +69,18 @@
 /**/ #define LocalLevelManager__m_localLevels  0x130 /**/ // LocalLevelManager::getLocalLevels
 /**/ #define PlayLayer__m_attempts             0x2b0 /**/ // PlayLayer::getAttempts
 /**/ #define PlayLayer__m_attemptLabel         0x1e8 /**/ // PlayLayer::updateAttempts (assigned to a var right after the if statement)
+/**/ #define PlayLayer__m_cameraPos            0x258 /**/ // PlayLayer::getCameraPos
 /**/ #define PlayLayer__m_checkpoints          0x154 /**/ // PlayLayer::removeLastCheckpoint
 /**/ #define PlayLayer__m_clkTimer             0x2b8 /**/ // PlayLayer::getClkTimer
 /**/ #define PlayLayer__m_hazards              0x188 /**/ // PlayLayer::checkCollisions (the for loop at the bottom which checks for rect intersections and calls destroyPlayer)
 /**/ #define PlayLayer__m_isPractice           0x279 /**/ // PlayLayer::getPracticeMode
+/**/ #define PlayLayer__m_isFlipped            0x240 /**/ // PlayLayer::getIsFlipped
 /**/ #define PlayLayer__m_jumps                0x2b4 /**/ // PlayLayer::getJumps
 /**/ #define PlayLayer__m_lastX                0x1e0 /**/ // PlayLayer::destroyPlayer (find the multiplication by 100, and the denominator in the division right before it is this field)
 /**/ #define PlayLayer__m_level                0x254 /**/ // PlayLayer::getLevel
 /**/ #define PlayLayer__m_pGlitter             0x1a0 /**/ // PlayLayer::toggleGlitter
 /**/ #define PlayLayer__m_playerObject         0x250 /**/ // PlayLayer::getPlayer
+/**/ #define PlayLayer__m_progressBar          0x20c /**/ // PlayLayer::init - slidergroove2.png
 /**/ #define PlayLayer__m_sections             0x184 /**/ // PlayLayer::removeObjectFromSection
 /**/ #define PlayLayer__m_shouldRunDelayReset  0x2be /**/ // PlayLayer::delayedResetLevel
 /**/ #define PlayLayer__m_startPos             0x290 /**/ // PlayLayer::getStartPos
@@ -92,6 +102,7 @@
 /*******************************************************/
 /*/                     ADDRESSES                     /*/
 /*******************************************************/
+/**/ #define _0_1f                          0x2F3785 /**/ // string search: %0.1f, the "1"
 /**/ #define basicstring_assign             0x2A6ED0 /**/ // differs between versions :/
 /**/ #define global_order_of_arrival        0x41402C /**/ // CCNode::reorderChild
 /**/ #define __CCTextInputNode_setCharLimit 0x126366 /**/

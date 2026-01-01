@@ -62,6 +62,9 @@ protected:
     bool m_bNeedScale;
     EGLTouchDelegate* m_pDelegate;
     float  m_fScreenScaleFactor;
+    CC_GD_ADD_BEGIN
+    float  m_fScreenScaleFactorMax;
+    CC_GD_ADD_END
     CCSize m_sSizeInPixel;
     CCSize m_sSizeInPoint;
     CCRect m_rcViewPort;

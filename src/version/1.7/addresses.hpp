@@ -11,9 +11,13 @@
 /**/ #define CCTextInputNode__m_charLimit      0x140 /**/ // CCTextInputNode::getCharLimit
 /**/ #define CCTextInputNode__m_inputDelegate  0x13c /**/ // CCTextInputNode::getDelegate
 /**/ #define CCTextInputNode__m_textField      0x138 /**/ // CCTextInputNode::getTextField
+/**/ #define CheckpointObject__m_isFlipped     0x104 /**/ // CheckpointObject::getIsFlipped
 /**/ #define CheckpointObject__m_playerPos      0xec /**/ // CheckpointObject::getPlayerPos
 /**/ #define ColorPickerPopup__m_colorWheel    0x1ac /**/ // ColorPickerPopup::selectColor
 /**/ #define ColorSelectPopup__m_colorWheel    0x1a4 /**/ // ColorSelectPopup::selectColor
+/**/ #define ColorSelectPopup__m_duration      0x1c4 /**/ // ColorSelectPopup::sliderChanged
+/**/ #define ColorSelectPopup__m_durLabel      0x1ac /**/ // ColorSelectPopup::updateDurLabel
+/**/ #define ColorSelectPopup__m_slider        0x1b0 /**/ // ColorSelectPopup::init
 
 /**/ #define DrawGridLayer__m_speedObjects     0x124 /**/ // DrawGridLayer::addToSpeedObjects
 
@@ -41,6 +45,9 @@
 
 /**/ #define GameObject__m_objectKey           0x284 /**/ // GameObject::getObjectKey
 /**/ #define GameObject__m_particles           0x1e0 /**/ // GameObject::setOpacity
+
+/**/ #define GameObject__m_radius              0x224 /**/ // GameObject::getRadius
+
 /**/ #define GameObject__m_realPosition        0x244 /**/ // GameObject::getRealPosition
 /**/ #define GameObject__m_sectionIdx          0x23c /**/ // GameObject::getSectionIdx
 /**/ #define GameObject__m_shouldSpawn         0x240 /**/ // GameObject::getShouldSpawn
@@ -71,15 +78,18 @@
 /**/ #define LocalLevelManager__m_localLevels   0xf4 /**/ // LocalLevelManager::getLocalLevels
 /**/ #define PlayLayer__m_attempts             0x27c /**/ // PlayLayer::getAttempts
 /**/ #define PlayLayer__m_attemptLabel         0x1c4 /**/ // PlayLayer::updateAttempts (assigned to a var right after the if statement)
+/**/ #define PlayLayer__m_cameraPos            0x250 /**/ // PlayLayer::getCameraPos
 /**/ #define PlayLayer__m_checkpoints          0x12c /**/ // PlayLayer::removeLastCheckpoint
 /**/ #define PlayLayer__m_clkTimer             0x288 /**/ // PlayLayer::getClkTimer
 /**/ #define PlayLayer__m_hazards              0x168 /**/ // PlayLayer::checkCollisions (the for loop at the bottom which checks for rect intersections and calls destroyPlayer)
+/**/ #define PlayLayer__m_isFlipped            0x238 /**/ // PlayLayer::getIsFlipped
 /**/ #define PlayLayer__m_isPractice           0x259 /**/ // PlayLayer::getPracticeMode
 /**/ #define PlayLayer__m_jumps                0x280 /**/ // PlayLayer::getJumps
 /**/ #define PlayLayer__m_lastX                0x1bc /**/ // PlayLayer::destroyPlayer (find the multiplication by 100, and the denominator in the division right before it is this field)
 /**/ #define PlayLayer__m_level                0x24c /**/ // PlayLayer::getLevel
 /**/ #define PlayLayer__m_pGlitter             0x180 /**/ // PlayLayer::toggleGlitter
 /**/ #define PlayLayer__m_playerObject         0x248 /**/ // PlayLayer::getPlayer
+/**/ #define PlayLayer__m_progressBar          0x1f8 /**/ // PlayLayer::init - slidergroove2.png
 /**/ #define PlayLayer__m_sections             0x164 /**/ // PlayLayer::removeObjectFromSection
 /**/ #define PlayLayer__m_startPos             0x274 /**/ // PlayLayer::getStartPos
 /**/ #define PlayLayer__m_uiLayer              0x244 /**/ // PlayLayer::getUILayer
@@ -100,6 +110,7 @@
 /*******************************************************/
 /*/                     ADDRESSES                     /*/
 /*******************************************************/
+/**/ #define _0_1f                          0x3F2F88 /**/ // string search: %0.1f, the "1"
 /**/ #define basicstring_assign             0x3A1BB8 /**/ // differs between versions :/
 /**/ #define global_order_of_arrival        0x4AFB34 /**/ // CCNode::reorderChild
 /**/ #define __CCTextInputNode_setCharLimit 0x1726EE /**/

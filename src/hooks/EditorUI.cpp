@@ -11,7 +11,10 @@
 
 void updateObjectInfoLabel(EditorUI* self) {
     HaxManager& hax = HaxManager::sharedState();
-    if (!hax.getModuleEnabled(ModuleID::SHOW_OBJECT_INFO)) return;
+    if (!hax.getModuleEnabled(ModuleID::SHOW_OBJECT_INFO)) {
+        if (hax.editorObjectInfo) hax.editorObjectInfo->setString("");
+        return;
+    }
     if (!hax.editorObjectInfo) {
         CCLog("no EOI");
         return;
@@ -175,6 +178,10 @@ bool EditorUI_init(EditorUI* self, LevelEditorLayer* lel) {
 #if GAME_VERSION >= GV_1_5
     getZoomOutButton(self)->setTarget(self, menu_selector(EditorUI::zoomOutExtra));
 #endif
+    hax.inEditor = true;
+    if (hax.getModuleEnabled(ModuleID::RGB_COLOR_INPUTS)) {
+        setDecimals('2');
+    }
     if (hax.getModuleEnabled(ModuleID::DELETE_SELECTED)) {
         CCMenu* delMenu = CCMenu::create();
         self->addChild(delMenu);
@@ -689,12 +696,12 @@ void EditorUI::transformObjectCall2(CCNode* sender) {
         for (int i = 0; i < selectedObjects->count(); i++) {
             GameObject* obj = static_cast<GameObject*>(selectedObjects->objectAtIndex(i));
             if (tag == 100023) obj->setRotation(0);
-            else obj->setRotation(obj->getRotation() + rot);
+            else obj->setRotation(fmod((obj->getRotation() + rot), 360.0f));
         }
     } else {
         auto obj = getSelectedObject(this);
         if (tag == 100023) obj->setRotation(0);
-        else obj->setRotation(obj->getRotation() + rot);
+        else obj->setRotation(fmod((obj->getRotation() + rot), 360.0f));
     }
     updateObjectInfoLabel(this);
 }
@@ -947,6 +954,8 @@ void EditorUI_destructor(EditorUI* self) {
     if (hax.editorObjectInfo) {
         hax.editorObjectInfo->removeFromParentAndCleanup(true);
     }
+    hax.inEditor = false;
+    setDecimals('1');
     hax.editorObjectInfo = nullptr;
     TRAM_EditorUI_destructor(self);
 }
@@ -956,6 +965,8 @@ void EditorUI_destructor2(EditorUI* self) {
     if (hax.editorObjectInfo) {
         hax.editorObjectInfo->removeFromParentAndCleanup(true);
     }
+    hax.inEditor = false;
+    setDecimals('1');
     hax.editorObjectInfo = nullptr;
     TRAM_EditorUI_destructor2(self);
 }

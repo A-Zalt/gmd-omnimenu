@@ -38,6 +38,7 @@ void append_char(char*& a, size_t& length, size_t& capacity, char c) {
 bool (*TRAM_CCTextInputNode_onTextFieldInsertText)(CCTextInputNode* self, CCTextFieldTTF* pSender, const char* text, int nLen);
 bool CCTextInputNode_onTextFieldInsertText(CCTextInputNode* self, CCTextFieldTTF* pSender, const char* text, int nLen) {
     HaxManager& hax = HaxManager::sharedState();
+#if GAME_VERSION < GV_1_2
     if (!hax.getModuleEnabled(ModuleID::INPUT_BUG_FIX)) return TRAM_CCTextInputNode_onTextFieldInsertText(self, pSender, text, nLen);
 
     if (text && strlen(text) > 1) {
@@ -78,8 +79,20 @@ bool CCTextInputNode_onTextFieldInsertText(CCTextInputNode* self, CCTextFieldTTF
     if (pSender->getCharCount() >= getCharLimit(self) && getCharLimit(self) > 0) return true;
 
     return false;
+#else
+    // if insert enter, treat as default to detach with ime
+    if ('\n' == *text) {
+        return false;
+    }
+#endif
 }
 #endif
+
+void (*TRAM_CCTextFieldTTF_detachWithIME)(CCTextFieldTTF* self);
+void CCTextFieldTTF_detachWithIME(CCTextFieldTTF* self) {
+    CCLog("[OMNI] CCTFTTF detachWithIME");
+    TRAM_CCTextFieldTTF_detachWithIME(self);
+}
 
 void CCTextInputNode_om() {
 #if GAME_VERSION < GV_1_5
@@ -98,4 +111,7 @@ void CCTextInputNode_om() {
         reinterpret_cast<void*>(CCTextInputNode_onTextFieldInsertText),
         reinterpret_cast<void**>(&TRAM_CCTextInputNode_onTextFieldInsertText));
 #endif
+    Omni::hook("_ZN7cocos2d14CCTextFieldTTF13detachWithIMEEv",
+        reinterpret_cast<void*>(CCTextFieldTTF_detachWithIME),
+        reinterpret_cast<void**>(&TRAM_CCTextFieldTTF_detachWithIME));
 }

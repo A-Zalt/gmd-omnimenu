@@ -3,7 +3,7 @@
 
 
 
-#define MENU_VERSION "v1.0.4"
+#define MENU_VERSION "v1.1.0"
 #define MENU_SETTINGS "settings" READABLE_GAME_VERSION ".json"
 #define MENU_SETTINGS_PATH "/storage/emulated/0/OMNImenu/"
 
@@ -11,6 +11,7 @@
 #define PING_SPOOFING // Comment this out to disable Pig Spoofing (brutal)
 // #define STAR_RATED_LEVELS_GRANT_COINS // Uncomment this to enable star rated levels granting secret coins even in Force Auto Safe Mode (1.6+)
 #define GDPS GDPS_NONE // Possible values: GDPS_NONE, GDPS_NEOPOINTFOUR and GDPS_1_7 (1.7 GDPS by Aricco) 
+#define USE_MINIAUDIO // Comment this out to disable Miniaudio (currently buggy on Bluestacks Nougat)
 
 #if GDPS == GDPS_NONE
     // You have to replace both of these if necessary
@@ -68,40 +69,6 @@
 #else
     #define MAIN_LIBRARY "libgame.so"
 #endif
-
-// #if GAME_VERSION == 1
-//     #define READABLE_GAME_VERSION "1.0"
-//     #define READABLE_GAME_VERSION_FULL "1.02"
-//     #define OBJECT_LIMIT 3999
-// #elif GAME_VERSION == 2
-//     #define READABLE_GAME_VERSION "1.1"
-//     #define READABLE_GAME_VERSION_FULL "1.11"
-//     #define OBJECT_LIMIT 3999
-// #elif GAME_VERSION == 4
-//     #define READABLE_GAME_VERSION "1.3"
-//     #define READABLE_GAME_VERSION_FULL "1.3"
-//     #define OBJECT_LIMIT 5999
-// #elif GAME_VERSION == 5
-//     #define READABLE_GAME_VERSION "1.4"
-//     #define READABLE_GAME_VERSION_FULL "1.41"
-//     #define OBJECT_LIMIT 5999
-// #elif GAME_VERSION == 6
-//     #define READABLE_GAME_VERSION "1.5"
-//     #define READABLE_GAME_VERSION_FULL "1.51"
-//     #define OBJECT_LIMIT 5999
-// #elif GAME_VERSION == 7
-//     #define READABLE_GAME_VERSION "1.6"
-//     #define READABLE_GAME_VERSION_FULL "1.6"
-//     #define OBJECT_LIMIT 7999
-// #elif GAME_VERSION == 10
-//     #define READABLE_GAME_VERSION "1.7"
-//     #define READABLE_GAME_VERSION_FULL "1.71"
-//     #define OBJECT_LIMIT 9999
-// #elif GAME_VERSION == 18
-//     #define READABLE_GAME_VERSION "1.8"
-//     #define READABLE_GAME_VERSION_FULL "1.811"
-//     #define OBJECT_LIMIT 11999
-// #endif
 
 #define GDSHARE_FL(errorMsg) \
     FLAlertLayer::create(\

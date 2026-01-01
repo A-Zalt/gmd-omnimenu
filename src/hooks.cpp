@@ -31,7 +31,9 @@
 #endif
 #include "hooks/CCScheduler.cpp"
 #include "hooks/GameSoundManager.cpp"
+#ifndef USE_MINIAUDIO
 #include "hooks/SimpleAudioEngine.cpp"
+#endif
 #include "hooks/CCControlColourPicker.cpp"
 #include "hooks/LevelBrowserLayer.cpp"
 #include "hooks/GJGarageLayer.cpp"
@@ -80,7 +82,6 @@ void initialize_hooks() {
 #endif
     CCScheduler_om();
     GameSoundManager_om();
-    SimpleAudioEngine_om();
     CCControlColourPicker_om();
     LevelBrowserLayer_om();
 #if GAME_VERSION >= GV_1_3
@@ -93,5 +94,9 @@ void initialize_hooks() {
     Neopointfour_om();
 #elif GDPS == GDPS_1_7
     GDPS17_om();
+#endif
+
+#ifndef USE_MINIAUDIO
+    SimpleAudioEngine_om();
 #endif
 }

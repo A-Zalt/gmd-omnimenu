@@ -12,9 +12,13 @@
 /**/ #define CCTextInputNode__m_inputDelegate  0x16c /**/ // CCTextInputNode::getDelegate
 /**/ #define CCTextInputNode__m_textField      0x168 /**/ // CCTextInputNode::getTextField
 /**/ #define CCEGLViewProtocol__m_screenBottom  0xe4 /**/ // cocos2d::CCEGLViewProtocol::getScreenBottom
+/**/ #define CheckpointObject__m_isFlipped     0x158 /**/ // CheckpointObject::getIsFlipped
 /**/ #define CheckpointObject__m_playerPos     0x12c /**/ // CheckpointObject::getPlayerPos
 /**/ #define ColorPickerPopup__m_colorWheel    0x1cc /**/ // ColorPickerPopup::selectColor
 /**/ #define ColorSelectPopup__m_colorWheel    0x1cc /**/ // ColorSelectPopup::selectColor
+/**/ #define ColorSelectPopup__m_duration      0x1e4 /**/ // ColorSelectPopup::sliderChanged
+/**/ #define ColorSelectPopup__m_durLabel      0x1d4 /**/ // ColorSelectPopup::updateDurLabel
+/**/ #define ColorSelectPopup__m_slider        0x1d8 /**/ // ColorSelectPopup::init
 /**/ #define EditButtonBar__m_buttons          0x12c /**/ // EditButtonBar::init
 /**/ #define EditLevelLayer__m_level           0x148 /**/ // EditLevelLayer::init
 /**/ #define EditorPauseLayer__m_editorLayer   0x1c8 /**/ // EditorPauseLayer::init
@@ -29,9 +33,15 @@
 /**/ #define GameManager__m_autoRetry          0x194 /**/ // GameManager::getAutoRetryLevel
 /**/ #define GameManager__m_playLayer          0x150 /**/ // GameManager::getPlayLayer
 /**/ #define GameManager__m_playerName         0x168 /**/ // GameManager::getPlayerName
+
+/**/ #define GameManager__m_playerShip         0x184 /**/ // <--- needed for 1.4 only - GameManager::getPlayerShip
+
 /**/ #define GameManager__m_playerUDID         0x164 /**/ // GameManager::getPlayerUDID
 /**/ #define GameObject__m_objectKey           0x328 /**/ // GameObject::getObjectKey
 /**/ #define GameObject__m_particles           0x288 /**/ // GameObject::setOpacity
+
+/**/ #define GameObject__m_radius              0x2b4 /**/ // GameObject::getRadius
+
 /**/ #define GameObject__m_realPosition        0x2d4 /**/ // GameObject::getRealPosition
 /**/ #define GameObject__m_sectionIdx          0x2cc /**/ // GameObject::getSectionIdx
 /**/ #define GameObject__m_shouldSpawn         0x2d0 /**/ // GameObject::getShouldSpawn
@@ -54,9 +64,11 @@
 /**/ #define LocalLevelManager__m_localLevels  0x130 /**/ // LocalLevelManager::getLocalLevels
 /**/ #define PlayLayer__m_attempts             0x29c /**/ // PlayLayer::getAttempts
 /**/ #define PlayLayer__m_attemptLabel         0x1e8 /**/ // PlayLayer::updateAttempts (assigned to a var right after the if statement)
+/**/ #define PlayLayer__m_cameraPos            0x244 /**/ // PlayLayer::getCameraPos
 /**/ #define PlayLayer__m_checkpoints          0x154 /**/ // PlayLayer::removeLastCheckpoint
 /**/ #define PlayLayer__m_clkTimer             0x2a4 /**/ // PlayLayer::getClkTimer
 /**/ #define PlayLayer__m_hazards              0x188 /**/ // PlayLayer::checkCollisions (the for loop at the bottom which checks for rect intersections and calls destroyPlayer)
+/**/ #define PlayLayer__m_isFlipped            0x22c /**/ // PlayLayer::getIsFlipped
 /**/ #define PlayLayer__m_isPractice           0x265 /**/ // PlayLayer::getPracticeMode
 /**/ #define PlayLayer__m_jumps                0x2a0 /**/ // PlayLayer::getJumps
 /**/ #define PlayLayer__m_lastX                0x1e0 /**/ // PlayLayer::destroyPlayer (find the multiplication by 100, and the denominator in the division right before it is this field)
@@ -69,7 +81,14 @@
 /**/ #define PlayLayer__m_uiLayer              0x238 /**/ // PlayLayer::getUILayer
 /**/ #define PlayLayer__m_unkPrac              0x27b /**/ // PlayLayer::togglePracticeMode (set to 1 at the bottom)
 /**/ #define PlayerObject__m_gravity           0x370 /**/ // PlayerObject::gravityUp
+
+/**/ #define PlayerObject__m_gravityFlipped    0x406 /**/ // <--- needed for 1.4 only - PlayerObject::flipGravity
+/**/ #define PlayerObject__m_flyMode           0x404 /**/ // <--- needed for 1.4 only - PlayerObject::toggleFlyMode
+
 /**/ #define PlayerObject__m_onGround          0x37d /**/ // PlayerObject::pushButton (if statement that updateJump is called in)
+
+/**/ #define PlayerObject__m_playerScale       0x408 /**/ // <--- needed for 1.4 only - PlayerObject::getPlayerScale
+
 /**/ #define PlayerObject__m_pGround           0x3e0 /**/ // PlayerObject::deactivateParticle
 /**/ #define PlayerObject__m_pShipGround       0x3ec /**/ // PlayerObject::update (man idk how to describe where to find it)
 /**/ #define PlayerObject__m_pShipFire         0x3e4 /**/ // PlayerObject::update (man idk how to describe where to find it)
@@ -84,6 +103,7 @@
 /*******************************************************/
 /*/                     ADDRESSES                     /*/
 /*******************************************************/
+/**/ #define _0_1f                          0x322AEB /**/ // string search: %0.1f, the "1"
 /**/ #define basicstring_assign             0x2E87D0 /**/ // differs between versions :/
 /**/ #define global_order_of_arrival        0x4544CC /**/ // CCNode::reorderChild
 /**/ #define __GameManager_isColorUnlocked  0x144B74 /**/ // fuck dobbyhook fuck this stupid game fuck everyone kill 7 billion people

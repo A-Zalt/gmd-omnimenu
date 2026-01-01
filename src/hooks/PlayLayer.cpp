@@ -2,6 +2,10 @@
 #include "PlayLayer.hpp"
 #include "UILayer.hpp"
 #include "Utils.hpp"
+#ifdef USE_MINIAUDIO
+#include "AudioManager.hpp"
+#include "LevelTools.hpp"
+#endif
 
 void (*TRAM_PlayLayer_destroyPlayer)(PlayLayer* self);
 void PlayLayer_destroyPlayer(PlayLayer* self) {
@@ -26,10 +30,16 @@ void PlayLayer_destroyPlayer(PlayLayer* self) {
     hax.dead = true;
     TRAM_PlayLayer_destroyPlayer(self);
     if (hax.completed) return;
+#ifdef USE_MINIAUDIO
+    if (hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK) || !getPlayLayerPractice(self)) {
+        AudioManager::sharedManager().pauseBackgroundMusic();
+    }
+#else
     if (hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK) && getPlayLayerPractice(self)) {
         auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
         audioEngine->pauseBackgroundMusic();
     }
+#endif
     if (hax.getModuleEnabled(ModuleID::CUSTOM_RESPAWN_TIME)) {
 #if GAME_VERSION >= GV_1_6
         // 1.6 and above start using a tag for this action, so it's trivial to stop it
@@ -96,6 +106,16 @@ void PlayLayer_delayedResetLevel(PlayLayer* self) {
 void (*TRAM_PlayLayer_togglePracticeMode)(PlayLayer* self, bool toggle);
 void PlayLayer_togglePracticeMode(PlayLayer* self, bool toggle) {
     HaxManager& hax = HaxManager::sharedState();
+#ifdef USE_MINIAUDIO
+    if (!hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK)) {
+        auto& am = AudioManager::sharedManager();
+        if (toggle) {
+            am.stopBackgroundMusic();
+            am.playBackgroundMusic("StayInsideMe.mp3", true);
+        } else 
+            am.stopBackgroundMusic();
+    }
+#else
     if (hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK) && getPlayLayerPractice(self) != toggle) {
         // recreated function basically
         setPlayLayerPractice(self, toggle);
@@ -110,6 +130,8 @@ void PlayLayer_togglePracticeMode(PlayLayer* self, bool toggle) {
             self->resetLevel();
         }
     } else TRAM_PlayLayer_togglePracticeMode(self, toggle);
+#endif
+    TRAM_PlayLayer_togglePracticeMode(self, toggle);
     if (hax.spSwitcherParent) {
         if (toggle) hax.spSwitcherParent->setPosition(ccp(hax.spSwitcherParent->getPositionX(), 85));
         else hax.spSwitcherParent->setPosition(ccp(hax.spSwitcherParent->getPositionX(), 23));
@@ -121,6 +143,7 @@ void instantComplete(PlayLayer* self) {
     PlayerObject* player = getPlayer(self); // PlayLayer::getPlayer
     player->lockPlayer();
     self->levelComplete();
+    getUILayer()->_setZOrder(10);
     hax.instantComped = true;
 }
 
@@ -166,6 +189,68 @@ void PlayLayer::resetLevelLogic(PlayLayer* self) {
     hax.completed = false;
     hax.dead = false;
     hax.hasTouchedTheEye = false;
+    if (hax.percentageLabel) {
+        auto director = CCDirector::sharedDirector();
+        auto winSize = director->getWinSize();
+        hax.percentageLabel->setFntFile("bigFont.fnt");
+        hax.percentageLabel->setScale(0.5f);
+        hax.percentageLabel->setPositionY(winSize.height - 7.5);
+    }
+    auto respawnAction = self->getActionByTag(16);
+    if (respawnAction) {
+        self->stopAction(respawnAction);
+    }
+    TRAM_PlayLayer_resetLevel(self);
+
+    CCNode* lastCheckpoint = self->getLastCheckpoint();
+    if (lastCheckpoint != nullptr) {
+        if (hax.hitboxLayer) {
+            hax.hitboxLayer->setScaleX(getCheckpointFlipped(lastCheckpoint) ? -1 : 1);    
+        }
+    }
+
+#ifdef USE_MINIAUDIO
+    auto& am = AudioManager::sharedManager();
+    if (!getPlayLayerPractice(self) || hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK)) {
+        float seekTime = 0;
+        CCPoint startPos = getStartPos(self);
+        // CCLog("%f %f", startPos.x, startPos.y);
+        // CCLog("%f", self->timeForXPos(startPos.x, true));
+#if GAME_VERSION < GV_1_7
+        seekTime = startPos.x / 311.58f;
+#else
+        seekTime = self->timeForXPos(startPos.x, true);
+#endif
+        if (lastCheckpoint != nullptr) {
+            if (hax.hitboxLayer) {
+                hax.hitboxLayer->setScaleX(getCheckpointFlipped(lastCheckpoint) ? -1 : 1);    
+            }
+            CCPoint lastCheckpointPos = getCheckpointPosition(lastCheckpoint);
+#if GAME_VERSION < GV_1_7
+            seekTime = lastCheckpointPos.x / 311.58f;
+#else
+            seekTime = self->timeForXPos(lastCheckpointPos.x, true);
+#endif
+        }
+        if (am.m_playing) {
+            am.setBackgroundMusicTime(seekTime);
+            am.resumeBackgroundMusic();
+        } else {
+            am.playBackgroundMusic(
+                LevelTools::getAudioFileName(getPlayLayerLevel(self)->m_nAudioTrack), false
+            );
+            am.setBackgroundMusicTime(seekTime);
+        }
+    } else if (getPlayLayerPractice(self)) {
+        const char* prac = "StayInsideMe.mp3";
+        if (am.m_playing && !strcmp(prac, am.m_filename)) {
+            am.resumeBackgroundMusic();
+        } else {
+            if (am.m_playing) am.stopBackgroundMusic();
+            am.playBackgroundMusic(prac, true);
+        }
+    }
+#else
     if (hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK) && getPlayLayerPractice(self)) {
         auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
         int seekTime = 0;
@@ -197,18 +282,47 @@ void PlayLayer::resetLevelLogic(PlayLayer* self) {
         }
         audioEngine->resumeBackgroundMusic();
     }
-    if (hax.percentageLabel) {
-        auto director = CCDirector::sharedDirector();
-        auto winSize = director->getWinSize();
-        hax.percentageLabel->setFntFile("bigFont.fnt");
-        hax.percentageLabel->setScale(0.5f);
-        hax.percentageLabel->setPositionY(winSize.height - 7.5);
-    }
-    auto respawnAction = self->getActionByTag(16);
-    if (respawnAction) {
-        self->stopAction(respawnAction);
-    }
-    TRAM_PlayLayer_resetLevel(self);
+#endif
+
+    // if (getPlayLayerPractice(self)) {
+    //     if (hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK)) {
+    //         float seekTime = 0;
+    //         CCPoint startPos = getStartPos(self);
+    // #if GAME_VERSION < GV_1_7
+    //         seekTime = startPos.x / 311.58f;
+    // #else
+    //         seekTime = self->timeForXPos(startPos.x, true);
+    // #endif
+    //         CCNode* lastCheckpoint = self->getLastCheckpoint();
+    //         if (lastCheckpoint != nullptr) {
+    //             if (hax.hitboxLayer) {
+    //                 hax.hitboxLayer->setScaleX(getCheckpointFlipped(lastCheckpoint) ? -1 : 1);    
+    //             }
+    //             CCPoint lastCheckpointPos = getCheckpointPosition(lastCheckpoint);
+    // #if GAME_VERSION < GV_1_7
+    //             seekTime = lastCheckpointPos.x / 311.58f;
+    // #else
+    //             seekTime = self->timeForXPos(lastCheckpointPos.x, true);
+    // #endif
+    //         }
+    //         if (!AudioManager::sharedManager().isBackgroundMusicPlaying()) {
+    //             AudioManager::sharedManager().playBackgroundMusic(
+    //                 LevelTools::getAudioFileName(getPlayLayerLevel(self)->m_nAudioTrack), false
+    //             );
+    //         }
+    //         AudioManager::sharedManager().setBackgroundMusicTime(seekTime);
+    //         // audioEngine->setBackgroundMusicTime(static_cast<float>(seekTime) / 1000.f);
+    //         // audioEngine->resumeBackgroundMusic();
+    //     } else {
+    //         if (!AudioManager::sharedManager().isBackgroundMusicPlaying()) 
+    //             AudioManager::sharedManager().resumeBackgroundMusic();
+    //     }
+    // }
+    getUILayer()->_setZOrder(99);
+#if GAME_VERSION >= GV_1_5
+    if (getProgressBar(self))
+        getProgressBar(self)->_setZOrder(99);
+#endif
     // if (hax.getModuleEnabled(ModuleID::MUSIC_BUG_FIX) && !getPlayLayerPractice(self)) {
     //     hax.updatedMusic = false;
     // }
@@ -225,6 +339,9 @@ void PlayLayer::resetLevelLogic(PlayLayer* self) {
 
 void (*TRAM_PlayLayer_onQuit)(PlayLayer* self);
 void PlayLayer_onQuit(PlayLayer* self) {
+#ifdef USE_MINIAUDIO
+    AudioManager::sharedManager().m_areWeInPlayLayer = false;
+#endif
     TRAM_PlayLayer_onQuit(self);
     HaxManager& hax = HaxManager::sharedState();
     hax.quitPlayLayer = true;
@@ -407,9 +524,204 @@ void PlayLayer_update(PlayLayer* self, float dt) {
         hax.noclipAccuracy = static_cast<float>(hax.frameCount - hax.deadFrames) / static_cast<float>(hax.frameCount) * 100;
     }
 }
+
+HitboxLayer* HitboxLayer::create(PlayLayer* self) {
+    auto ret = new HitboxLayer;
+    if (ret->init(self)) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
+}
+
+bool HitboxLayer::init(PlayLayer* self) {
+    if (!CCLayer::init()) return false;
+    parent = self;
+#if GAME_VERSION >= GV_1_7
+    drawNode = CCDrawNode::create();
+#endif
+    return true;
+}
+
+#if GAME_VERSION < GV_1_7
+CCRect getRectOnCamera(PlayLayer* layer, CCRect otherRect) {
+    auto camera = getCameraPos(layer);
+    return CCRect(
+        CCRect::CCRectGetMinX(otherRect) - camera.x,
+        CCRect::CCRectGetMinY(otherRect) - camera.y,
+        CCRect::CCRectGetMaxX(otherRect) - camera.x,
+        CCRect::CCRectGetMaxY(otherRect) - camera.y
+    );
+}
+void drawRect(PlayLayer* layer, CCRect rect) {
+    auto cameraRect = getRectOnCamera(layer, rect);
+    ccDrawRect(
+        ccp(CCRect::CCRectGetMinX(cameraRect) + 0.75, CCRect::CCRectGetMinY(cameraRect) + 0.75), 
+        ccp(
+            CCRect::CCRectGetMaxX(cameraRect) - CCRect::CCRectGetMinX(cameraRect) - 0.75, 
+            CCRect::CCRectGetMaxY(cameraRect) - CCRect::CCRectGetMinY(cameraRect) - 0.75
+        )
+    );
+}
+#else
+CCRect getRectOnCamera(PlayLayer* layer, CCRect otherRect) {
+    auto camera = getCameraPos(layer);
+    return CCRect(
+        otherRect.getMinX() - camera.x,
+        otherRect.getMinY() - camera.y,
+        otherRect.size.width,
+        otherRect.size.height
+    );
+}
+void drawRect(PlayLayer* layer, CCRect rect) {
+    auto cameraRect = getRectOnCamera(layer, rect);
+    ccDrawRect(
+        ccp(cameraRect.getMinX() + 0.75, cameraRect.getMinY() + 0.75), 
+        ccp(
+            cameraRect.getMaxX() - 0.75, 
+            cameraRect.getMaxY() - 0.75
+        )
+    );
+}
+#endif
+
+void HitboxLayer::draw() {
+    HaxManager& hax = HaxManager::sharedState();
+    if (!hax.getModuleEnabled(ModuleID::SHOW_HITBOXES) &&
+    (!hax.dead || hax.completed || !hax.getModuleEnabled(ModuleID::SHOW_HITBOXES_ON_DEATH))) return;
+    auto player = getPlayer(parent);
+
+    GLint originalSrcFunc, originalDestFunc;
+    glGetIntegerv(GL_BLEND_SRC_RGB, &originalSrcFunc);
+    glGetIntegerv(GL_BLEND_DST_RGB, &originalDestFunc);
+
+    glLineWidth(3);
+    glBlendFunc(GL_ONE, GL_ZERO);
+#if GAME_VERSION >= GV_1_7
+    auto getObjectRect = (CCRect(*)(GameObject*))(DobbySymbolResolver(MAIN_LIBRARY, "_ZN10GameObject13getObjectRectEv"));
+    auto getObjectRectFF = (CCRect(*)(GameObject*, float, float))(DobbySymbolResolver(MAIN_LIBRARY, "_ZN10GameObject13getObjectRectEff"));
+    #define _getObjectRect(obj) getObjectRect(obj);
+    #define _getObjectRectFF(obj, scaleX, scaleY) getObjectRectFF(obj, scaleX, scaleY);
+#else
+    #define _getObjectRect(obj) obj->getObjectRect();
+    #define _getObjectRectFF(obj, scaleX, scaleY) obj->getObjectRect(scaleX, scaleY);
+#endif
+    if (player) {
+        auto playerRect = _getObjectRect(player);
+        auto playerRect2 = _getObjectRectFF(player, 0.3, 0.3);
+        // CCLog("%f %f %f %f", playerRect.getMinX(), playerRect.getMinY(), playerRect.getMaxX(), playerRect.getMaxY());
+        ccDrawColor4B(255, 0, 0, 255);
+        drawRect(parent, playerRect);
+        ccDrawColor4B(0, 0, 255, 255);
+        drawRect(parent, playerRect2);
+    }
+
+    auto winSize = CCDirector::sharedDirector()->getWinSize();
+    auto bottomLeft = getCameraPos(parent);
+    auto topRight = ccp(bottomLeft.x + winSize.width, bottomLeft.y + winSize.height);
+
+    auto sections = getPlaySections(parent);
+
+    int a1 = floorf(bottomLeft.x / 100);
+    int a2 = floorf(topRight.x / 100);
+    int a3 = sections->count() - 1;
+    auto leftmostSection = std::max(0, a1);
+    auto rightmostSection = std::min(a3, a2);
+    for (int i = leftmostSection; i <= rightmostSection; i++) {
+        auto section = static_cast<CCArray*>(sections->objectAtIndex(i));
+        for (int j = 0; j < section->count(); j++) {
+            auto object = static_cast<GameObject*>(section->objectAtIndex(j));
+            auto rect = _getObjectRect(object);
+#if GAME_VERSION < GV_1_7
+            if (CCRect::CCRectGetMaxY(rect) < bottomLeft.y) continue;
+            if (CCRect::CCRectGetMinY(rect) > topRight.y) continue;
+#else
+            if (rect.getMaxY() < bottomLeft.y) continue;
+            if (rect.getMinY() > topRight.y) continue;
+#endif
+            switch (getObjectType(object)) {
+                case 0:
+                    ccDrawColor4B(0, 0, 255, 255);
+                    drawRect(parent, rect);
+                    break;
+                case 2:
+                    ccDrawColor4B(255, 0, 0, 255);
+                #if GAME_VERSION >= GV_1_4
+                    if (getRadius(object) > 0) {
+                        ccDrawCircle(
+                            ccp(getRealPosition(object).x - bottomLeft.x, getRealPosition(object).y - bottomLeft.y),
+                            getRadius(object),
+                            0, 24, false
+                        );
+                        break;
+                    }
+                #endif
+                    drawRect(parent, rect);
+                    break;
+                case GameObjectType::ReverseGravityPortal:
+                case GameObjectType::NormalGravityPortal:
+                case GameObjectType::IconPortal:
+                case GameObjectType::ShipPortal:
+                case GameObjectType::YellowOrb:
+                case GameObjectType::YellowPad:
+                // 1.02 only
+                case GameObjectType::MirrorPortal:
+                case GameObjectType::UnmirrorPortal:
+                // 1.11 only
+            #if GAME_VERSION >= GV_1_1
+                case GameObjectType::BallPortal:
+            #endif
+            #if GAME_VERSION >= GV_1_3
+                case GameObjectType::BlueOrb:
+                case GameObjectType::BluePad:
+            #endif
+            #if GAME_VERSION >= GV_1_4
+                case GameObjectType::NormalSizePortal:
+                case GameObjectType::MiniSizePortal:
+            #endif
+            #if GAME_VERSION >= GV_1_5
+                case GameObjectType::PinkOrb:
+                case GameObjectType::PinkPad:
+                case GameObjectType::BirdPortal:
+            #endif
+            #if GAME_VERSION >= GV_1_6
+                case GameObjectType::BreakableBlock:
+                case GameObjectType::SecretCoin:
+            #endif
+            #if GAME_VERSION >= GV_1_7
+                case GameObjectType::SpeedPortal:
+            #endif
+                    ccDrawColor4B(0, 255, 0, 255);
+                    drawRect(parent, object->getObjectRect());
+                    break;
+            }
+        }
+    }
+    glBlendFunc(originalSrcFunc, originalDestFunc);
+}
+
 bool (*TRAM_PlayLayer_init)(PlayLayer* self, GJGameLevel* level);
 bool PlayLayer_init(PlayLayer* self, GJGameLevel* level) {
+#ifdef USE_MINIAUDIO
+    auto& am = AudioManager::sharedManager();
+    am.m_areWeInPlayLayer = true;
+#endif
+    setDecimals('1');
     if (!TRAM_PlayLayer_init(self, level)) return false;
+#ifdef USE_MINIAUDIO
+    if (am.m_volumeCache > 0) {
+        am.setBackgroundMusicVolume(1);
+    }
+#endif
+    auto uiLayer = getUILayer(self);
+    uiLayer->removeFromParentAndCleanup(false);
+    self->addChild(uiLayer, 99);
+#if GAME_VERSION >= GV_1_5
+    auto progressBar = getProgressBar(self);
+    progressBar->removeFromParentAndCleanup(false);
+    self->addChild(progressBar, 99);
+#endif
     HaxManager& hax = HaxManager::sharedState();
     hax.startPercent = getCurrentPercentageF();
     if (hax.getModuleEnabled(ModuleID::HIDE_ATTEMPTS)) {
@@ -426,6 +738,8 @@ bool PlayLayer_init(PlayLayer* self, GJGameLevel* level) {
         hax.startPosIndex = hax.startPositions->count() - 1;
         getUILayer(self)->createSwitcher();
     }
+    hax.hitboxLayer = HitboxLayer::create(self);
+    self->addChild(hax.hitboxLayer, 98);
     return true;
 }
 void (*TRAM_PlayLayer_shakeCamera)(PlayLayer* self, float duration);
@@ -518,6 +832,28 @@ void PlayLayer_playSpeedParticle(PlayLayer* self, float speed) {
 }
 #endif
 
+#ifdef USE_MINIAUDIO
+void (*TRAM_PlayLayer_pauseGame)(PlayLayer* self);
+void PlayLayer_pauseGame(PlayLayer* self) {
+    TRAM_PlayLayer_pauseGame(self);
+    AudioManager::sharedManager().pauseBackgroundMusic();
+}
+#endif
+void (*TRAM_PlayLayer_resume)(PlayLayer* self);
+void PlayLayer_resume(PlayLayer* self) {
+    TRAM_PlayLayer_resume(self);
+    HaxManager& hax = HaxManager::sharedState();
+#ifdef USE_MINIAUDIO
+    if (!hax.dead || (getPlayLayerPractice(self) && !hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK)) && AudioManager::sharedManager().m_areWeInPlayLayer) 
+        AudioManager::sharedManager().resumeBackgroundMusic();
+#else
+    if (hax.getModuleEnabled(ModuleID::MUSIC_BUG_FIX) && hax.dead && (!getPlayLayerPractice(self) || hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK))) {
+        auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
+        audioEngine->pauseBackgroundMusic();
+    }
+#endif
+}
+
 void PlayLayer_om() {
     Omni::hook("_ZN9PlayLayer13destroyPlayerEv", 
         reinterpret_cast<void*>(PlayLayer_destroyPlayer),
@@ -528,15 +864,13 @@ void PlayLayer_om() {
     Omni::hook("_ZN9PlayLayer6updateEf",
         reinterpret_cast<void*>(PlayLayer_update),
         reinterpret_cast<void**>(&TRAM_PlayLayer_update));
-#if GAME_VERSION > GV_1_0
     Omni::hook("_ZN9PlayLayer13toggleFlippedEbb",
         reinterpret_cast<void*>(PlayLayer_toggleFlipped),
         reinterpret_cast<void**>(&TRAM_PlayLayer_toggleFlipped));
-#if GAME_VERSION < GV_1_6
+#if GAME_VERSION > GV_1_0 && GAME_VERSION < GV_1_6
     Omni::hook("_ZN9PlayLayer17delayedResetLevelEv",
         reinterpret_cast<void*>(PlayLayer_delayedResetLevel),
         reinterpret_cast<void**>(&TRAM_PlayLayer_delayedResetLevel));
-#endif
 #endif
     Omni::hook("_ZN9PlayLayer10resetLevelEv",
         reinterpret_cast<void*>(PlayLayer_resetLevel),
@@ -574,6 +908,14 @@ void PlayLayer_om() {
         reinterpret_cast<void*>(PlayLayer_playSpeedParticle),
         reinterpret_cast<void**>(&TRAM_PlayLayer_playSpeedParticle));
 #endif
+#ifdef USE_MINIAUDIO
+    Omni::hook("_ZN9PlayLayer9pauseGameEv",
+        reinterpret_cast<void*>(PlayLayer_pauseGame),
+        reinterpret_cast<void**>(&TRAM_PlayLayer_pauseGame));
+#endif
+    Omni::hook("_ZN9PlayLayer6resumeEv",
+        reinterpret_cast<void*>(PlayLayer_resume),
+        reinterpret_cast<void**>(&TRAM_PlayLayer_resume));
     // Omni::hook("_ZN9PlayLayer14createParticleEiPKciN7cocos2d15tCCPositionTypeE",
     //     reinterpret_cast<void*>(PlayLayer_createParticle),
     //     reinterpret_cast<void**>(&TRAM_PlayLayer_createParticle));

@@ -752,6 +752,12 @@ bool getShowProgressBar() {
     GameManager* gman = GameManager::sharedState();
     return MEMBER_BY_OFFSET(bool, gman, GameManager__m_showProgressBar);
 }
+CCSprite* getProgressBar(PlayLayer* playLayer) {
+    return MEMBER_BY_OFFSET(CCSprite*, playLayer, PlayLayer__m_progressBar);
+}
+CCSprite* getProgressBar() {
+    return getProgressBar(getPlayLayer());
+}
 CCMenuItemSpriteExtra* getZoomOutButton(EditorUI* uiLayer) {
     return MEMBER_BY_OFFSET(CCMenuItemSpriteExtra*, uiLayer, EditorUI__m_zoomOutButton);
 }
@@ -864,3 +870,52 @@ void setLeaderboardState(LeaderboardsLayer* self, int value) {
     MEMBER_BY_OFFSET(int, self, LeaderboardsLayer__m_boardType) = value;
 }
 #endif
+CCPoint getCameraPos(PlayLayer* self) {
+    return MEMBER_BY_OFFSET(CCPoint, self, PlayLayer__m_cameraPos);
+}
+CCPoint getCameraPos() {
+    return getCameraPos(getPlayLayer());
+}
+#if GAME_VERSION >= GV_1_4
+float getRadius(GameObject* obj) {
+    return MEMBER_BY_OFFSET(float, obj, GameObject__m_radius);
+}
+#endif
+bool getIsFlipped(PlayLayer* layer) {
+    return MEMBER_BY_OFFSET(bool, layer, PlayLayer__m_isFlipped);
+}
+bool getIsFlipped() {
+    return getIsFlipped(getPlayLayer());
+}
+float getDuration(ColorSelectPopup* popup) {
+    return MEMBER_BY_OFFSET(float, popup, ColorSelectPopup__m_duration);
+}
+void setDuration(ColorSelectPopup* popup, float value) {
+    MEMBER_BY_OFFSET(float, popup, ColorSelectPopup__m_duration) = value;
+}
+CCLabelBMFont* getDurationLabel(ColorSelectPopup* popup) {
+    return MEMBER_BY_OFFSET(CCLabelBMFont*, popup, ColorSelectPopup__m_durLabel);
+}
+Slider* getCSPSlider(ColorSelectPopup* popup) {
+    return MEMBER_BY_OFFSET(Slider*, popup, ColorSelectPopup__m_slider);
+}
+void setDecimals(char val) {
+    DobbyCodePatch(
+        reinterpret_cast<void*>(get_address(_0_1f)),
+        std::vector<uint8_t>({val}).data(), 1
+    );
+}
+#if GAME_VERSION == GV_1_4
+bool getFlyMode(PlayerObject* player) {
+    return MEMBER_BY_OFFSET(bool, player, PlayerObject__m_flyMode);
+}
+bool getGravityFlipped(PlayerObject* player) {
+    return MEMBER_BY_OFFSET(bool, player, PlayerObject__m_gravityFlipped);
+}
+float getPlayerScale(PlayerObject* player) {
+    return MEMBER_BY_OFFSET(float, player, PlayerObject__m_playerScale);
+}
+#endif
+bool getCheckpointFlipped(CCNode* checkpoint) {
+    return MEMBER_BY_OFFSET(bool, checkpoint, CheckpointObject__m_isFlipped);
+}

@@ -17,6 +17,7 @@
 #include "LevelSettingsObject.hpp"
 #include "GameLevelManager.hpp"
 #include "LeaderboardsLayer.hpp"
+#include "Slider.hpp"
 
 #define MEMBER_BY_OFFSET(type, var, offset) \
     (*reinterpret_cast<type*>(reinterpret_cast<uintptr_t>(var) + static_cast<uintptr_t>(offset)))
@@ -194,6 +195,8 @@ void setProfanityBypass(bool enable);
 void setBlockVerify(bool enable);
 std::vector<uint8_t> uintptrToBytes(uintptr_t value);
 bool getShowProgressBar();
+CCSprite* getProgressBar(PlayLayer* playLayer);
+CCSprite* getProgressBar();
 CCMenuItemSpriteExtra* getZoomOutButton(EditorUI* uiLayer);
 #endif
 
@@ -225,3 +228,21 @@ CCMenu* getCheckpointMenu(UILayer* self);
 LeaderboardState getLeaderboardState(LeaderboardsLayer* self);
 void setLeaderboardState(LeaderboardsLayer* self, int value);
 #endif
+CCPoint getCameraPos(PlayLayer* self);
+CCPoint getCameraPos();
+#if GAME_VERSION >= GV_1_4
+float getRadius(GameObject* obj);
+#endif
+bool getIsFlipped(PlayLayer* layer);
+bool getIsFlipped();
+float getDuration(ColorSelectPopup* popup);
+void setDuration(ColorSelectPopup* popup, float value);
+CCLabelBMFont* getDurationLabel(ColorSelectPopup* popup);
+Slider* getCSPSlider(ColorSelectPopup* popup);
+void setDecimals(char val);
+#if GAME_VERSION == GV_1_4
+bool getFlyMode(PlayerObject* player);
+bool getGravityFlipped(PlayerObject* player);
+float getPlayerScale(PlayerObject* player);
+#endif
+bool getCheckpointFlipped(CCNode* checkpoint);

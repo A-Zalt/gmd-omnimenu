@@ -11,6 +11,10 @@ public:
     bool init(GameObject* object);
     _ccColor3B getColorValue();
     void selectColor(_ccColor3B color);
+
+    void onCopy();
+    void onPaste();
+    void updateDurLabel();
 };
 
 class ColorPickerPopup : public FLAlertLayer {
@@ -19,4 +23,7 @@ public:
     bool init(GameObject* object);
     _ccColor3B getColorValue();
     void selectColor(_ccColor3B color);
+
+    void onCopy();
+    void onPaste();
 };

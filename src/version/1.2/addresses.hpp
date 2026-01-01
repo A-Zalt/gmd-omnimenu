@@ -12,10 +12,16 @@
 /**/ #define CCTextInputNode__m_inputDelegate  0x16c /**/ // CCTextInputNode::getDelegate
 /**/ #define CCTextInputNode__m_textField      0x168 /**/ // CCTextInputNode::getTextField
 /**/ #define CCEGLViewProtocol__m_screenBottom  0xe4 /**/ // cocos2d::CCEGLViewProtocol::getScreenBottom
+/**/ #define CheckpointObject__m_isFlipped     0x158 /**/ // CheckpointObject::getIsFlipped
 /**/ #define CheckpointObject__m_playerPos     0x12c /**/ // CheckpointObject::getPlayerPos
 /**/ #define ColorPickerPopup__m_colorWheel    0x1cc /**/ // ColorPickerPopup::selectColor
 /**/ #define ColorSelectPopup__m_colorWheel    0x1cc /**/ // ColorSelectPopup::selectColor
+/**/ #define ColorSelectPopup__m_duration      0x1e4 /**/ // ColorSelectPopup::sliderChanged
+/**/ #define ColorSelectPopup__m_durLabel      0x1d4 /**/ // ColorSelectPopup::updateDurLabel
+/**/ #define ColorSelectPopup__m_slider        0x1d8 /**/ // ColorSelectPopup::init
+
 /**/ #define CommentCell__m_parent             0x17c /**/ // CommentCell::loadFromComment (calls the 0xFC virtual on it, which is removeAllChildrenWithCleanup)
+
 /**/ #define EditButtonBar__m_buttons          0x12c /**/ // EditButtonBar::init
 /**/ #define EditLevelLayer__m_level           0x148 /**/ // EditLevelLayer::init
 /**/ #define EditorPauseLayer__m_editorLayer   0x1c8 /**/ // EditorPauseLayer::init
@@ -57,9 +63,11 @@
 /**/ #define LocalLevelManager__m_localLevels  0x130 /**/ // LocalLevelManager::getLocalLevels
 /**/ #define PlayLayer__m_attempts             0x288 /**/ // PlayLayer::getAttempts
 /**/ #define PlayLayer__m_attemptLabel         0x1e0 /**/ // PlayLayer::updateAttempts (assigned to a var right after the if statement)
+/**/ #define PlayLayer__m_cameraPos            0x234 /**/ // PlayLayer::getCameraPos
 /**/ #define PlayLayer__m_checkpoints          0x154 /**/ // PlayLayer::removeLastCheckpoint
 /**/ #define PlayLayer__m_clkTimer             0x290 /**/ // PlayLayer::getClkTimer
 /**/ #define PlayLayer__m_hazards              0x188 /**/ // PlayLayer::checkCollisions (the for loop at the bottom which checks for rect intersections and calls destroyPlayer)
+/**/ #define PlayLayer__m_isFlipped            0x21c /**/ // PlayLayer::getIsFlipped
 /**/ #define PlayLayer__m_isPractice           0x255 /**/ // PlayLayer::getPracticeMode
 /**/ #define PlayLayer__m_jumps                0x28c /**/ // PlayLayer::getJumps
 /**/ #define PlayLayer__m_lastX                0x1d8 /**/ // PlayLayer::destroyPlayer (find the multiplication by 100, and the denominator in the division right before it is this field)
@@ -87,6 +95,7 @@
 /*******************************************************/
 /*/                     ADDRESSES                     /*/
 /*******************************************************/
+/**/ #define _0_1f                          0x30E87B /**/ // string search: %0.1f, the "1"
 /**/ #define basicstring_assign             0x2D45A8 /**/ // differs between versions :/
 /**/ #define global_order_of_arrival        0x40D26C /**/ // CCNode::reorderChild
 /**/ #define move_x_max                     0x150670 /**/ // EditorUI::moveObject - 00 60 EA 46

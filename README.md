@@ -2,10 +2,16 @@
 
 Mod Menu for older versions of Geometry Dash (pre-1.9).
 
-Currently works for versions 1.02 - 1.6.
+Currently works for versions 1.02 - 1.71.
 
 ## Downloads
 Downloads are available in the Discord server: https://discord.gg/4AC23yn4yF
+
+## Libraries Used
+- DobbyHook
+- fmtlib
+- miniaudio
+- rapidjson
 
 ## Special Thanks
 - [**akqanile (Adelfa)**](https://github.com/cierra-kb) - 100 KB fix, 16k fix, lots of help with issues. He is regarded as the god of tradmodding for a reason.
@@ -69,11 +75,24 @@ After that, find the onCreate method, where it should be something like:
     ...
 ```
 
-Below the `invoke-super` line, put this line: `sput-object p0, Lcom/robtopx/geometryjump/GeometryJump;->instance:Lcom/robtopx/geometryjump/GeometryJump;`
+Below the `invoke-super` line, put this line: 
+
+```
+sput-object p0, Lcom/robtopx/geometryjump/GeometryJump;->instance:Lcom/robtopx/geometryjump/GeometryJump;
+```
+
+and then these three lines if building with miniaudio:
+```
+invoke-virtual {p0}, Landroid/content/Context;->getAssets()Landroid/content/res/AssetManager;
+
+move-result-object v0
+
+invoke-virtual {p0, v0}, Lcom/robtopx/geometryjump/GeometryJump;->nativeSetAssetManager(Landroid/content/res/AssetManager;)V
+```
 
 And, at the top of the file, after the static field definitions, add this line: `.field private static instance:Lcom/robtopx/geometryjump/GeometryJump;`
 
-(replace `com/robtopx/geometryjump` in both if necessary)
+(replace `com/robtopx/geometryjump` in all of these if necessary)
 
 8. In the folder with the mod source, open `smali/GeometryJump.smali`, copy everything from it and paste it at the bottom of the APK's `GeometryJump.smali`. This is required for GDShare to work. If the APK's `GeometryJump.smali` is not located at `com/robtopx/geometryjump`, you should replace the 2 occurences of `com/robtopx/geometryjump/GeometryJump` in the smali code you're pasting in to `new/path/to/GeometryJump`. Also copy `smali/ClipboardHelper.smali` and `smali/ClipboardHelper$1.smali` to the smali folder of the APK. This is required for Copy UDID to work on Bluestacks.
 9. (Optional, but recommended) Switch back to Resources at the bottom left of APK Editor Studio. Click on values, then strings, then the entry without a flag. Find `<string name="app_name">Geometry Dash</string>` and replace `Geometry Dash` with your desired app name. (Note: the recommended capitalizations are OMNImenu or OmniMenu)

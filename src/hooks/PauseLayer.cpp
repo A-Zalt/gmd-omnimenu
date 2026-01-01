@@ -3,6 +3,9 @@
 #include "PauseLayer.hpp"
 #include "SpeedhackInput.hpp"
 #include "CCTextInputNode.hpp"
+#ifdef USE_MINIAUDIO
+#include "AudioManager.hpp"
+#endif
 
 void PauseLayer::onOpenMenu() {
     auto haxOverlay = HaxMenu::create(this);
@@ -213,6 +216,14 @@ void PauseLayer_onRestart(PauseLayer* self) {
 }
 #endif
 
+#ifdef USE_MINIAUDIO
+void (*TRAM_PauseLayer_onEdit)(PauseLayer* self SEL_MenuHandler_1_7_compat2);
+void PauseLayer_onEdit(PauseLayer* self SEL_MenuHandler_1_7_compat2) {
+    AudioManager::sharedManager().m_areWeInPlayLayer = false;
+    TRAM_PauseLayer_onEdit(self sender_param_1_7);
+}
+#endif
+
 void PauseLayer_om() {
     Omni::hook("_ZN10PauseLayer11customSetupEv",
         reinterpret_cast<void*>(PauseLayer_customSetup),
@@ -233,4 +244,14 @@ void PauseLayer_om() {
 #endif
         reinterpret_cast<void*>(PauseLayer_onQuit),
         reinterpret_cast<void**>(&TRAM_PauseLayer_onQuit));
+#ifdef USE_MINIAUDIO
+    Omni::hook(
+    #if GAME_VERSION < GV_1_7
+        "_ZN10PauseLayer6onEditEv",
+    #else
+        "_ZN10PauseLayer6onEditEPN7cocos2d8CCObjectE",
+    #endif
+        reinterpret_cast<void*>(PauseLayer_onEdit),
+        reinterpret_cast<void**>(&TRAM_PauseLayer_onEdit));
+#endif
 }

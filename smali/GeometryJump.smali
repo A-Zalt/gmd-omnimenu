@@ -4,6 +4,9 @@
 .method public native nativeOnFileOpenChosen(Ljava/lang/String;)V
 .end method
 
+.method public native nativeSetAssetManager(Landroid/content/res/AssetManager;)V
+.end method
+
 .method public showSaveFilePicker(Ljava/lang/String;)V
     .registers 5
 

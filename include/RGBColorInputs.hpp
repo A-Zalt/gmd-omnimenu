@@ -14,8 +14,21 @@ public:
     CCTextInputNode* redInput;
     CCTextInputNode* greenInput;
     CCTextInputNode* blueInput;
+    CCTextInputNode* ftInput;
     bool ignore;
     bool dontChange;
+    bool hasInitializedColor;
+    _ccColor3B colorAtInit;
+    _ccColor3B currentColor;
+    bool colorPicker;
+    ColorSelectPopup* csp;
+    bool editingFT;
+
+    void initColor(_ccColor3B color) {
+        if (hasInitializedColor) return;
+        hasInitializedColor = true;
+        colorAtInit = color;
+    }
 
     static RGBColorInputs* create(cocos2d::extension::CCControlColourPicker* parent);
     bool init(cocos2d::extension::CCControlColourPicker* parent);
@@ -23,6 +36,11 @@ public:
     // must be called after create
     void setupDelegates();
     void createTheThings();
+    void createFTInput();
+    void setupFTDelegate();
 
     virtual void textChanged(CCTextInputNode* input) override;
+    // virtual void textInputOpened(CCTextInputNode* input) override;
+    // virtual void textInputClosed(CCTextInputNode* input) override;
+    virtual void draw() override;
 };

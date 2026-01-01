@@ -1,5 +1,6 @@
 #include "hook.hpp"
 #include "GameManager.hpp"
+#include "AudioManager.hpp"
 
 #if GAME_VERSION < GV_1_4
 bool (*TRAM_GameManager_isIconUnlocked)(GameManager* self, int idx);
@@ -55,6 +56,18 @@ void GameManager_reportAchievementWithID(void* self, const char* ach, int percen
     TRAM_GameManager_reportAchievementWithID(self, ach, percent, notify);
 }
 #endif
+
+#ifdef USE_MINIAUDIO
+void (*TRAM_GameManager_toggleMusic)(GameManager* self);
+void GameManager_toggleMusic(GameManager* self) {
+    auto& am = AudioManager::sharedManager();
+    bool old = am.m_areWeInPlayLayer;
+    am.m_areWeInPlayLayer = false;
+    TRAM_GameManager_toggleMusic(self);
+    am.m_areWeInPlayLayer = old;
+}
+#endif
+
 // void (*TRAM_GameManager_createAndAddParticle)(void* self, int a1, const char* file, int a2, tCCPositionType a3);
 // void GameManager_createAndAddParticle(void* self, int a1, const char* file, int a2, tCCPositionType a3) { 
 //     HaxManager& hax = HaxManager::sharedState();
@@ -81,6 +94,11 @@ void GameManager_om() {
 #endif
         reinterpret_cast<void*>(GameManager_reportAchievementWithID),
         reinterpret_cast<void**>(&TRAM_GameManager_reportAchievementWithID));
+#ifdef USE_MINIAUDIO
+    Omni::hook("_ZN11GameManager11toggleMusicEv",
+        reinterpret_cast<void*>(GameManager_toggleMusic),
+        reinterpret_cast<void**>(&TRAM_GameManager_toggleMusic));
+#endif
     // Omni::hook("_ZN10GameObject20createAndAddParticleEiPKciN7cocos2d15tCCPositionTypeE",
     //     reinterpret_cast<void*>(GameManager_createAndAddParticle),
     //     reinterpret_cast<void**>(&TRAM_GameManager_createAndAddParticle));

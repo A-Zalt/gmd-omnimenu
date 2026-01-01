@@ -8,7 +8,7 @@ enum GhostType {
     Ghost = 1
 };
 
-class PlayerObject : public cocos2d::CCSprite {
+class PlayerObject : public GameObject {
 public:
     static PlayerObject* create(int, cocos2d::CCLayer*);
     bool init(void*);
@@ -26,4 +26,8 @@ public:
     void stopRotation();
     void toggleGhostEffect(GhostType type);
     void touchedObject(GameObject* object);
+#if GAME_VERSION >= GV_1_4
+    void updatePlayerShipFrame(int id);
+    void updatePlayerScale(); // exists since 1.5, but reimplemented by OMNImenu in 1.4 for Ship Gravity Bug Fix
+#endif
 };

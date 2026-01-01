@@ -17,6 +17,7 @@
 #include "PauseLayer.hpp"
 #include "SpeedhackInput.hpp"
 #include "RespawnTimeInput.hpp"
+#include "HitboxLayer.hpp"
 
 enum class CheatIndicatorColor {
     Green,
@@ -31,6 +32,7 @@ enum ModuleID {
     _100_KB_FIX,
     _16K_FIX,
     AUTO_SAFE_MODE,
+    RGB_COLOR_INPUTS, // Better Color Inputs
     CHARACTER_FILTER_BYPASS,
     CHEAT_INDICATOR,
     COMMENT_IDS,
@@ -115,10 +117,12 @@ enum ModuleID {
     PCOMMAND,
     PIG_SPOOFING,
     PRACTICE_MUSIC_HACK,
-    RGB_COLOR_INPUTS,
     ROTATION_BUG_FIX,
     SAFE_MODE,
+    SHIP_GRAVITY_BUG_FIX,
     SHOW_DIFFICULTY,
+    SHOW_HITBOXES,
+    SHOW_HITBOXES_ON_DEATH,
     SHOW_PERCENTAGE,
     SHOW_PERCENTAGE_DECIMAL,
     SHOW_OBJECT_INFO,
@@ -211,6 +215,11 @@ public:
     float respawnTime;
     RespawnTimeInput* respawnInput;
     bool customRespawn;
+    HitboxLayer* hitboxLayer;
+#if GAME_VERSION < GV_1_3
+    _ccColor3B copiedColor;
+#endif
+    bool inEditor;
 
     bool getModuleEnabled(ModuleID id) {
         return modules[id].enabled;
@@ -231,6 +240,7 @@ public:
         getModuleEnabled(ModuleID::NO_MIRROR) || 
         pSpeedModified != 0 || pGravityModified != 0 || pYStartModified != 0 ||
         hasTouchedTheEye || 
+        getModuleEnabled(ModuleID::SHOW_HITBOXES) || 
         (getModuleEnabled(ModuleID::SPEEDHACK)) && timeScale != 1) return CheatIndicatorColor::Red;
         if (hasCheated) return CheatIndicatorColor::Orange;
 #ifndef FORCE_AUTO_SAFE_MODE
@@ -415,6 +425,7 @@ public:
         hasTouchedTheEye = false;
         respawnInput = nullptr;
         customRespawn = false;
+        hitboxLayer = nullptr;
     }
 
 private:
@@ -448,11 +459,6 @@ private:
                 HaxManager& hax = HaxManager::sharedState();
                 if (_) hax.setCheating(true);
             });
-        modules[ModuleID::MUSIC_BUG_FIX] = Module(
-            "music_bug_fix",
-            "Music Bug Fix", 
-            "Makes music seeking work properly more often.", 
-            true, ModuleCategory::Player, [](bool _){});
         modules[ModuleID::NOCLIP] = Module(
             "noclip",
             "NoClip", 
@@ -474,6 +480,11 @@ private:
             "pCommand", 
             "Re-enables the unused \"pCommand\" functionality, which allows you to alter your speed, gravity and jump height. (NOTE: Some creative liberties had to be taken with the controls. This module is not entirely accurate to how pCommand actually worked.)", 
             false, ModuleCategory::Player, [](bool _){});
+        modules[ModuleID::PRACTICE_MUSIC_HACK] = Module(
+            "practice_music",
+            "Practice Music Hack", 
+            "Plays the normal level music in practice mode.", 
+            false, ModuleCategory::Player, [](bool _){});
 #if GAME_VERSION < GV_1_2
         modules[ModuleID::ROTATION_BUG_FIX] = Module(
             "rotation_bug_fix",
@@ -484,11 +495,13 @@ private:
                 hax.setCheating(true);
             });
 #endif
-        modules[ModuleID::PRACTICE_MUSIC_HACK] = Module(
-            "practice_music",
-            "Practice Music Hack", 
-            "Plays the normal level music in practice mode.", 
-            false, ModuleCategory::Player, [](bool _){});
+#if GAME_VERSION == GV_1_4
+        modules[ModuleID::SHIP_GRAVITY_BUG_FIX] = Module(
+            "ship_gravity_bug_fix",
+            "Ship Gravity Bug Fix", 
+            "Fixes the ship being incorrectly displayed as normal gravity after going through a size portal.", 
+            true, ModuleCategory::Player, [](bool _){});
+#endif
         modules[ModuleID::SHOW_RESTART_BUTTON] = Module(
             "show_restart_button",
             "Show Restart Button", 
@@ -603,6 +616,19 @@ private:
             "Fixes the Object color not resetting to white after death.", 
             false, ModuleCategory::Visual, [](bool _){});
 #endif
+        modules[ModuleID::SHOW_HITBOXES] = Module(
+            "show_hitboxes",
+            "Show Hitboxes", 
+            "Displays the hitboxes of objects.", 
+            false, ModuleCategory::Visual, [](bool _){
+                HaxManager& hax = HaxManager::sharedState();
+                if (_) hax.setCheating(true);
+            });
+        modules[ModuleID::SHOW_HITBOXES_ON_DEATH] = Module(
+            "show_hitboxes_on_death",
+            "Show Hitboxes on Death", 
+            "Displays the hitboxes of objects upon death.", 
+            false, ModuleCategory::Visual, [](bool _){});
         modules[ModuleID::SHOW_PERCENTAGE] = Module(
             "show_percentage",
             "Show Percentage", 
@@ -640,6 +666,17 @@ private:
 //                 "Opens the editor pause menu when pressing the back button on the keypad.", 
 //                 false, ModuleCategory::Editor, [](bool _){})));
 // #endif
+        modules[ModuleID::RGB_COLOR_INPUTS] = Module(
+            "rgb_color_inputs",
+            "Better Color Pickers", 
+            "Improves editor color pickers by adding extra QoL features.", 
+            false, ModuleCategory::Editor, [](bool _){
+                HaxManager& hax = HaxManager::sharedState();
+                if (hax.inEditor) {
+                    if (_) setDecimals('2');
+                    else setDecimals('1');
+                }
+            });
 #if GAME_VERSION < GV_1_5
         modules[ModuleID::COPY_PASTE] = Module(
             "copy_paste",
@@ -709,6 +746,13 @@ private:
                 setEditButton(_);
             });
 #endif
+#ifndef USE_MINIAUDIO
+        modules[ModuleID::MUSIC_BUG_FIX] = Module(
+            "music_bug_fix",
+            "Music Bug Fix", 
+            "Makes music seeking work properly more often.", 
+            true, ModuleCategory::Player, [](bool _){});
+#endif
         modules[ModuleID::OBJECT_LIMIT_BYPASS] = Module(
             "object_hack",
             "Object Limit Bypass", 
@@ -727,11 +771,6 @@ private:
                 } else
                     setObjectLimit(OBJECT_LIMIT);
             });
-        modules[ModuleID::RGB_COLOR_INPUTS] = Module(
-            "rgb_color_inputs",
-            "RGB Color Inputs", 
-            "Allows you to directly input the RGB values in color selection menus.", 
-            false, ModuleCategory::Editor, [](bool _){});
         modules[ModuleID::SHOW_OBJECT_INFO] = Module(
             "show_object_info",
             "Show Object Info", 
@@ -1114,6 +1153,11 @@ private:
         timeScale = 1;
         respawnTime = 0.5;
         hasInitialized = false;
+        hitboxLayer = nullptr;
+#if GAME_VERSION < GV_1_3
+        copiedColor = ccc3(255, 255, 255);
+#endif
+        inEditor = false;
         // fpsBypass = 240;
         // originalAnimInterval = 1 / 60;
 

@@ -81,8 +81,8 @@ bool EditorPauseLayer_init(cocos2d::CCLayer* self, LevelEditorLayer* editLayer) 
         float lastSpeedX = 0;
         for (int i = 0; i < speedsSorted->count(); i++) {
             auto obj = static_cast<GameObject*>(speedsSorted->objectAtIndex(i));
+            time += (obj->getPositionX() - lastSpeedX) / (346.2 * mult);
             lastSpeedX = obj->getPositionX();
-            time += lastSpeedX / (346.2 * mult);
             switch (getObjectKey(obj)) {
                 case 200: mult = 0.7; break;
                 case 201: mult = 0.9; break;

@@ -1,4 +1,6 @@
 #pragma once
+#ifndef __HOOKING_ESSENTIALS
+#define __HOOKING_ESSENTIALS
 
 #include <dlfcn.h>  // dlsym, RTLD_NOW
 #include <dobby.h>  // DobbyHook
@@ -28,3 +30,4 @@ namespace Omni {
         DobbyHook(dlsym(getHandle(), symbol), func, origFunc);
     }
 }
+#endif
