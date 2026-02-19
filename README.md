@@ -16,7 +16,7 @@ Downloads are available in the Discord server: https://discord.gg/4AC23yn4yF
 ## Special Thanks
 - [**akqanile (Adelfa)**](https://github.com/cierra-kb) - 100 KB fix, 16k fix, lots of help with issues. He is regarded as the god of tradmodding for a reason.
 - Eclipse Mod Menu team - many hack implementations
-- Hris69 - betatested on Android 4.4. Also got me started with tradmodding in general. Without him, this mod menu wouldn't exist.
+- Hris69 - betatested on Android 4.4 and helped with some features. Also got me started with tradmodding in general. Without him, this mod menu wouldn't exist.
 - [**RandomB**](https://github.com/RandomBlbosti) - Neopointfour features, Page Controls, Save on Level Exit
 - Nikolyas, Caster, Tabbi - betatesters
 - HJFod - BetterEdit code (particularly the RGB Color Inputs)
@@ -26,7 +26,7 @@ Downloads are available in the Discord server: https://discord.gg/4AC23yn4yF
 ## Build Instructions
 Note: the minimum supported Android version is currently KitKat (4.4). Android 14+ devices won't work without solutions like Shizuku or Virtual Master.
 
-0. NOTE: You should remove the build folder reguarly.
+0. NOTE: You should remove the build folder regularly.
 1. [Download and run APK Editor Studio](<https://qwertycube.com/apk-editor-studio/download/>)
 2. Open Settings > Options or press Ctrl+P, go to Apktool and check "Decompile source code (smali)" if it isn't checked already
 3. In the bottom left corner of APK Editor Studio, click on File System, find the `lib` folder. Then, if you're building for pre-1.5, open the only folder: `armeabi`, otherwise open `armeabi-v7a` (and delete the other folders). Right-click the existing `.so` file and press "Open Resource Directory...", then copy the `libgame.so` or `libcocos2dcpp.so` file and paste it to `src/version/{GD version}`.
