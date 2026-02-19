@@ -36,11 +36,11 @@ void MyLevelsLayer::FLAlert() {
             break;
         case 2:
             if (hax.gdShareData != 0) {
-                GDSHARE_FL(CCString::createWithFormat(
-                    "Error: level was made for a newer version of Geometry Dash (%s > %s)",
+                GDSHARE_FL(fmt::format(
+                    "Error: level was made for a newer version of Geometry Dash ({} > {})",
                     intToReadableGV(hax.gdShareData),
                     READABLE_GAME_VERSION
-                )->getCString());
+                ).c_str());
             } else {
                 GDSHARE_FL("Error: level was made for a newer version of Geometry Dash");
             }
@@ -66,7 +66,6 @@ void MyLevelsLayer::loadLevel(GJGameLevel* level) {
     }
     CCLog("1");
     if (level->m_nGameVersion > GAME_VERSION) {
-        CCLog("too new %i", level->m_nGameVersion);
         hax.gdShareMessageID = 2;
         hax.gdShareData = level->m_nGameVersion;
         runAction(CCSequence::create(

@@ -9,11 +9,11 @@ void EditLevelLayer::onViewLevelInfo() {
     std::string s = level->m_sLevelString;
     std::string::difference_type count = std::count(s.begin(), s.end(), ';');
     int objectCount = std::max(0, static_cast<int>(count) - 1);
-    CCString* flAlertInsides = CCString::createWithFormat(
+    auto flAlertInsides = fmt::format(
 #if GAME_VERSION < GV_1_6
-        "<cy>%s</c>\n<cg>Total Attempts</c>: %i\n<cr>Normal</c>: %i%%\n<co>Practice</c>: %i%%\n<cy>Audio Track</c>: %s (ID %i)\n<cz>Object Count</c>: %i",
+        "<cy>{}</c>\n<cg>Total Attempts</c>: {}\n<cr>Normal</c>: {}%\n<co>Practice</c>: {}%\n<cy>Audio Track</c>: {} (ID {})\n<cz>Object Count</c>: {}",
 #else
-        "<cy>%s</c>\n<cg>Total Attempts</c>: %i\n<cl>Total Jumps</c>: %i\n<cp>Normal</c>: %i%%\n<co>Practice</c>: %i%%\n<cy>Audio Track</c>: %s (ID %i)\n<cz>Object Count</c>: %i",
+        "<cy>{}</c>\n<cg>Total Attempts</c>: {}\n<cl>Total Jumps</c>: {}\n<cp>Normal</c>: {}%\n<co>Practice</c>: {}%\n<cy>Audio Track</c>: {} (ID {})\n<cz>Object Count</c>: {}",
 #endif
         level->m_sLevelName.c_str(),
         level->m_nAttempts,
@@ -29,7 +29,7 @@ void EditLevelLayer::onViewLevelInfo() {
     FLAlertLayer::create(
         nullptr,
         "Level Info",
-        flAlertInsides->getCString(),
+        flAlertInsides.c_str(),
         "OK",
         nullptr,
         300.f
@@ -68,7 +68,40 @@ void EditLevelLayer::onExport() {
 }
 bool (*TRAM_EditLevelLayer_init)(EditLevelLayer* self, GJGameLevel* level);
 bool EditLevelLayer_init(EditLevelLayer* self, GJGameLevel* level) {
+    if (!TRAM_EditLevelLayer_init(self, level)) return false;
     HaxManager& hax = HaxManager::sharedState();
+#if GDPS == GDPS_NEOPOINTFOUR
+    CCArray* children = self->getChildren();
+    if (children) {
+        for (int i = 0; i < children->count(); i++) {
+            CCNode* child = (CCNode*)children->objectAtIndex(i);
+            CCLabelBMFont* label = dynamic_cast<CCLabelBMFont*>(child);
+            
+            if (label) {
+                std::string text = label->getString();
+                
+                if (text.find("Version:") == 0) {
+                    std::string newText = text + "   ";
+                    label->setString(newText.c_str());
+                }
+                
+                if (text.find("ID:") == 0) {
+                    std::stringstream ss;
+                    ss << "   " << text;
+                    
+                    if (hax.originalIDMap.find(level) != hax.originalIDMap.end()) {
+                        int originalID = hax.originalIDMap[level];
+                        if (originalID > 0) {
+                            ss << " (" << originalID << ")";
+                        }
+                    }
+                    
+                    label->setString(ss.str().c_str());
+                }
+            }
+        }
+    }
+#endif
 #ifndef FORCE_AUTO_SAFE_MODE
     if (hax.getModuleEnabled(ModuleID::VERIFY_BYPASS)) {
         level->m_bIsVerified = true;
@@ -101,7 +134,7 @@ bool EditLevelLayer_init(EditLevelLayer* self, GJGameLevel* level) {
         shareMenu->setPosition(ccp(29, winSize.height / 2));
 #endif
     }
-    return TRAM_EditLevelLayer_init(self, level);
+    return true;
 }
 void EditLevelLayer_om() {
     Omni::hook("_ZN14EditLevelLayer4initEP11GJGameLevel",

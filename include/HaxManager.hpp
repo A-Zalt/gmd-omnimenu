@@ -18,6 +18,9 @@
 #include "SpeedhackInput.hpp"
 #include "RespawnTimeInput.hpp"
 #include "HitboxLayer.hpp"
+#include <ctime>
+#include <fmt/format.h>
+#include "Utils.hpp"
 
 enum class CheatIndicatorColor {
     Green,
@@ -26,11 +29,14 @@ enum class CheatIndicatorColor {
     Red
 };
 
-
+struct BackupResult {
+    int errorCode, randNum;
+};
 
 enum ModuleID {
     _100_KB_FIX,
     _16K_FIX,
+    AUTO_BACKUP,
     AUTO_SAFE_MODE,
     RGB_COLOR_INPUTS, // Better Color Inputs
     CHARACTER_FILTER_BYPASS,
@@ -62,6 +68,7 @@ enum ModuleID {
     LEVEL_EDIT,
     HIDE_ATTEMPTS,
     HIDE_CHECKPOINT_BUTTONS,
+    HIDE_END_SCREEN,
     HIDE_PAUSE_MENU,
     INSTANT_COMPLETE,
     INPUT_BUG_FIX,
@@ -84,6 +91,7 @@ enum ModuleID {
     LABEL_TIME_SPENT,
 
     LEVEL_IDS_IN_SEARCH,
+    LIKE_INDICATOR,
     MUSIC_BUG_FIX,
     NOCLIP,
     NOCLIP_TINT_ON_DEATH,
@@ -96,6 +104,7 @@ enum ModuleID {
     NO_SHIP_TINT,
     OBJ_COLOR_FIX,
     OBJECT_LIMIT_BYPASS,
+    PAGE_CONTROLS,
     PAGE_REFRESH,
 
     PARTICLE_BACKGROUND,
@@ -117,11 +126,15 @@ enum ModuleID {
     PCOMMAND,
     PIG_SPOOFING,
     PRACTICE_MUSIC_HACK,
+    RELATIVE_ROTATION,
     ROTATION_BUG_FIX,
     SAFE_MODE,
+    SAVE_ON_LEVEL_EXIT,
+    SELECT_FILTER,
     SHIP_GRAVITY_BUG_FIX,
     SHOW_DIFFICULTY,
     SHOW_HITBOXES,
+    SHOW_HITBOXES_EDITOR,
     SHOW_HITBOXES_ON_DEATH,
     SHOW_PERCENTAGE,
     SHOW_PERCENTAGE_DECIMAL,
@@ -139,6 +152,7 @@ enum ModuleID {
     VERIFY_BYPASS,
     VIEW_LEVEL_STATS,
     ZOOM_BYPASS,
+
     MODULE_COUNT
 };
 
@@ -201,6 +215,10 @@ public:
 #endif
 #if GDPS == GDPS_NEOPOINTFOUR
     std::map<GJGameLevel*, int> featureTypeMap;
+    std::map<GJGameLevel*, int> uploadTimestampMap;
+    std::map<GJGameLevel*, int> updateTimestampMap;
+    std::map<GJGameLevel*, int> rateTimestampMap;
+    std::map<GJGameLevel*, int> originalIDMap;
 #endif
     float timeScale;
     bool dead;
@@ -216,10 +234,17 @@ public:
     RespawnTimeInput* respawnInput;
     bool customRespawn;
     HitboxLayer* hitboxLayer;
+    HitboxLayerEditor* hitboxLayerEditor;
 #if GAME_VERSION < GV_1_3
     _ccColor3B copiedColor;
 #endif
     bool inEditor;
+    std::array<int, NUMBER_OF_BACKUPS> backupKeys;
+    std::array<int64_t, NUMBER_OF_BACKUPS> backupDates;
+    int objectIDFilter;
+    bool areWeInPlayLayer;
+    bool mbfEnabled;
+    const char* packageName;
 
     bool getModuleEnabled(ModuleID id) {
         return modules[id].enabled;
@@ -282,11 +307,19 @@ public:
 
     void loadSettingsFromFile() {
         // originalAnimInterval = CCDirector::sharedDirector()->getAnimationInterval();
-        FILE* fp = fopen(MENU_SETTINGS_PATH MENU_SETTINGS, "rb");
+        getPackageName();
+        FILE* fp = fopen(fmt::format("{}{}/settings.json", MENU_SETTINGS_PATH, packageName).c_str(), "rb");
+        bool legacy = false;
         if (!fp) {
-            cocos2d::CCLog("unable to open settings file for reading");
+            cocos2d::CCLog("unable to open new settings file for reading");
             makeDirectory();
-            return;
+            // Open legacy settings file (game version dependent, pre-1.2.0)
+            fp = fopen(MENU_SETTINGS_PATH MENU_SETTINGS_OLD, "rb");
+            if (!fp) {
+                CCLog("unable to open legacy settings file for reading");
+                return;
+            }
+            legacy = true;
         }
         char readBuffer[65536];
         rapidjson::FileReadStream is(fp, readBuffer, sizeof(readBuffer));
@@ -302,6 +335,19 @@ public:
         if (doc.HasMember("pref_respawnTime") && doc["pref_respawnTime"].IsFloat()) {
             respawnTime = doc["pref_respawnTime"].GetFloat();
         }
+        // Disassociate backups for anyone who might have used 1.1.1 (only a dozen people)
+        if (!legacy) {
+            for (int i = 1; i <= NUMBER_OF_BACKUPS; i++) {
+                auto bk = fmt::format("backupKey{}", i);
+                auto bd = fmt::format("backupDate{}", i);
+                if (doc.HasMember(bk.c_str()) && doc[bk.c_str()].IsInt()) {
+                    backupKeys[i-1] = doc[bk.c_str()].GetInt();
+                }
+                if (doc.HasMember(bd.c_str()) && doc[bd.c_str()].IsInt64()) {
+                    backupDates[i-1] = doc[bd.c_str()].GetInt64();
+                }
+            }
+        }
         for (Module& record : modules) {
             if (!record.exists) continue;
             if (doc.HasMember(record.id) && doc[record.id].IsBool()) {
@@ -313,7 +359,11 @@ public:
     void makeDirectory() {
         int status = mkdir(MENU_SETTINGS_PATH, static_cast<mode_t>(0755));
         if (status != 0 && errno != EEXIST) {
-            cocos2d::CCLog("could not make dir: %i", errno);
+            cocos2d::CCLog("could not make main dir: %i", errno);
+        }
+        status = mkdir(fmt::format("{}{}", MENU_SETTINGS_PATH, packageName).c_str(), static_cast<mode_t>(0755));
+        if (status != 0 && errno != EEXIST) {
+            cocos2d::CCLog("could not make package name dir: %i", errno);
         }
     }
 #if GAME_VERSION > GV_1_4
@@ -327,40 +377,53 @@ public:
 #endif
     void saveSettingsToFile() {
         makeDirectory();
-        FILE* fp = fopen(MENU_SETTINGS_PATH MENU_SETTINGS, "wb");
+        FILE* fp = fopen(fmt::format("{}{}/settings.json", MENU_SETTINGS_PATH, packageName).c_str(), "wb");
 
         if (!fp) {
             cocos2d::CCLog("unable to open settings file for writing");
             return;
-        } else {
-            std::map<std::string, Module*>::iterator it;
-            rapidjson::Document document;
-            document.SetObject();
-            rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
-            int key = 0;
-            for (const auto& record : modules) {
-                if (!record.exists) {
-                    key++;
-                    continue;
-                }
-                rapidjson::Value jsonKey(record.id, static_cast<rapidjson::SizeType>(strlen(record.id)), allocator);
-                document.AddMember(jsonKey, getModuleEnabled(static_cast<ModuleID>(key)), allocator);
-                key++;
-            }
-
-            rapidjson::Value jk("pref_timeScale", static_cast<rapidjson::SizeType>(strlen("pref_timeScale")), allocator);
-            document.AddMember(jk, timeScale, allocator);
-            rapidjson::Value jk2("pref_respawnTime", static_cast<rapidjson::SizeType>(strlen("pref_respawnTime")), allocator);
-            document.AddMember(jk2, respawnTime, allocator);
-
-            rapidjson::StringBuffer buffer;
-            rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
-            document.Accept(writer);
-            const char* output = buffer.GetString();
-
-            fprintf(fp, "%s", output);
-            fclose(fp);
         }
+        std::map<std::string, Module*>::iterator it;
+        rapidjson::Document document;
+        document.SetObject();
+        rapidjson::Document::AllocatorType& allocator = document.GetAllocator();
+        int key = 0;
+        for (const auto& record : modules) {
+            if (!record.exists) {
+                key++;
+                continue;
+            }
+            rapidjson::Value jsonKey(record.id, static_cast<rapidjson::SizeType>(strlen(record.id)), allocator);
+            document.AddMember(jsonKey, getModuleEnabled(static_cast<ModuleID>(key)), allocator);
+            key++;
+        }
+
+        rapidjson::Value jk("pref_timeScale", static_cast<rapidjson::SizeType>(strlen("pref_timeScale")), allocator);
+        document.AddMember(jk, timeScale, allocator);
+        rapidjson::Value jk2("pref_respawnTime", static_cast<rapidjson::SizeType>(strlen("pref_respawnTime")), allocator);
+        document.AddMember(jk2, respawnTime, allocator);
+
+        for (int i = 1; i <= NUMBER_OF_BACKUPS; i++) {
+            auto bkStr = fmt::format("backupKey{}", i);
+            auto bdStr = fmt::format("backupDate{}", i);
+
+            rapidjson::Value bk(bkStr.c_str(), allocator);
+            rapidjson::Value bkv(backupKeys[i-1]);
+            document.AddMember(bk, bkv, allocator);
+
+            rapidjson::Value bd(bdStr.c_str(), allocator);
+            int64_t thing = backupDates[i-1];
+            rapidjson::Value bdv(thing);
+            document.AddMember(bd, bdv, allocator);
+        }
+
+        rapidjson::StringBuffer buffer;
+        rapidjson::Writer<rapidjson::StringBuffer> writer(buffer);
+        document.Accept(writer);
+        const char* output = buffer.GetString();
+
+        fprintf(fp, "%s", output);
+        fclose(fp);
     }
     bool isSafeMode() {
         if (getModuleEnabled(ModuleID::SAFE_MODE)) return true;
@@ -380,6 +443,56 @@ public:
         startPositions = getStartPositions_();
         startPositions->retain();
         return startPositions;
+    }
+
+    BackupResult createBackup() {
+        auto& hax = HaxManager::sharedState();
+
+        int randNum = rand();
+
+        FILE* fp = fopen(fmt::format("{}{}/CCGameManager_backup_{}.dat", MENU_SETTINGS_PATH, packageName, randNum).c_str(), "wb");
+        auto gameManager = new DS_Dictionary();
+        void* encodeDataTo = DobbySymbolResolver(MAIN_LIBRARY, "_ZN11GameManager12encodeDataToEP13DS_Dictionary");
+        ((void(*)(GameManager*, DS_Dictionary*))encodeDataTo)(GameManager::sharedState(), gameManager);
+    #if GAME_VERSION > GV_1_0
+        FILE* fp2 = fopen(fmt::format("{}{}/CCLocalLevels_backup_{}.dat", MENU_SETTINGS_PATH, packageName, randNum).c_str(), "wb");
+        auto localLevels = new DS_Dictionary();
+        void* encodeDataToLL = DobbySymbolResolver(MAIN_LIBRARY, "_ZN17LocalLevelManager12encodeDataToEP13DS_Dictionary");
+        ((void(*)(LocalLevelManager*, DS_Dictionary*))encodeDataToLL)(LocalLevelManager::sharedState(), localLevels);
+    #endif
+        if (!fp
+    #if GAME_VERSION > GV_1_0
+            || !fp2
+    #endif
+        ) {
+            return {
+                .errorCode = -1,
+                .randNum = 0
+            };
+        }
+
+        fprintf(fp, "%s", gameManager->saveRootSubDictToString().c_str());
+        fclose(fp);
+    #if GAME_VERSION > GV_1_0
+        fprintf(fp2, "%s", localLevels->saveRootSubDictToString().c_str());
+        fclose(fp2);
+    #endif
+
+        if (hax.backupKeys[NUMBER_OF_BACKUPS - 1] != 0) {
+            std::remove(fmt::format("{}{}/CCGameManager_backup_{}.dat", MENU_SETTINGS_PATH, packageName, hax.backupKeys[NUMBER_OF_BACKUPS - 1]).c_str());
+            std::remove(fmt::format("{}{}/CCLocalLevels_backup_{}.dat", MENU_SETTINGS_PATH, packageName, hax.backupKeys[NUMBER_OF_BACKUPS - 1]).c_str());
+        }
+        for (int i = NUMBER_OF_BACKUPS - 1; i > 0; i--) {
+            hax.backupKeys[i] = hax.backupKeys[i-1];
+            hax.backupDates[i] = hax.backupDates[i-1];
+        }
+        hax.backupKeys[0] = randNum;
+        hax.backupDates[0] = std::time(nullptr);
+        saveSettingsToFile();
+        return {
+            .errorCode = 0,
+            .randNum = randNum
+        };
     }
 
     /* 
@@ -426,6 +539,8 @@ public:
         respawnInput = nullptr;
         customRespawn = false;
         hitboxLayer = nullptr;
+        objectIDFilter = 0;
+        areWeInPlayLayer = false;
     }
 
 private:
@@ -555,6 +670,11 @@ private:
             "Hide Checkpoint Buttons", 
             "Makes the practice checkpoint buttons significantly lower opacity.", 
             false, ModuleCategory::Visual, [](bool _){});
+        modules[ModuleID::HIDE_END_SCREEN] = Module(
+            "hide_end_screen",
+            "Hide End Screen", 
+            "Adds a button that moves the endscreen. (thanks Hris for help with animation)", 
+            false, ModuleCategory::Visual, [](bool _){});
         modules[ModuleID::HIDE_PAUSE_MENU] = Module(
             "hide_pause_menu",
             "Hide Pause Menu", 
@@ -615,6 +735,13 @@ private:
             "Obj Color Fix", 
             "Fixes the Object color not resetting to white after death.", 
             false, ModuleCategory::Visual, [](bool _){});
+#endif
+#if GAME_VERSION < GV_1_8
+        modules[ModuleID::SELECT_FILTER] = Module(
+            "select_filter",
+            "Select Filter", 
+            "Adds a button to the Delete tab that lets you filter selections to a specific object type.", 
+            false, ModuleCategory::Editor, [](bool _){});
 #endif
         modules[ModuleID::SHOW_HITBOXES] = Module(
             "show_hitboxes",
@@ -771,6 +898,18 @@ private:
                 } else
                     setObjectLimit(OBJECT_LIMIT);
             });
+#if GAME_VERSION < GV_1_8
+        modules[ModuleID::RELATIVE_ROTATION] = Module(
+            "relative_rotation",
+            "Relative Rotation", 
+            "Rotates objects around the selection's center rather than rotating each object around their own centers. (thanks akqanile/Adelfa for help)", 
+            false, ModuleCategory::Editor, [](bool _){});
+#endif
+        modules[ModuleID::SHOW_HITBOXES_EDITOR] = Module(
+            "show_hitboxes_editor",
+            "Show Hitboxes in Editor", 
+            "Displays the hitboxes of objects in the editor.", 
+            false, ModuleCategory::Editor, [](bool _){});
         modules[ModuleID::SHOW_OBJECT_INFO] = Module(
             "show_object_info",
             "Show Object Info", 
@@ -843,11 +982,19 @@ private:
 
 
 #if GAME_VERSION > GV_1_0
+#if GDPS == GDPS_NEOPOINTFOUR
+        modules[ModuleID::COMMENT_IDS] = Module(
+            "comment_ids",
+            "Comment Dates", 
+            "Displays comment dates in comment cells.", 
+            false, ModuleCategory::Informational, [](bool _){});
+#else
         modules[ModuleID::COMMENT_IDS] = Module(
             "comment_ids",
             "Comment IDs", 
             "Displays comment IDs in comment cells.", 
             false, ModuleCategory::Informational, [](bool _){});
+#endif
 #endif
 #if GAME_VERSION > GV_1_2
         modules[ModuleID::DEMONS_IN_GARAGE] = Module(
@@ -861,6 +1008,13 @@ private:
             "Level IDs in Search", 
             "Displays level IDs in level cells.", 
             false, ModuleCategory::Informational, [](bool _){});
+#if GAME_VERSION > GV_1_0
+        modules[ModuleID::LIKE_INDICATOR] = Module(
+            "like_indicator",
+            "Like Indicator", 
+            "Shows whether you have liked or disliked a level.", 
+            false, ModuleCategory::Informational, [](bool _){});
+#endif
 #if GAME_VERSION < GV_1_3
         modules[ModuleID::SHOW_DIFFICULTY] = Module(
             "show_difficulty",
@@ -886,6 +1040,11 @@ private:
             "100 KB Fix", 
             "Fixes a poor design choice in Cocos2d where CCStrings always allocate 100 KB, instead allocating a dynamic buffer size. This fixes large levels being cut off on upload (for versions before 1.5), as well as potentially increasing performance. (module by akqanile/Adelfa)", 
             true, ModuleCategory::Universal, [](bool _){});
+        modules[ModuleID::AUTO_BACKUP] = Module(
+            "auto_backup",
+            "Auto Backup",
+            "Automatically creates a backup upon saving the game (excluding Save on Level Exit).", 
+            false, ModuleCategory::Universal, [](bool _){});
 #ifndef FORCE_AUTO_SAFE_MODE
         modules[ModuleID::AUTO_SAFE_MODE] = Module(
             "auto_safe_mode",
@@ -948,6 +1107,11 @@ private:
             "Fixes a pre-1.2 bug where typing more than 1 character doesn't work on certain keyboards.", 
             true, ModuleCategory::Universal, [](bool _){});
 #endif
+        modules[ModuleID::PAGE_CONTROLS] = Module(
+            "page_controls",
+            "Page Controls", 
+            "Adds the ability to jump to a specific page or a random one. (module by RandomB)", 
+            false, ModuleCategory::Universal, [](bool _){});
         modules[ModuleID::PAGE_REFRESH] = Module(
             "page_refresh",
             "Page Refresh", 
@@ -969,6 +1133,11 @@ private:
             "Prevents any progress on any level from being saved. (Note: this build has Auto Safe Mode enabled forcibly, which means the effects of this module are automatically applied if you are using any cheats)",
 #endif 
 
+            false, ModuleCategory::Universal, [](bool _){});
+        modules[ModuleID::SAVE_ON_LEVEL_EXIT] = Module(
+            "save_on_level_exit",
+            "Save on Level Exit", 
+            "Saves your data whenever you exit a level. Useful if you're paranoid about crashes. (module by RandomB)", 
             false, ModuleCategory::Universal, [](bool _){});
 
 
@@ -1158,6 +1327,9 @@ private:
         copiedColor = ccc3(255, 255, 255);
 #endif
         inEditor = false;
+        backupKeys = {0, 0, 0, 0, 0};
+        backupDates = {0, 0, 0, 0, 0};
+        packageName = "";
         // fpsBypass = 240;
         // originalAnimInterval = 1 / 60;
 

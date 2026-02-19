@@ -1,9 +1,6 @@
 #include "HaxManager.hpp"
 #include "Utils.hpp"
 #include <jni.h>
-#ifdef USE_MINIAUDIO
-#include "AudioManager.hpp"
-#endif
 
 extern "C" JNIEXPORT void JNICALL
 JNI_FN(JAVA_PATH_MAIN_JNI_HOOK, GeometryJump, nativeOnFileSaveChosen)(
@@ -25,11 +22,3 @@ JNI_FN(JAVA_PATH_MAIN_JNI_HOOK, GeometryJump, nativeOnFileOpenChosen)(
 #endif
     env->ReleaseStringUTFChars(uri, uriStr);
 }
-
-#ifdef USE_MINIAUDIO
-extern "C" JNIEXPORT void JNICALL
-JNI_FN(JAVA_PATH_MAIN_JNI_HOOK, GeometryJump, nativeSetAssetManager)(
-        JNIEnv* env, jclass clazz, jobject assetManager) {
-    AudioManager::sharedManager().init(env, assetManager);
-}
-#endif

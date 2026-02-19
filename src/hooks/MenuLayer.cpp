@@ -7,6 +7,13 @@
 #include "../layers/HaxMenu.hpp"
 #include "HaxManager.hpp"
 #include "Utils.hpp"
+#if GAME_VERSION >= GV_1_5
+#include "AppDelegate.hpp"
+#endif
+#if GDPS == GDPS_NEOPOINTFOUR
+#include "Neopointfour/StatsRecalc.cpp"
+//#include <thread>
+#endif
 
 // void MenuLayer_onMoreGames(void* self) {
 //     CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.5f, HaxLayer::scene(false)));
@@ -17,13 +24,16 @@ void MenuLayer::onOpenMenu(SEL_MenuHandler_1_7_compat) {
     this->setTouchEnabled(false);
 }
 void MenuLayer::onMenuInfo(SEL_MenuHandler_1_7_compat) {
-    CCLog("say something");
     FLAlertLayer::create(
         nullptr,
         "Game Information",
-        CCString::createWithFormat(
-            "<cg>OMNImenu</c> %s\n<cl>Geometry Dash</c> %s\n<cr>Special Thanks</c>: <cy>akqanile</c>, <cy>Hris69</c>, <cy>Pololak</c>, <cy>Nikolyas</c>, <cy>Capeling</c>, <cy>Cvolton</c>, <cy>dank_meme01</c>, <cy>prevter</c>, <cy>Thelazycat</c>, <cy>HJFod</c>, <cy>iAndyHD_3</c>, <cy>JJ Reed</c>\nWith love from <cy>AntiMatter</c> <cr><3</c>", 
-            MENU_VERSION, READABLE_GAME_VERSION_FULL)->getCString(),
+        fmt::format(
+#if GDPS == GDPS_NEOPOINTFOUR
+            "<cg>OMNImenu</c> {}\n<cl>Geometry Dash</c> {}\n<cr>Special Thanks</c>: <cy>akqanile</c>, <cy>Hris69</c>, <cy>Pololak</c>, <cy>Nikolyas</c>, <cy>Capeling</c>, <cy>Cvolton</c>, <cy>dank_meme01</c>, <cy>prevter</c>, <cy>Thelazycat</c>, <cy>HJFod</c>, <cy>iAndyHD_3</c>, <cy>nano</c>, <cy>JJ Reed</c>\nWith love from <cy>AntiMatter</c> and <cy>RandomB</c> <cr><3</c>", 
+#else
+            "<cg>OMNImenu</c> {}\n<cl>Geometry Dash</c> {}\n<cr>Special Thanks</c>: <cy>akqanile</c>, <cy>Hris69</c>, <cy>Pololak</c>, <cy>Nikolyas</c>, <cy>RandomB</c>, <cy>Capeling</c>, <cy>Cvolton</c>, <cy>dank_meme01</c>, <cy>prevter</c>, <cy>Thelazycat</c>, <cy>HJFod</c>, <cy>iAndyHD_3</c>, <cy>nano</c>, <cy>JJ Reed</c>\nWith love from <cy>AntiMatter</c> <cr><3</c>", 
+#endif
+            MENU_VERSION, READABLE_GAME_VERSION_FULL).c_str(),
         "OK",
         nullptr,
         300.f
@@ -55,7 +65,37 @@ bool MenuLayer_init(cocos2d::CCLayer* self) {
     // menuBtn->setPosition(ccp(-130, -winSize.height + 70.f));
     bottomMenu->alignItemsHorizontallyWithPadding(5.0f);
 
+    #if GDPS == GDPS_NEOPOINTFOUR
+    if (!hasRecalculated) {
+        hasRecalculated = true;
+        recalculateStars();
+    }
+    #endif
+
     return true;
+}
+
+void (*TRAM_MenuLayer_FLAlert_Clicked)(CCLayer* self, FLAlertLayer* flAlert, bool a3);
+void MenuLayer_FLAlert_Clicked(CCLayer* self, FLAlertLayer* flAlert, bool a3) {
+    auto& hax = HaxManager::sharedState();
+    if (a3 && hax.getModuleEnabled(ModuleID::AUTO_BACKUP) && flAlert->getTag() == 0) {
+        hax.createBackup();
+    }
+#if GAME_VERSION < GV_1_5
+    TRAM_MenuLayer_FLAlert_Clicked(self, flAlert, a3);
+#else
+    if (a3 && flAlert->getTag() == 0) {
+        AppDelegate::get()->trySaveGame();
+        self->getActionManager()->addAction(
+            CCSequence::create(
+                CCDelayTime::create(0.5), 
+                CCCallFunc::create(self, callfunc_selector(MenuLayer::endGame)),
+                nullptr
+            ),
+            self, false
+        );
+    }
+#endif
 }
 
 void MenuLayer_om() {
@@ -65,4 +105,7 @@ void MenuLayer_om() {
     Omni::hook("_ZN9MenuLayer4initEv",
         reinterpret_cast<void*>(MenuLayer_init),
         reinterpret_cast<void**>(&TRAM_MenuLayer_init));
+    Omni::hook("_ZN9MenuLayer15FLAlert_ClickedEP12FLAlertLayerb",
+        reinterpret_cast<void*>(MenuLayer_FLAlert_Clicked),
+        reinterpret_cast<void**>(&TRAM_MenuLayer_FLAlert_Clicked));
 }

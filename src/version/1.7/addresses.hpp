@@ -32,6 +32,7 @@
 /**/ #define EditorUI__m_editorLayer           0x194 /**/ // EditorUI::init
 /**/ #define EditorUI__m_selectedObject        0x1b8 /**/ // EditorUI::selectObject
 /**/ #define EditorUI__m_selectedObjects       0x138 /**/ // EditorUI::deselectAll 
+/**/ #define EditorUI__m_touch                 0x1b0 /**/ // EditorUI::onDelete
 /**/ #define EditorUI__m_unkFloat              0x128 /**/ // EditorUI::setupCreateMenu
 
 /**/ #define EditorUI__m_zoomOutButton         0x158 /**/ // EditorUI::init
@@ -55,9 +56,11 @@
 /**/ #define GameObject__m_useAudioScale       0x254 /**/ // GameObject::getUseAudioScale
 /**/ #define GJComment__m_commentID             0xf0 /**/ // GJComment::getCommentID
 
+/**/ #define GJSearchObject__m_page             0xf8 /**/ // GJSearchObject::getPage
 /**/ #define GJSearchObject__m_type             0xe8 /**/ // GJSearchObject::getType
 /**/ #define LeaderboardsLayer__m_boardType    0x118 /**/ // LeaderboardsLayer::selectLeaderboard
 /**/ #define LevelBrowserLayer__m_searchObject 0x124 /**/ // LevelBrowserLayer::setSearchObject
+/**/ #define LevelBrowserLayer__m_total        0x12c /**/ // LevelBrowserLayer::updateLevelsLabel
 
 /**/ #define LevelCell__m_level                0x150 /**/ // LevelCell::loadFromLevel
 /**/ #define LevelEditorLayer__m_batchNode     0x114 /**/ // LevelEditorLayer::createObject (1st function call after GameObject::createObject)

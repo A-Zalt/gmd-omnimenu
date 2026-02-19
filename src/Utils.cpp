@@ -45,82 +45,53 @@ void writeGMD(GJGameLevel* level, const char* uriStr) {
     JNIEnv* env = getEnv();
     if (!env) return;
     
-    CCLog("1");
     jstring jUriStr = env->NewStringUTF(uriStr);
-    CCLog("2");
 
     jclass uriClass = env->FindClass("android/net/Uri");
-    CCLog("3");
     jmethodID parseMethod = env->GetStaticMethodID(uriClass, "parse", "(Ljava/lang/String;)Landroid/net/Uri;");
-    CCLog("4");
     jobject uri = env->CallStaticObjectMethod(uriClass, parseMethod, jUriStr);
 
-    CCLog("5");
     jclass activityClass = env->FindClass(JAVA_PATH_MAIN "/GeometryJump");
-    CCLog("6");
     jmethodID getActivity = env->GetStaticMethodID(activityClass, "getInstance", "()L" JAVA_PATH_MAIN "/GeometryJump;");
-    CCLog("7");
     jobject activity = env->CallStaticObjectMethod(activityClass, getActivity);
-    CCLog("6");
     jmethodID getCR = env->GetMethodID(activityClass, "getContentResolver", "()Landroid/content/ContentResolver;");
-    CCLog("7");
     jobject resolver = env->CallObjectMethod(activity, getCR);
 
-    CCLog("8");
     jclass resolverClass = env->FindClass("android/content/ContentResolver");
-    CCLog("9");
     jmethodID openOut = env->GetMethodID(resolverClass, "openOutputStream", "(Landroid/net/Uri;)Ljava/io/OutputStream;");
-    CCLog("10");
     jobject outputStream = env->CallObjectMethod(resolver, openOut, uri);
 
-    CCLog("11");
+    env->DeleteLocalRef(activityClass);
+    env->DeleteLocalRef(resolverClass);
     if (!outputStream) {
-        CCLog("12");
         env->DeleteLocalRef(uri);
-        CCLog("13");
         env->DeleteLocalRef(jUriStr);
-        CCLog("14");
         return;
     }
 
-    CCLog("15");
     auto dict = new DS_Dictionary();
-    CCLog("16");
     void* encodeWithCoder = DobbySymbolResolver(MAIN_LIBRARY, "_ZN11GJGameLevel15encodeWithCoderEP13DS_Dictionary");
-    CCLog("17");
     ((void(*)(GJGameLevel*, DS_Dictionary*))encodeWithCoder)(level, dict);
 
-    CCLog("18");
-    const char* str = dict->saveRootSubDictToString().c_str();
+    std::string strObj = dict->saveRootSubDictToString();
+    const char* str = strObj.c_str();
 
-    CCLog("19");
     std::vector<uint8_t> data(str, str + strlen(str));
 
-    CCLog("20");
     jclass outputStreamClass = env->FindClass("java/io/OutputStream");
-    CCLog("21");
     jmethodID writeMethod = env->GetMethodID(outputStreamClass, "write", "([B)V");
-    CCLog("22");
     jmethodID closeMethod = env->GetMethodID(outputStreamClass, "close", "()V");
 
-    CCLog("23");
     jbyteArray jData = env->NewByteArray(data.size());
-    CCLog("24");
     env->SetByteArrayRegion(jData, 0, data.size(), reinterpret_cast<const jbyte*>(data.data()));
-    CCLog("25");
     env->CallVoidMethod(outputStream, writeMethod, jData);
-    CCLog("26");
     env->CallVoidMethod(outputStream, closeMethod);
     
-    CCLog("27");
     env->DeleteLocalRef(jData);
-    CCLog("28");
     env->DeleteLocalRef(outputStream);
-    CCLog("29");
+    env->DeleteLocalRef(outputStreamClass);
     env->DeleteLocalRef(uri);
-    CCLog("30");
     env->DeleteLocalRef(jUriStr);
-    CCLog("31");
 }
 GJGameLevel* readGMD(const char* uriStr) {
     JNIEnv* env = getEnv();
@@ -348,4 +319,35 @@ int stoi(const std::string& s) {
         multiplier *= 10;
     }
     return result;
+}
+
+void getPackageName() {
+    CCLog("a");
+    auto& hax = HaxManager::sharedState();
+    if (strcmp("", hax.packageName)) {
+        return;
+    }
+#if GDPS == GDPS_NEOPOINTFOUR
+    hax.packageName = "com.cynigdx.onepointfour";
+#elif GDPS == GDPS_1_7
+    hax.packageName = "com.ariccox.aricco17gdps";
+#else
+    hax.packageName = "com.robtopx.geometryjump";
+#endif
+    CCLog("%s", hax.packageName);
+    JNIEnv* env = getEnv();
+    if (!env) {
+        CCLog("failed to get env; falling back on default package name");
+        return;
+    }
+
+    jclass activityClass = env->FindClass(JAVA_PATH_MAIN "/GeometryJump");
+    jmethodID getActivity = env->GetStaticMethodID(activityClass, "getInstance", "()L" JAVA_PATH_MAIN "/GeometryJump;");
+    jobject activity = env->CallStaticObjectMethod(activityClass, getActivity);
+
+    jmethodID mid = env->GetMethodID(activityClass, "getPackageName", "()Ljava/lang/String;");
+    jstring pkg = (jstring) env->CallObjectMethod(activity, mid);
+
+    hax.packageName = env->GetStringUTFChars(pkg, nullptr);
+    CCLog("%s", hax.packageName);
 }

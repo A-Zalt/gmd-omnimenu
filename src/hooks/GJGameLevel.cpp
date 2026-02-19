@@ -5,7 +5,6 @@
 void (*TRAM_GJGameLevel_savePercentage)(GJGameLevel* self, int percentage, bool practice);
 void GJGameLevel_savePercentage(GJGameLevel* self, int percentage, bool practice) {
     HaxManager& hax = HaxManager::sharedState();
-    CCLog("%i", percentage);
     if (hax.isSafeMode()) return;
 #if GAME_VERSION < GV_1_5
     TRAM_GJGameLevel_savePercentage(self, percentage, practice);

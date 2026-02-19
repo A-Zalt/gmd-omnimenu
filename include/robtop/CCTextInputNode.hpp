@@ -2,6 +2,15 @@
 
 #include <cocos2d.h>
 
+class CCTextInputNode;
+
+class TextInputDelegate {
+public:
+    virtual void textChanged(CCTextInputNode*) {}
+    virtual void textInputOpened(CCTextInputNode*) {}
+    virtual void textInputClosed(CCTextInputNode*) {}
+};
+
 class CCTextInputNode : public cocos2d::CCLayer, public cocos2d::CCIMEDelegate, public cocos2d::CCTextFieldDelegate 
 {
 public:
@@ -18,11 +27,10 @@ public:
     void setMaxLabelScale(float scale);
     void setLabelPlaceholderScale(float scale);
     void setLabelPlaceholderColor(_ccColor3B);
-};
-
-class TextInputDelegate {
-public:
-    virtual void textChanged(CCTextInputNode*) {}
-    virtual void textInputOpened(CCTextInputNode*) {}
-    virtual void textInputClosed(CCTextInputNode*) {}
+    void onClickTrackNode(bool attach);
+        
+    void setDelegate(TextInputDelegate* delegate);
+    
+protected:
+    TextInputDelegate* m_delegate;
 };

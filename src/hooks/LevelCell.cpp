@@ -5,8 +5,9 @@ void (*TRAM_LevelCell_loadCustomLevelCell)(CCNode* self);
 void LevelCell_loadCustomLevelCell(CCNode* self) {
     TRAM_LevelCell_loadCustomLevelCell(self);
     HaxManager& hax = HaxManager::sharedState();
+    auto lvl = getCellLevel(self);
     if (hax.getModuleEnabled(ModuleID::LEVEL_IDS_IN_SEARCH)) {
-        auto idLabel = CCLabelBMFont::create(CCString::createWithFormat("#%i", getCellLevel(self)->m_nLevelID)->getCString(), "chatFont.fnt");
+        auto idLabel = CCLabelBMFont::create(fmt::format("#{}", lvl->m_nLevelID).c_str(), "chatFont.fnt");
         idLabel->setAnchorPoint({1, 0.5});
         idLabel->setScale(0.5f);
         idLabel->setPosition(ccp(345, 60));
@@ -15,8 +16,48 @@ void LevelCell_loadCustomLevelCell(CCNode* self) {
         idLabel->setTag(6741);
         self->addChild(idLabel, 1000);
     }
-#ifdef NP4
-    auto lvl = getCellLevel(self);
+#if GDPS == GDPS_NEOPOINTFOUR
+    if (hax.originalIDMap.find(lvl) != hax.originalIDMap.end() && hax.originalIDMap[lvl] > 0) {
+        
+        std::string searchText = "By " + std::string(lvl->m_sUserName);
+        
+        std::function<CCLabelBMFont*(CCNode*)> findLabel = [&](CCNode* node) -> CCLabelBMFont* {
+            CCLabelBMFont* label = dynamic_cast<CCLabelBMFont*>(node);
+            if (label && std::string(label->getString()) == searchText) {
+                return label;
+            }
+            
+            CCArray* children = node->getChildren();
+            if (children) {
+                for (int i = 0; i < children->count(); i++) {
+                    CCNode* child = (CCNode*)children->objectAtIndex(i);
+                    CCLabelBMFont* found = findLabel(child);
+                    if (found) return found;
+                }
+            }
+            return nullptr;
+        };
+        
+        CCLabelBMFont* label = findLabel(self);
+        if (label) {
+            CCSprite* copyMark = CCSprite::create(COPY_MARK_TEXTURE);
+            if (copyMark) {
+                CCPoint labelPos = label->getPosition();
+                float labelWidth = label->getContentSize().width;
+                float labelScale = label->getScale();
+                
+                float anchorX = label->getAnchorPoint().x;
+                float rightEdge = labelPos.x + (labelWidth * labelScale * (1.0f - anchorX));
+                
+                copyMark->setPosition(ccp(rightEdge + 12.5f, labelPos.y - 2));
+                copyMark->setScale(0.9f);
+                
+                copyMark->_setZOrder(10);
+                
+                label->getParent()->addChild(copyMark);
+            }
+        }
+    }
     auto val = hax.featureTypeMap[lvl];
     if (val == 0) return;
     CCSprite* featureFrame = CCSprite::create((val > 1) ? MAGIC_TEXTURE : FEATURED_TEXTURE);

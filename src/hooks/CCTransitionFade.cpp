@@ -1,10 +1,10 @@
 #include "hook.hpp"
 
-void (*TRAM_CCTransitionFade_create)(float duration, CCScene* scene, const ccColor3B& color);
-void CCTransitionFade_create(float duration, CCScene* scene, const ccColor3B& color = ccBLACK) {
+CCTransitionFade* (*TRAM_CCTransitionFade_create)(float duration, CCScene* scene, const ccColor3B& color);
+CCTransitionFade* CCTransitionFade_create(float duration, CCScene* scene, const ccColor3B& color = ccBLACK) {
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.getModuleEnabled(ModuleID::FAST_MENU)) TRAM_CCTransitionFade_create(0.f, scene, color);
-    else TRAM_CCTransitionFade_create(duration, scene, color);
+    if (hax.getModuleEnabled(ModuleID::FAST_MENU)) return TRAM_CCTransitionFade_create(0.f, scene, color);
+    return TRAM_CCTransitionFade_create(duration, scene, color);
 }
 
 void CCTransitionFade_om() {

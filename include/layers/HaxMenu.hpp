@@ -37,6 +37,9 @@ protected:
     void onUniversal(SEL_MenuHandler_1_7_compat);
     void onLabel(SEL_MenuHandler_1_7_compat);
     void onParticles(SEL_MenuHandler_1_7_compat);
+    void onSaveData(SEL_MenuHandler_1_7_compat);
+
+    void cleanupMembers();
 
     void toggler(CCObject*);
     void modInfo(CCObject*);
@@ -45,6 +48,8 @@ protected:
     void onPih(CCObject*);
     void onUDID();
     void onThree(CCObject*);
+    void onExportData(SEL_MenuHandler_1_7_compat);
+    void onImportData(CCObject* sender);
 
     CCNode* leftParent;
     CCNode* rightParent;

@@ -19,7 +19,7 @@ bool EditorPauseLayer_init(cocos2d::CCLayer* self, LevelEditorLayer* editLayer) 
     if (label) {
         if (hax.getModuleEnabled(ModuleID::OBJECT_LIMIT_BYPASS)) {
             int objectCount = getObjectCount(editLayer);
-            label->setString(CCString::createWithFormat("%i objects", objectCount)->getCString(), "goldFont.fnt");
+            label->setString(fmt::format("{} objects", objectCount).c_str(), "goldFont.fnt");
         }
     }
 #endif
@@ -98,7 +98,12 @@ bool EditorPauseLayer_init(cocos2d::CCLayer* self, LevelEditorLayer* editLayer) 
 
         writer.write(" objects\nLength: ");
         if (minutes > 0) {
+#if GDPS == GDPS_NEOPOINTFOUR
+            writer.write("{}min {}s ({})", minutes, seconds,
+                GJGameLevel::lengthKeyToString(GJGameLevel::getLengthKey(maxX)));
+#else
             writer.write("{}min {}s (Long)", minutes, seconds);
+#endif
         } else {
             writer.write("{} second", seconds);
             if (seconds != 1) writer.write("s");
@@ -129,8 +134,21 @@ bool EditorPauseLayer_init(cocos2d::CCLayer* self, LevelEditorLayer* editLayer) 
     menuBtn->setPosition(ccp(winSize.width - 50.f, -50.f));
     return true;
 }
+
+void (*TRAM_EditorPauseLayer_saveLevel)(EditorPauseLayer* self);
+void EditorPauseLayer_saveLevel(EditorPauseLayer* self) {
+    HaxManager& hax = HaxManager::sharedState();
+    TRAM_EditorPauseLayer_saveLevel(self);
+    if (hax.getModuleEnabled(ModuleID::AUTO_BACKUP)) {
+        hax.createBackup();
+        hax.saveSettingsToFile();
+    }
+}
 void EditorPauseLayer_om() {
     Omni::hook("_ZN16EditorPauseLayer4initEP16LevelEditorLayer",
         reinterpret_cast<void*>(EditorPauseLayer_init),
         reinterpret_cast<void**>(&TRAM_EditorPauseLayer_init));
+    Omni::hook("_ZN16EditorPauseLayer9saveLevelEv",
+        reinterpret_cast<void*>(EditorPauseLayer_saveLevel),
+        reinterpret_cast<void**>(&TRAM_EditorPauseLayer_saveLevel));
 }

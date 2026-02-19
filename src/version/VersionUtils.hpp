@@ -16,6 +16,7 @@
 #include "LevelBrowserLayer.hpp"
 #include "LevelSettingsObject.hpp"
 #include "GameLevelManager.hpp"
+#include "GameStatsManager.hpp"
 #include "LeaderboardsLayer.hpp"
 #include "Slider.hpp"
 
@@ -99,7 +100,6 @@ CCArray* getLocalLevels(LocalLevelManager* lolman);
 CCArray* getLocalLevels(GameLevelManager* glman);
 #endif
 CCArray* getLocalLevels();
-
 bool getObjectUseAudioScale(void* object);
 void setObjectUseAudioScale(void* object, bool uas);
 void setFreeBuild(bool enable);
@@ -164,6 +164,7 @@ void setRestartButton(bool enable);
 
 GJSearchObject* getSearchObject(LevelBrowserLayer* browser);
 int getSearchType(GJSearchObject* searcher);
+int& getSearchPage(GJSearchObject* searcher);
 #if GAME_VERSION >= GV_1_4
 void setIconHack(bool enable);
 #endif
@@ -246,3 +247,13 @@ bool getGravityFlipped(PlayerObject* player);
 float getPlayerScale(PlayerObject* player);
 #endif
 bool getCheckpointFlipped(CCNode* checkpoint);
+
+#if GDPS == GDPS_NEOPOINTFOUR
+CCDictionary* getSettingsDict(GameLevelManager* glman);
+CCDictionary* getCompletedDict(GameStatsManager* gsman);
+CCDictionary* getStatsDict(GameStatsManager* gsman);
+int getPlayerShip(GameManager* gm);
+CCLayer* getMainLayer(CCLayer* infoLayer);
+#endif
+int getTotalLevels(LevelBrowserLayer* browser);
+const char* keyToFrame(int objectID);

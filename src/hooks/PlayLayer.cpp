@@ -2,10 +2,59 @@
 #include "PlayLayer.hpp"
 #include "UILayer.hpp"
 #include "Utils.hpp"
-#ifdef USE_MINIAUDIO
-#include "AudioManager.hpp"
 #include "LevelTools.hpp"
-#endif
+
+#define F_audio_start \
+    HaxManager& hax = HaxManager::sharedState();\
+    auto SAE = CocosDenshion::SimpleAudioEngine::sharedEngine();\
+    if (!hax.areWeInPlayLayer) return;\
+    hax.areWeInPlayLayer = false;
+
+#define F_audio_start2 \
+    HaxManager& hax = HaxManager::sharedState();\
+    auto SAE = CocosDenshion::SimpleAudioEngine::sharedEngine();\
+    if (!hax.areWeInPlayLayer) return false;\
+    hax.areWeInPlayLayer = false;
+
+#define F_audio_end \
+    hax.areWeInPlayLayer = hax.mbfEnabled; // hax.getModuleEnabled(ModuleID::MUSIC_BUG_FIX);
+
+void F_setBackgroundMusicVolume(float volume) {
+    F_audio_start
+    SAE->setBackgroundMusicVolume(volume);
+    F_audio_end
+}
+void F_setBackgroundMusicTime(float time) {
+    F_audio_start
+    SAE->setBackgroundMusicTime(time);
+    F_audio_end
+}
+void F_resumeBackgroundMusic() {
+    F_audio_start
+    SAE->resumeBackgroundMusic();    
+    F_audio_end
+}
+void F_pauseBackgroundMusic() {
+    F_audio_start
+    SAE->pauseBackgroundMusic();    
+    F_audio_end
+}
+void F_stopBackgroundMusic() {
+    F_audio_start
+    SAE->stopBackgroundMusic();    
+    F_audio_end
+}
+void F_playBackgroundMusic(const char* path, bool loop) {
+    F_audio_start
+    SAE->playBackgroundMusic(path, loop);    
+    F_audio_end
+}
+bool F_isBackgroundMusicPlaying() {
+    F_audio_start2
+    bool playing = SAE->isBackgroundMusicPlaying();   
+    F_audio_end
+    return playing;
+}
 
 void (*TRAM_PlayLayer_destroyPlayer)(PlayLayer* self);
 void PlayLayer_destroyPlayer(PlayLayer* self) {
@@ -30,16 +79,9 @@ void PlayLayer_destroyPlayer(PlayLayer* self) {
     hax.dead = true;
     TRAM_PlayLayer_destroyPlayer(self);
     if (hax.completed) return;
-#ifdef USE_MINIAUDIO
     if (hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK) || !getPlayLayerPractice(self)) {
-        AudioManager::sharedManager().pauseBackgroundMusic();
+        F_pauseBackgroundMusic();
     }
-#else
-    if (hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK) && getPlayLayerPractice(self)) {
-        auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
-        audioEngine->pauseBackgroundMusic();
-    }
-#endif
     if (hax.getModuleEnabled(ModuleID::CUSTOM_RESPAWN_TIME)) {
 #if GAME_VERSION >= GV_1_6
         // 1.6 and above start using a tag for this action, so it's trivial to stop it
@@ -106,31 +148,13 @@ void PlayLayer_delayedResetLevel(PlayLayer* self) {
 void (*TRAM_PlayLayer_togglePracticeMode)(PlayLayer* self, bool toggle);
 void PlayLayer_togglePracticeMode(PlayLayer* self, bool toggle) {
     HaxManager& hax = HaxManager::sharedState();
-#ifdef USE_MINIAUDIO
-    if (!hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK)) {
-        auto& am = AudioManager::sharedManager();
+    if (!hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK) && hax.areWeInPlayLayer) {
         if (toggle) {
-            am.stopBackgroundMusic();
-            am.playBackgroundMusic("StayInsideMe.mp3", true);
+            F_stopBackgroundMusic();
+            F_playBackgroundMusic("StayInsideMe.mp3", true);
         } else 
-            am.stopBackgroundMusic();
+            F_stopBackgroundMusic();
     }
-#else
-    if (hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK) && getPlayLayerPractice(self) != toggle) {
-        // recreated function basically
-        setPlayLayerPractice(self, toggle);
-        UILayer* uiLayer = getUILayer(self);
-        uiLayer->toggleCheckpointsMenu(toggle);
-        if (!toggle) {
-            cocos2d::CCArray* checkpoints = getPlayLayerCheckpoints(self);
-            while (checkpoints->count() > 0) {
-                self->removeLastCheckpoint();
-            }
-            MEMBER_BY_OFFSET(bool, self, PlayLayer__m_unkPrac) = true;
-            self->resetLevel();
-        }
-    } else TRAM_PlayLayer_togglePracticeMode(self, toggle);
-#endif
     TRAM_PlayLayer_togglePracticeMode(self, toggle);
     if (hax.spSwitcherParent) {
         if (toggle) hax.spSwitcherParent->setPosition(ccp(hax.spSwitcherParent->getPositionX(), 85));
@@ -209,80 +233,75 @@ void PlayLayer::resetLevelLogic(PlayLayer* self) {
         }
     }
 
-#ifdef USE_MINIAUDIO
-    auto& am = AudioManager::sharedManager();
-    if (!getPlayLayerPractice(self) || hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK)) {
-        float seekTime = 0;
-        CCPoint startPos = getStartPos(self);
-        // CCLog("%f %f", startPos.x, startPos.y);
-        // CCLog("%f", self->timeForXPos(startPos.x, true));
-#if GAME_VERSION < GV_1_7
-        seekTime = startPos.x / 311.58f;
-#else
-        seekTime = self->timeForXPos(startPos.x, true);
-#endif
-        if (lastCheckpoint != nullptr) {
-            if (hax.hitboxLayer) {
-                hax.hitboxLayer->setScaleX(getCheckpointFlipped(lastCheckpoint) ? -1 : 1);    
+// #ifdef USE_MINIAUDIO
+    if (hax.areWeInPlayLayer) {
+        if ((!getPlayLayerPractice(self) || hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK))) {
+            float seekTime = 0;
+            CCPoint startPos = getStartPos(self);
+            // CCLog("%f %f", startPos.x, startPos.y);
+            // CCLog("%f", self->timeForXPos(startPos.x, true));
+    #if GAME_VERSION < GV_1_7
+            seekTime = startPos.x / 311.58f;
+    #else
+            seekTime = self->timeForXPos(startPos.x, true);
+    #endif
+            if (lastCheckpoint != nullptr) {
+                if (hax.hitboxLayer) {
+                    hax.hitboxLayer->setScaleX(getCheckpointFlipped(lastCheckpoint) ? -1 : 1);    
+                }
+                CCPoint lastCheckpointPos = getCheckpointPosition(lastCheckpoint);
+    #if GAME_VERSION < GV_1_7
+                seekTime = lastCheckpointPos.x / 311.58f;
+    #else
+                seekTime = self->timeForXPos(lastCheckpointPos.x, true);
+    #endif
             }
-            CCPoint lastCheckpointPos = getCheckpointPosition(lastCheckpoint);
-#if GAME_VERSION < GV_1_7
-            seekTime = lastCheckpointPos.x / 311.58f;
-#else
-            seekTime = self->timeForXPos(lastCheckpointPos.x, true);
-#endif
-        }
-        if (am.m_playing) {
-            am.setBackgroundMusicTime(seekTime);
-            am.resumeBackgroundMusic();
-        } else {
-            am.playBackgroundMusic(
-                LevelTools::getAudioFileName(getPlayLayerLevel(self)->m_nAudioTrack), false
-            );
-            am.setBackgroundMusicTime(seekTime);
-        }
-    } else if (getPlayLayerPractice(self)) {
-        const char* prac = "StayInsideMe.mp3";
-        if (am.m_playing && !strcmp(prac, am.m_filename)) {
-            am.resumeBackgroundMusic();
-        } else {
-            if (am.m_playing) am.stopBackgroundMusic();
-            am.playBackgroundMusic(prac, true);
-        }
-    }
-#else
-    if (hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK) && getPlayLayerPractice(self)) {
-        auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
-        int seekTime = 0;
-        CCPoint startPos = getStartPos(self);
-#if GAME_VERSION < GV_1_7
-        seekTime = floorf((startPos.x / 311.58f) * 1000.f);
-#else
-        seekTime = floorf(self->timeForXPos(startPos.x, true) * 1000);
-#endif
-        CCNode* lastCheckpoint = self->getLastCheckpoint();
-        if (lastCheckpoint != nullptr) {
-            CCPoint lastCheckpointPos = getCheckpointPosition(lastCheckpoint);
-#if GAME_VERSION < GV_1_7
-            seekTime = floorf((lastCheckpointPos.x / 311.58f) * 1000.f);
-#else
-            seekTime = floorf(self->timeForXPos(lastCheckpointPos.x, true) * 1000);
-#endif
-        }
-        if (seekTime > 0) {
-            JNIEnv* env = getEnv();
-            if (env) {
-                seekBackgroundMusicTo(seekTime);
+            if (F_isBackgroundMusicPlaying()) {
+                F_setBackgroundMusicTime(seekTime);
+                F_resumeBackgroundMusic();
             } else {
-                cocos2d::CCLog("Failed to get Java Env");
-                audioEngine->setBackgroundMusicTime(static_cast<float>(seekTime) / 1000.f);
+                F_playBackgroundMusic(
+                    LevelTools::getAudioFileName(getPlayLayerLevel(self)->m_nAudioTrack), false
+                );
+                F_setBackgroundMusicTime(seekTime);
             }
-        } else {
-            audioEngine->setBackgroundMusicTime(0.f);
+        } else if (getPlayLayerPractice(self)) {
+            F_resumeBackgroundMusic();
         }
-        audioEngine->resumeBackgroundMusic();
     }
-#endif
+// #else
+//     if (hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK) && getPlayLayerPractice(self)) {
+//         auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
+//         int seekTime = 0;
+//         CCPoint startPos = getStartPos(self);
+// #if GAME_VERSION < GV_1_7
+//         seekTime = floorf((startPos.x / 311.58f) * 1000.f);
+// #else
+//         seekTime = floorf(self->timeForXPos(startPos.x, true) * 1000);
+// #endif
+//         CCNode* lastCheckpoint = self->getLastCheckpoint();
+//         if (lastCheckpoint != nullptr) {
+//             CCPoint lastCheckpointPos = getCheckpointPosition(lastCheckpoint);
+// #if GAME_VERSION < GV_1_7
+//             seekTime = floorf((lastCheckpointPos.x / 311.58f) * 1000.f);
+// #else
+//             seekTime = floorf(self->timeForXPos(lastCheckpointPos.x, true) * 1000);
+// #endif
+//         }
+//         if (seekTime > 0) {
+//             JNIEnv* env = getEnv();
+//             if (env) {
+//                 seekBackgroundMusicTo(seekTime);
+//             } else {
+//                 cocos2d::CCLog("Failed to get Java Env");
+//                 audioEngine->setBackgroundMusicTime(static_cast<float>(seekTime) / 1000.f);
+//             }
+//         } else {
+//             audioEngine->setBackgroundMusicTime(0.f);
+//         }
+//         audioEngine->resumeBackgroundMusic();
+//     }
+// #endif
 
     // if (getPlayLayerPractice(self)) {
     //     if (hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK)) {
@@ -339,11 +358,14 @@ void PlayLayer::resetLevelLogic(PlayLayer* self) {
 
 void (*TRAM_PlayLayer_onQuit)(PlayLayer* self);
 void PlayLayer_onQuit(PlayLayer* self) {
-#ifdef USE_MINIAUDIO
-    AudioManager::sharedManager().m_areWeInPlayLayer = false;
-#endif
-    TRAM_PlayLayer_onQuit(self);
     HaxManager& hax = HaxManager::sharedState();
+    hax.areWeInPlayLayer = false;
+    hax.mbfEnabled = hax.getModuleEnabled(ModuleID::MUSIC_BUG_FIX);
+    if (hax.getModuleEnabled(ModuleID::SAVE_ON_LEVEL_EXIT)) {
+        auto gman = GameManager::sharedState();
+        gman->save();
+    }
+    TRAM_PlayLayer_onQuit(self);
     hax.quitPlayLayer = true;
 }
 
@@ -409,9 +431,9 @@ void PlayLayer_update(PlayLayer* self, float dt) {
             hax.percentageLabel->setVisible(true);
         }
         if (hax.getModuleEnabled(ModuleID::SHOW_PERCENTAGE_DECIMAL)) {
-            hax.percentageLabel->setString(CCString::createWithFormat("%.3f%%", getCurrentPercentageF(self))->getCString());
+            hax.percentageLabel->setString(fmt::format("{:.3f}%", getCurrentPercentageF(self)).c_str());
         } else {
-            hax.percentageLabel->setString(CCString::createWithFormat("%i%%", getCurrentPercentage(self))->getCString());
+            hax.percentageLabel->setString(fmt::format("{}%", getCurrentPercentage(self)).c_str());
         }
         auto sp = getStartPos(self);
         auto director = CCDirector::sharedDirector();
@@ -538,9 +560,6 @@ HitboxLayer* HitboxLayer::create(PlayLayer* self) {
 bool HitboxLayer::init(PlayLayer* self) {
     if (!CCLayer::init()) return false;
     parent = self;
-#if GAME_VERSION >= GV_1_7
-    drawNode = CCDrawNode::create();
-#endif
     return true;
 }
 
@@ -637,6 +656,8 @@ void HitboxLayer::draw() {
             if (CCRect::CCRectGetMaxY(rect) < bottomLeft.y) continue;
             if (CCRect::CCRectGetMinY(rect) > topRight.y) continue;
 #else
+            auto objID = getObjectKey(object);
+            if (objID == 29 || objID == 30 || objID == 104 || objID == 105 || objID == 221) continue;
             if (rect.getMaxY() < bottomLeft.y) continue;
             if (rect.getMinY() > topRight.y) continue;
 #endif
@@ -703,17 +724,15 @@ void HitboxLayer::draw() {
 
 bool (*TRAM_PlayLayer_init)(PlayLayer* self, GJGameLevel* level);
 bool PlayLayer_init(PlayLayer* self, GJGameLevel* level) {
-#ifdef USE_MINIAUDIO
-    auto& am = AudioManager::sharedManager();
-    am.m_areWeInPlayLayer = true;
-#endif
+    HaxManager& hax = HaxManager::sharedState();
+    auto SAE = CocosDenshion::SimpleAudioEngine::sharedEngine();
+    hax.mbfEnabled = hax.getModuleEnabled(ModuleID::MUSIC_BUG_FIX);
+    hax.areWeInPlayLayer = hax.mbfEnabled;
     setDecimals('1');
     if (!TRAM_PlayLayer_init(self, level)) return false;
-#ifdef USE_MINIAUDIO
-    if (am.m_volumeCache > 0) {
-        am.setBackgroundMusicVolume(1);
+    if (SAE->getBackgroundMusicVolume() > 0 && hax.areWeInPlayLayer) {
+        F_setBackgroundMusicVolume(1);
     }
-#endif
     auto uiLayer = getUILayer(self);
     uiLayer->removeFromParentAndCleanup(false);
     self->addChild(uiLayer, 99);
@@ -722,7 +741,6 @@ bool PlayLayer_init(PlayLayer* self, GJGameLevel* level) {
     progressBar->removeFromParentAndCleanup(false);
     self->addChild(progressBar, 99);
 #endif
-    HaxManager& hax = HaxManager::sharedState();
     hax.startPercent = getCurrentPercentageF();
     if (hax.getModuleEnabled(ModuleID::HIDE_ATTEMPTS)) {
         getAttemptLabel(self)->setVisible(false);
@@ -832,26 +850,19 @@ void PlayLayer_playSpeedParticle(PlayLayer* self, float speed) {
 }
 #endif
 
-#ifdef USE_MINIAUDIO
 void (*TRAM_PlayLayer_pauseGame)(PlayLayer* self);
 void PlayLayer_pauseGame(PlayLayer* self) {
     TRAM_PlayLayer_pauseGame(self);
-    AudioManager::sharedManager().pauseBackgroundMusic();
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.areWeInPlayLayer) F_pauseBackgroundMusic();
 }
-#endif
 void (*TRAM_PlayLayer_resume)(PlayLayer* self);
 void PlayLayer_resume(PlayLayer* self) {
     TRAM_PlayLayer_resume(self);
     HaxManager& hax = HaxManager::sharedState();
-#ifdef USE_MINIAUDIO
-    if (!hax.dead || (getPlayLayerPractice(self) && !hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK)) && AudioManager::sharedManager().m_areWeInPlayLayer) 
-        AudioManager::sharedManager().resumeBackgroundMusic();
-#else
-    if (hax.getModuleEnabled(ModuleID::MUSIC_BUG_FIX) && hax.dead && (!getPlayLayerPractice(self) || hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK))) {
-        auto audioEngine = CocosDenshion::SimpleAudioEngine::sharedEngine();
-        audioEngine->pauseBackgroundMusic();
+    if (!hax.dead || (getPlayLayerPractice(self) && !hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK)) && hax.areWeInPlayLayer && !hax.quitPlayLayer) {
+        F_resumeBackgroundMusic();
     }
-#endif
 }
 
 void PlayLayer_om() {
@@ -908,11 +919,9 @@ void PlayLayer_om() {
         reinterpret_cast<void*>(PlayLayer_playSpeedParticle),
         reinterpret_cast<void**>(&TRAM_PlayLayer_playSpeedParticle));
 #endif
-#ifdef USE_MINIAUDIO
     Omni::hook("_ZN9PlayLayer9pauseGameEv",
         reinterpret_cast<void*>(PlayLayer_pauseGame),
         reinterpret_cast<void**>(&TRAM_PlayLayer_pauseGame));
-#endif
     Omni::hook("_ZN9PlayLayer6resumeEv",
         reinterpret_cast<void*>(PlayLayer_resume),
         reinterpret_cast<void**>(&TRAM_PlayLayer_resume));

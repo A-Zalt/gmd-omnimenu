@@ -6,4 +6,5 @@ class LevelSettingsObject : public cocos2d::CCNode
 {
 public:
     static LevelSettingsObject* objectFromString(std::string str);
+    void setAudioTrack(int);
 };

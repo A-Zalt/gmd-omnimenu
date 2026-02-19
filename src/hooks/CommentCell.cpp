@@ -1,11 +1,30 @@
 #include "hook.hpp"
+#if GDPS == GDPS_NEOPOINTFOUR
+#include "Neopointfour/GJComment.cpp"
+
+std::string timeToString(time_t input) {
+    struct tm timeInfo;
+    localtime_r(&input, &timeInfo);
+    char buffer[64];
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %H:%M", &timeInfo);
+    return std::string(buffer);
+}
+
+int getCommentDate(void* comment);
+#endif
 
 void (*TRAM_CommentCell_loadFromComment)(CCNode* self, CCNode* comment);
 void CommentCell_loadFromComment(CCNode* self, CCNode* comment) {
     TRAM_CommentCell_loadFromComment(self, comment);
     HaxManager& hax = HaxManager::sharedState();
     if (hax.getModuleEnabled(ModuleID::COMMENT_IDS)) {
-        auto idLabel = CCLabelBMFont::create(CCString::createWithFormat("#%i", getCommentID(comment))->getCString(), "chatFont.fnt");
+#if GDPS == GDPS_NEOPOINTFOUR
+        int commentTimestamp = getCommentDate(comment);
+        std::string commentDate = (commentTimestamp > 0) ? timeToString(static_cast<time_t>(commentTimestamp)) : "NA";
+        auto idLabel = CCLabelBMFont::create(commentDate.c_str(), "chatFont.fnt");
+#else
+        auto idLabel = CCLabelBMFont::create(fmt::format("#{}", getCommentID(comment)).c_str(), "chatFont.fnt");
+#endif
         idLabel->setAnchorPoint({1, 0.5});
         idLabel->setScale(0.5f);
         idLabel->setPosition(ccp(330, 15));

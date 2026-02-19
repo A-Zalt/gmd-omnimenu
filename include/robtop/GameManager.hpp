@@ -2,6 +2,7 @@
 
 #include <cocos2d.h>
 #include "PlayLayer.hpp"
+#include "GManager.hpp"
 
 class GameRateDelegate {
 	virtual void updateRate();
@@ -12,11 +13,18 @@ typedef enum {
     Ship = 1
 } IconType;
 
-class GameManager : public cocos2d::CCNode {
+class GameManager : public GManager {
 public:
     static GameManager* sharedState();
 
     void reportAchievementWithID(const char* ach, int percent);
+    void setPlayerName(std::string);
+    void setPlayerFrame(int);
+#if GAME_VERSION >= GV_1_4
+    void setPlayerShip(int);
+#endif
+    void setPlayerColor(int);
+    void setPlayerColor2(int);
 
     // IDA returns poop addresses
 

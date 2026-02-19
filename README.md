@@ -17,6 +17,7 @@ Downloads are available in the Discord server: https://discord.gg/4AC23yn4yF
 - [**akqanile (Adelfa)**](https://github.com/cierra-kb) - 100 KB fix, 16k fix, lots of help with issues. He is regarded as the god of tradmodding for a reason.
 - Eclipse Mod Menu team - many hack implementations
 - Hris69 - betatested on Android 4.4. Also got me started with tradmodding in general. Without him, this mod menu wouldn't exist.
+- [**RandomB**](https://github.com/RandomBlbosti) - Neopointfour features, Page Controls, Save on Level Exit
 - Nikolyas, Caster, Tabbi - betatesters
 - HJFod - BetterEdit code (particularly the RGB Color Inputs)
 - iAndy_HD3 - Helping out with fmtlib
@@ -79,15 +80,6 @@ Below the `invoke-super` line, put this line:
 
 ```
 sput-object p0, Lcom/robtopx/geometryjump/GeometryJump;->instance:Lcom/robtopx/geometryjump/GeometryJump;
-```
-
-and then these three lines if building with miniaudio:
-```
-invoke-virtual {p0}, Landroid/content/Context;->getAssets()Landroid/content/res/AssetManager;
-
-move-result-object v0
-
-invoke-virtual {p0, v0}, Lcom/robtopx/geometryjump/GeometryJump;->nativeSetAssetManager(Landroid/content/res/AssetManager;)V
 ```
 
 And, at the top of the file, after the static field definitions, add this line: `.field private static instance:Lcom/robtopx/geometryjump/GeometryJump;`

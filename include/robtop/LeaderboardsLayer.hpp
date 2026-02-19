@@ -17,4 +17,8 @@ public:
 
     void selectLeaderboard(LeaderboardState);
     void onRefresh();
+    void onStarFilter(CCObject* sender);
+    void onDemonFilter(CCObject* sender);
+    void updateFilterButtons();
+    void selectLeaderboard(int state);
 };

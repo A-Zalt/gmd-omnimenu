@@ -25,7 +25,10 @@ public:
     void addToUndoList(UndoObject*);
     void removeObject(GameObject*);
     int getSectionCount();
+    GameObject* objectAtPosition(cocos2d::CCPoint point);
 #if GAME_VERSION >= GV_1_6
     void addObjectFromString(std::string);
 #endif
+    cocos2d::CCArray* objectsInRect(cocos2d::CCRect);
+    void reorderObjectSection(GameObject* obj);
 };

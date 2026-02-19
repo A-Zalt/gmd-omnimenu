@@ -29,7 +29,9 @@
 /**/ #define EditorUI__m_editorLayer           0x1c4 /**/ // EditorUI::init
 /**/ #define EditorUI__m_selectedObject        0x248 /**/ // EditorUI::selectObject
 /**/ #define EditorUI__m_selectedObjects       0x180 /**/ // EditorUI::deselectAll 
+/**/ #define EditorUI__m_touch                 0x228 /**/ // EditorUI::onDelete
 /**/ #define EditorUI__m_unkFloat              0x158 /**/ // EditorUI::setupCreateMenu (at the bottom)
+/**/ #define GameLevelManager__m_settingsDict  0x12c /**/ // GameLevelManager::setBoolForKey
 /**/ #define GameManager__m_autoRetry          0x194 /**/ // GameManager::getAutoRetryLevel
 /**/ #define GameManager__m_playLayer          0x150 /**/ // GameManager::getPlayLayer
 /**/ #define GameManager__m_playerName         0x168 /**/ // GameManager::getPlayerName
@@ -47,10 +49,15 @@
 /**/ #define GameObject__m_shouldSpawn         0x2d0 /**/ // GameObject::getShouldSpawn
 /**/ #define GameObject__m_type                0x2c8 /**/ // GameObject::getType
 /**/ #define GameObject__m_useAudioScale       0x2fc /**/ // GameObject::getUseAudioScale
+/**/ #define GameStatsManager__m_completedDict 0x12c /**/ // GameStatsManager::completedLevel
+/**/ #define GameStatsManager__m_statsDict     0x128 /**/ // GameStatsManager::getStat
 /**/ #define GJComment__m_commentID            0x130 /**/ // GJComment::getCommentID
+/**/ #define GJSearchObject__m_page            0x138 /**/ // GJSearchObject::getPage
 /**/ #define GJSearchObject__m_type            0x128 /**/ // GJSearchObject::getType
+/**/ #define InfoLayer__m_mainLayer            0x1c8 /**/ // InfoLayer::init
 /**/ #define LeaderboardsLayer__m_boardType    0x148 /**/ // LeaderboardsLayer::selectLeaderboard
 /**/ #define LevelBrowserLayer__m_searchObject 0x154 /**/ // LevelBrowserLayer::setSearchObject
+/**/ #define LevelBrowserLayer__m_total        0x15c /**/ // LevelBrowserLayer::updateLevelsLabel
 /**/ #define LevelCell__m_level                0x180 /**/ // LevelCell::loadFromLevel
 /**/ #define LevelEditorLayer__m_batchNode     0x140 /**/ // LevelEditorLayer::createObject (1st function call after GameObject::createObject)
 /**/ #define LevelEditorLayer__m_gameLayer     0x158 /**/ // LevelEditorLayer::getGameLayer
@@ -106,6 +113,9 @@
 /**/ #define _0_1f                          0x322AEB /**/ // string search: %0.1f, the "1"
 /**/ #define basicstring_assign             0x2E87D0 /**/ // differs between versions :/
 /**/ #define global_order_of_arrival        0x4544CC /**/ // CCNode::reorderChild
+/**/ #define iconkit_colors                 0x176DC0 /**/
+/**/ #define iconkit_colors2                0x176CA4 /**/
+/**/ #define iconkit_colors3                0x176C98 /**/
 /**/ #define __GameManager_isColorUnlocked  0x144B74 /**/ // fuck dobbyhook fuck this stupid game fuck everyone kill 7 billion people
 /**/ #define __GameManager_isIconUnlocked   0x144B04 /**/ // fuck dobbyhook fuck this stupid game fuck everyone kill 7 billion people
 /**/ #define move_x_max                     0x159174 /**/ // EditorUI::moveObject - 00 60 EA 46
@@ -118,6 +128,7 @@
 /**/ #define place_y_max                    0x15BCB8 /**/ // EditorUI::onCreateObject - 00 60 9F 44
 /**/ #define place_x_min                    0x15BCAC /**/ // EditorUI::onCreateObject - 00 80 9D 43
 /**/ #define place_y_min                    0x15BCB0 /**/ // EditorUI::onCreateObject - 00 00 D2 42
+/**/ #define search_query_length_fix        0x117822 /**/ // BLX sprintf, GameToolbox::getResponse, "HTTP Status Code: %d, tag = %s"
 /**/ #define zoom_bypass_max_1              0x1594D4 /**/ // EditorUI::zoomGameLayer
 /**/ #define zoom_bypass_max_2              0x15960E /**/ // EditorUI::zoomGameLayer
 /**/ #define zoom_bypass_min                0x15961C /**/ // EditorUI::zoomGameLayer

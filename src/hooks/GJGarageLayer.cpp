@@ -14,7 +14,7 @@ bool GJGarageLayer_init(CCLayer* self) {
         auto winSize = director->getWinSize();
         auto sprite = CCSprite::createWithSpriteFrameName("GJ_demonIcon_001.png");
         sprite->setScale(0.8f);
-        auto label = CCLabelBMFont::create(CCString::createWithFormat("%i", GameStatsManager::sharedState()->getStat("5"))->getCString(), "bigFont.fnt");
+        auto label = CCLabelBMFont::create(fmt::format("{}", GameStatsManager::sharedState()->getStat("5")).c_str(), "bigFont.fnt");
         label->setScale(0.5f);
         label->setAnchorPoint({1, 0.5});
 #if GAME_VERSION < GV_1_6

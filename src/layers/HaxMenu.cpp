@@ -3,6 +3,7 @@
 #include "../layers/HaxMenu.hpp"
 #include "FLAlertLayer.hpp"
 #include "HaxManager.hpp"
+#include "LocalLevelManager.hpp"
 #include "CCMenuItemToggler.hpp"
 #include "CCMenuItemSpriteExtra.hpp"
 #include "Utils.hpp"
@@ -10,6 +11,11 @@
 #include "ButtonSprite.hpp"
 #include "RespawnTimeInput.hpp"
 #include <fmt/format.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include "AppDelegate.hpp"
+#include <fstream>
+#include "LoadingLayer.hpp"
 
 using namespace cocos2d;
 
@@ -116,117 +122,73 @@ ccColor3B color = ccc3(127, 255, 255);
 
 
 bool HaxMenu::init(CCLayer* referrer) {
-    CCLog("1");
     if (!CCLayerColor::initWithColor(ccc4(0, 0, 0, 180)))
         return false;
 
-    CCLog("2");
     canSpoofPih = true;
 
-    CCLog("3");
     auto& hax = HaxManager::sharedState();
 
-    CCLog("4");
     this->referrer = referrer;
-    CCLog("5");
     CCDirector* director = CCDirector::sharedDirector();
-    CCLog("6");
     CCSize winSize = director->getWinSize();
 
-    CCLog("7");
     CCTouchDispatcher* touchDispatch = director->getTouchDispatcher();
-    CCLog("8");
     touchDispatch->setForcePrio(true);
-    CCLog("9");
     touchDispatch->setTargetPrio(0x80000002);
 
-    CCLog("10");
     this->catButtons = CCArray::create();
-    CCLog("11");
     this->catButtons->retain();
 
-    CCLog("12");
     CCNode* leftParent = CCNode::create();
-    CCLog("13");
     addChild(leftParent);
-    CCLog("14");
     leftParent->setPosition(-100.f, winSize.height / 2);
-    CCLog("15");
     this->leftParent = leftParent;
     
-    CCLog("16");
     CCSprite* leftPanel = CCSprite::create("menupanel.png");
-    CCLog("17");
     leftParent->addChild(leftPanel);
-    CCLog("18");
     leftPanel->setPosition({0.f, 0.f});
-    CCLog("19");
     leftPanel->setScaleY(2.0f);
-    CCLog("20");
     this->leftPanel = leftPanel;
 
-    CCLog("21");
     auto logo = CCSprite::create("omnimenu_logo.png");
-    CCLog("22");
     leftParent->addChild(logo, 1001);
-    CCLog("23");
     logo->setPosition(ccp(0, winSize.height / 2 - 30));
-    CCLog("24");
     logo->setScale(0.8f);
     
-    CCLog("25");
     leftParent->runAction(CCEaseOut::create(
         CCMoveTo::create(getDuration(), ccp(100.0f, winSize.height / 2)), 3
     ));
 
-    CCLog("26");
     CCNode* rightParent = CCNode::create();
-    CCLog("27");
     addChild(rightParent);
-    CCLog("28");
     rightParent->setPosition(winSize.width + 100.f, winSize.height / 2);
-    CCLog("29");
     this->rightParent = rightParent;
     
-    CCLog("30");
     CCSprite* rightPanel = CCSprite::create("menupanel.png");
-    CCLog("31");
     rightParent->addChild(rightPanel);
-    CCLog("32");
     rightPanel->setPosition({0.f, 0.f});
-    CCLog("33");
     rightPanel->setScaleY(2.0f);
-    CCLog("34");
     this->rightPanel = rightPanel;
     
-    CCLog("35");
     rightParent->runAction(CCEaseOut::create(
         CCMoveTo::create(getDuration(), ccp(winSize.width - 100.f, winSize.height / 2)), 3
     ));
 
-    CCLog("36");
     this->catMenu = CCMenu::create();
-    CCLog("37");
     this->leftParent->addChild(catMenu, 1001);
-    CCLog("38");
     catMenu->setPosition(ccp(-75, 0));
 
-    CCLog("39");
     this->modMenu = CCMenu::create();
-    CCLog("40");
     addChild(modMenu, 1002);
-    CCLog("41");
     this->modMenu->setPosition(this->rightParent->getPosition());
 
-    CCLog("42");
     modMenu->runAction(CCEaseOut::create(
         CCMoveTo::create(getDuration(), ccp(winSize.width - 80.f, winSize.height / 2)), 3
     ));
     // modMenu->setPosition(ccp(winSize.width - 75, 0));
 
-    CCLog("43");
     addButton(" Player ", 14, 80, this, menu_selector(HaxMenu::onPlayer));
-    CCLog("44");
     addButton(" Visual ", 14, 60, this, menu_selector(HaxMenu::onVisual));
     addButton(" Editor ", 14, 40, this, menu_selector(HaxMenu::onEditor));
     addButton(" Bypass ", 14, 20, this, menu_selector(HaxMenu::onBypass));
@@ -234,18 +196,18 @@ bool HaxMenu::init(CCLayer* referrer) {
     addButton(" Universal ", 14, -20, this, menu_selector(HaxMenu::onUniversal));
     addButton(" Label ", 14, -40, this, menu_selector(HaxMenu::onLabel));
     addButton(" Particles ", 14, -60, this, menu_selector(HaxMenu::onParticles));
+    addButton(" Save Data ", 14, -80, this, menu_selector(HaxMenu::onSaveData));
 
-    CCLog("45");
     setTouchEnabled(true);
-    CCLog("46");
     setKeypadEnabled(true);
     // referrer->setTouchEnabled(false);
     // referrer->setScale(0.2f);
 
-    CCLog("47");
-    onCategory(hax.lastCategory);
-
-    CCLog("END");
+    if (hax.lastCategory == ModuleCategory::SaveData) {
+        onSaveData(dummy_first_sender_param_1_7);
+    } else {
+        onCategory(hax.lastCategory);
+    }
 
     return true;
 }
@@ -253,7 +215,7 @@ bool HaxMenu::init(CCLayer* referrer) {
 void HaxMenu::setColorAtIndex(int ind) {
     int index = ind + 1;
     if (ind == 7) index = 1;
-    else if (ind == 0) index = 0;
+    else if (ind == 0 || ind == 8) index = ind;
 
     static_cast<CCLabelTTF*>(static_cast<CCMenuItemLabel*>(this->catButtons->objectAtIndex(index))->getLabel())->setColor(color);
 
@@ -273,6 +235,31 @@ void HaxMenu::setColorAtIndex(int ind) {
     }
 #endif
 }
+
+void HaxMenu::cleanupMembers() {
+    auto& hax = HaxManager::sharedState();
+    while (this->rightParent->getChildrenCount() > 1) {
+        CCNode* node = static_cast<CCNode*>(this->rightParent->getChildren()->objectAtIndex(1));
+        this->rightParent->removeChild(node, true);
+    }
+    while (this->modMenu->getChildrenCount() > 0) {
+        if (this->modMenu->getChildrenCount() > 1) {
+            CCNode* node2 = static_cast<CCNode*>(this->modMenu->getChildren()->objectAtIndex(1));
+            this->modMenu->removeChild(node2, true);
+        }
+        CCNode* node = static_cast<CCNode*>(this->modMenu->getChildren()->objectAtIndex(0));
+        std::string* userData = static_cast<std::string*>(node->getUserData());
+        delete userData;
+        userData = nullptr;
+        this->modMenu->removeChild(node, true);
+    }
+    if (hax.respawnInput && hax.respawnInput->input) {
+        setTextInputDelegate(hax.respawnInput->input, nullptr);
+        hax.respawnInput->removeFromParentAndCleanup(true);
+    }
+    hax.respawnInput = nullptr;
+}
+
 void HaxMenu::addButton(const char* text, float fontSize, float yOffset, CCObject* target, SEL_MenuHandler selector) {
     CCDirector* director = CCDirector::sharedDirector();
     CCSize winSize = director->getWinSize();
@@ -308,33 +295,180 @@ void HaxMenu::onLabel(SEL_MenuHandler_1_7_compat) {
 void HaxMenu::onParticles(SEL_MenuHandler_1_7_compat) {
     onCategory(ModuleCategory::Particles);
 }
+void HaxMenu::onSaveData(SEL_MenuHandler_1_7_compat) {
+    auto& hax = HaxManager::sharedState();
+    hax.lastCategory = ModuleCategory::SaveData;
+    setColorAtIndex(8);
+    cleanupMembers();
+    CCDirector* director = CCDirector::sharedDirector();
+    CCSize winSize = director->getWinSize();
+    auto label = CCLabelTTF::create("Create Backup ", "Helvetica-Oblique.ttf", 12);
+    auto item = CCMenuItemLabel::create(label, this, menu_selector(HaxMenu::onExportData));
+    this->modMenu->addChild(item, 1003);
+    item->setAnchorPoint({0.f, 0.5f});
+    item->setPosition(ccp(-98, winSize.height / 2 - 20));
+
+    int y = -45;
+    for (int i = 1; i <= NUMBER_OF_BACKUPS; i++) {
+        auto label1 = CCLabelTTF::create(fmt::format("Load Backup #{} ", i).c_str(), "Helvetica-Oblique.ttf", 12);
+        auto item1 = CCMenuItemLabel::create(label1, this, menu_selector(HaxMenu::onImportData));
+        this->modMenu->addChild(item1, 1003);
+        item1->setAnchorPoint({0.f, 0.5f});
+        item1->setPosition(ccp(-98, winSize.height / 2 + y));
+        item1->setTag(i);
+        if (hax.backupDates[i-1] != 0) {
+            const long int date = hax.backupDates[i-1];
+            auto label2 = CCLabelTTF::create(
+                fmt::format("Created {} ", 
+                    std::asctime(std::localtime(&date))
+                ).c_str(),
+                "Helvetica-Oblique.ttf", 
+                10);
+            this->rightParent->addChild(label2);
+            label2->setColor(ccc3(180, 180, 180));
+            label2->setAnchorPoint({0.f, 0.5f});
+            label2->setPosition(ccp(-95, winSize.height / 2 + y - 20));
+        }
+        y -= 30;
+    }
+    // auto label2 = CCLabelTTF::create(fmt::format("Backup Key: {}").c_str(), "Helvetica-Oblique.ttf", 11);
+    // label2->setPosition(ccp(38, winSize.height / 2 - 20));
+}
+void HaxMenu::onExportData(SEL_MenuHandler_1_7_compat) {
+    auto& hax = HaxManager::sharedState();
+    auto result = hax.createBackup();
+    if (result.errorCode == -1) {
+        FLAlertLayer::create(
+            nullptr,
+            "Export Data",
+            "<cr>Error:</c> could not open file for writing",
+            "OK",
+            nullptr,
+            300.f
+        )->show();
+    } else {
+        #if GAME_VERSION > GV_1_0
+            FLAlertLayer::create(
+                nullptr,
+                "Export Data",
+                fmt::format("Data has been exported to: CCGameManager_backup_{}.dat and CCLocalLevels_backup_{}.dat", result.randNum, result.randNum).c_str(),
+                "OK",
+                nullptr,
+                300.f
+            )->show();
+        #else
+            FLAlertLayer::create(
+                nullptr,
+                "Export Data",
+                fmt::format("Data has been exported to: CCGameManager_backup_{}.dat", result.randNum).c_str(),
+                "OK",
+                nullptr,
+                300.f
+            )->show();
+        #endif
+        onSaveData(dummy_first_sender_param_1_7);
+    }
+}
+void HaxMenu::onImportData(CCObject* sender) {
+    auto& hax = HaxManager::sharedState();
+
+    auto node = (CCNode*) sender;
+    int keyIndex = node->getTag() - 1;
+
+    if (hax.backupKeys[keyIndex] == 0) {
+        FLAlertLayer::create(
+            nullptr,
+            "Load Backup",
+            "<cr>Error:</c> this backup does not exist for this version",
+            "OK",
+            nullptr,
+            300.f
+        )->show();
+        return;
+    }
+
+    FILE* fp = fopen(fmt::format("{}{}/CCGameManager_backup_{}.dat", MENU_SETTINGS_PATH, hax.packageName, hax.backupKeys[keyIndex]).c_str(), "rb");
+    bool gmExists = !!fp;
+#if GAME_VERSION > GV_1_0
+    FILE* fp2 = fopen(fmt::format("{}{}/CCLocalLevels_backup_{}.dat", MENU_SETTINGS_PATH, hax.packageName, hax.backupKeys[keyIndex]).c_str(), "rb");
+    bool llExists = !!fp2;
+#endif
+    if (!fp
+#if GAME_VERSION > GV_1_0
+        && !fp2
+#endif
+    ) {
+        FLAlertLayer::create(
+            nullptr,
+            "Load Backup",
+            "<cr>Error:</c> could not open file for reading",
+            "OK",
+            nullptr,
+            300.f
+        )->show();
+        return;
+    }
+
+    fclose(fp);
+#if GAME_VERSION > GV_1_0
+    fclose(fp2);
+#endif
+    
+    if (gmExists) {
+        const char* gmFilename = fmt::format("{}{}/CCGameManager_backup_{}.dat", MENU_SETTINGS_PATH, hax.packageName, hax.backupKeys[keyIndex]).c_str();
+
+        std::ifstream t(gmFilename);
+        t.seekg(0, std::ios::end);
+        size_t size = t.tellg();
+        std::string buffer(size, ' ');
+        t.seekg(0);
+        t.read(&buffer[0], size); 
+
+        auto gm = new DS_Dictionary();
+        gm->loadRootSubDictFromString(buffer.c_str());
+
+        auto gmCur = new DS_Dictionary();
+        void* encodeDataTo = DobbySymbolResolver(MAIN_LIBRARY, "_ZN11GameManager12encodeDataToEP13DS_Dictionary");
+        ((void(*)(GameManager*, DS_Dictionary*))encodeDataTo)(GameManager::sharedState(), gmCur);
+
+        gmCur->saveRootSubDictToFile("CCGameManager2.dat");
+        gm->saveRootSubDictToFile("CCGameManager.dat");
+    }
+#if GAME_VERSION > GV_1_0
+    if (llExists) {
+        const char* llFilename = fmt::format("{}{}/CCLocalLevels_backup_{}.dat", MENU_SETTINGS_PATH, hax.packageName, hax.backupKeys[keyIndex]).c_str();
+
+        std::ifstream t2(llFilename);
+        t2.seekg(0, std::ios::end);
+        size_t size2 = t2.tellg();
+        std::string buffer2(size2, ' ');
+        t2.seekg(0);
+        t2.read(&buffer2[0], size2); 
+
+        auto ll = new DS_Dictionary();
+        ll->loadRootSubDictFromString(buffer2.c_str());
+
+        auto localLevels = new DS_Dictionary();
+        void* encodeDataToLL = DobbySymbolResolver(MAIN_LIBRARY, "_ZN17LocalLevelManager12encodeDataToEP13DS_Dictionary");
+        ((void(*)(LocalLevelManager*, DS_Dictionary*))encodeDataToLL)(LocalLevelManager::sharedState(), localLevels);
+
+        localLevels->saveRootSubDictToFile("CCLocalLevels2.dat");
+        ll->saveRootSubDictToFile("CCLocalLevels.dat");
+    }
+#endif
+
+    hax.saveSettingsToFile();
+
+    CCDirector::sharedDirector()->replaceScene(LoadingLayer::scene());
+}
 
 void HaxMenu::onCategory(ModuleCategory category) {
     auto& hax = HaxManager::sharedState();
     hax.lastCategory = category;
 
     setColorAtIndex(static_cast<int>(category));
+    cleanupMembers();
 
-    while (this->rightParent->getChildrenCount() > 1) {
-        CCNode* node = static_cast<CCNode*>(this->rightParent->getChildren()->objectAtIndex(1));
-        this->rightParent->removeChild(node, true);
-    }
-    while (this->modMenu->getChildrenCount() > 0) {
-        if (this->modMenu->getChildrenCount() > 1) {
-            CCNode* node2 = static_cast<CCNode*>(this->modMenu->getChildren()->objectAtIndex(1));
-            this->modMenu->removeChild(node2, true);
-        }
-        CCNode* node = static_cast<CCNode*>(this->modMenu->getChildren()->objectAtIndex(0));
-        std::string* userData = static_cast<std::string*>(node->getUserData());
-        delete userData;
-        userData = nullptr;
-        this->modMenu->removeChild(node, true);
-    }
-    if (hax.respawnInput && hax.respawnInput->input) {
-        setTextInputDelegate(hax.respawnInput->input, nullptr);
-        hax.respawnInput->removeFromParentAndCleanup(true);
-    }
-    hax.respawnInput = nullptr;
     CCDirector* director = CCDirector::sharedDirector();
     CCSize winSize = director->getWinSize();
 
@@ -399,6 +533,15 @@ void HaxMenu::onCategory(ModuleCategory category) {
         udidBtn->setPosition(ccp(-70, -winSize.height / 2 + 30));
         this->modMenu->addChild(udidBtn);
         this->udidBtn = udidBtn;
+        
+#if GDPS == GDPS_NEOPOINTFOUR
+        /*auto restoreSpr = ButtonSprite::create("Restore", 50, 0, 1, false, "bigFont.fnt", "GJ_button_04.png");
+
+        auto restoreBtn = CCMenuItemSpriteExtra::create(restoreSpr, restoreSpr, this, menu_selector(HaxMenu::onRestore));
+        restoreBtn->setPosition(ccp(10, -winSize.height / 2 + 30));
+        this->modMenu->addChild(restoreBtn);
+        this->restoreBtn = restoreBtn;*/
+#endif
     }
 }
  // if you see this dm "dfdfdcsxxs" to scarfolk.resident on discord

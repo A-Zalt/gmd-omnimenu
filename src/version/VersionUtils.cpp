@@ -15,6 +15,10 @@
 #include "CCTextInputNode.hpp"
 #include "LevelBrowserLayer.hpp"
 #include "LeaderboardsLayer.hpp"
+#if GAME_VERSION > GV_1_2
+#include "ObjectToolbox.hpp"
+#endif
+#include <fmt/format.h>
 
 #define ARM_NOP {0x00, 0xbf}
 #define ARM_FLOAT_INF {0x00, 0x00, 0x80, 0x7f}
@@ -618,6 +622,9 @@ GJSearchObject* getSearchObject(LevelBrowserLayer* browser) {
 int getSearchType(GJSearchObject* searcher) {
     return MEMBER_BY_OFFSET(int, searcher, GJSearchObject__m_type);
 }
+int& getSearchPage(GJSearchObject* searcher) {
+    return MEMBER_BY_OFFSET(int, searcher, GJSearchObject__m_page);
+}
 #if GAME_VERSION >= GV_1_4
 void setIconHack(bool enable) {
     if (enable) {
@@ -918,4 +925,122 @@ float getPlayerScale(PlayerObject* player) {
 #endif
 bool getCheckpointFlipped(CCNode* checkpoint) {
     return MEMBER_BY_OFFSET(bool, checkpoint, CheckpointObject__m_isFlipped);
+}
+
+#if GDPS == GDPS_NEOPOINTFOUR
+CCDictionary* getSettingsDict(GameLevelManager* glman) {
+    return MEMBER_BY_OFFSET(CCDictionary*, glman, GameLevelManager__m_settingsDict);
+}
+CCDictionary* getCompletedDict(GameStatsManager* gsman) {
+    return MEMBER_BY_OFFSET(CCDictionary*, gsman, GameStatsManager__m_completedDict);
+}
+CCDictionary* getStatsDict(GameStatsManager* gsman) {
+    return MEMBER_BY_OFFSET(CCDictionary*, gsman, GameStatsManager__m_statsDict);
+}
+int getPlayerShip(GameManager* gm) {
+    return MEMBER_BY_OFFSET(int, gm, GameManager__m_playerShip);
+}
+CCLayer* getMainLayer(CCLayer* infoLayer){
+    return MEMBER_BY_OFFSET(CCLayer*, infoLayer, InfoLayer__m_mainLayer);
+}
+#endif
+int getTotalLevels(LevelBrowserLayer* browser) {
+    return MEMBER_BY_OFFSET(int, browser, LevelBrowserLayer__m_total);
+}
+
+const char* keyToFrame(int objectID) {
+#if GAME_VERSION > GV_1_2
+    return ObjectToolbox::sharedState()->keyToFrame(fmt::format("{}", objectID).c_str());
+#else
+    switch (objectID) { // copied from GameObject::keyToFrame (1.2)
+        case 1:
+            return "square_01_001.png";
+        case 2:
+            return "square_02_001.png";
+        case 3:
+            return "square_03_001.png";
+        case 4:
+            return "square_04_001.png";
+        case 5:
+            return "square_05_001.png";
+        case 6:
+            return "square_06_001.png";
+        case 7:
+            return "square_07_001.png";
+        case 8:
+            return "spike_01_001.png";
+        case 9:
+            return "pit_01_001.png";
+        case 0xA:
+            return "portal_01_front_001.png";
+        case 0xB:
+            return "portal_02_front_001.png";
+        case 0xC:
+            return "portal_03_front_001.png";
+        case 0xD:
+            return "portal_04_front_001.png";
+        case 0xF:
+            return "rod_01_001.png";
+        case 0x10:
+            return "rod_02_001.png";
+        case 0x11:
+            return "rod_03_001.png";
+        case 0x12:
+            return "d_spikes_01_001.png";
+        case 0x13:
+            return "d_spikes_02_001.png";
+        case 0x14:
+            return "d_spikes_03_001.png";
+        case 0x15:
+            return "d_spikes_04_001.png";
+        case 0x16:
+            return "edit_eeNoneBtn_001.png";
+        case 0x17:
+            return "edit_eeFBBtn_001.png";
+        case 0x18:
+            return "edit_eeFTBtn_001.png";
+        case 0x19:
+            return "edit_eeFLBtn_001.png";
+        case 0x1A:
+            return "edit_eeFRBtn_001.png";
+        case 0x1B:
+            return "edit_eeSUBtn_001.png";
+        case 0x1C:
+            return "edit_eeSDBtn_001.png";
+        case 0x1D:
+            return "edit_eTintBGBtn_001.png";
+        case 0x1E:
+            return "edit_eTintGBtn_001.png";
+        case 0x1F:
+            return "edit_eStartPosBtn_001.png";
+        case 0x20:
+            return "edit_eGhostEBtn_001.png";
+        case 0x21:
+            return "edit_eGhostDBtn_001.png";
+        case 0x22:
+            return "edit_eLevelEndBtn_001.png";
+        case 0x23:
+            return "bump_01_001.png";
+        case 0x24:
+            return "ring_01_001.png";
+        case 0x27:
+            return "spike_02_001.png";
+        case 0x28:
+            return "plank_01_001.png";
+        case 0x29:
+            return "chain_01_001.png";
+        case 0x2A:
+            return "edit_eBGEOn_001.png";
+        case 0x2B:
+            return "edit_eBGEOff_001.png";
+        case 0x2D:
+            return "portal_05_front_001.png";
+        case 0x2E:
+            return "portal_06_front_001.png";
+        case 0x2F:
+            return "portal_07_front_001.png";
+        default:
+            return "";
+    }
+#endif
 }

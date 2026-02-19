@@ -7,17 +7,62 @@
 // #include "ShareCommentLayer.hpp"
 #include <algorithm>
 
+#if GDPS == GDPS_NEOPOINTFOUR
+class LevelInfoLayerExt {
+public:
+    void onClone(CCObject* sender) {
+        HaxManager& hax = HaxManager::sharedState();
+        auto self = reinterpret_cast<LevelInfoLayer*>(this);
+        auto currentLevel = getInfoLayerLevel(self);
+        
+        auto levelManager = GameLevelManager::sharedState();
+        
+        auto newLevel = levelManager->createNewLevel();
+        
+        typedef void (*setLevelName_t)(GJGameLevel*, std::string*);
+        typedef void (*setLevelString_t)(GJGameLevel*, std::string*);
+        
+        // ts won't work otherwise
+        auto setNameFunc = (setLevelName_t)dlsym(RTLD_DEFAULT, "_ZN11GJGameLevel12setLevelNameESs");
+        auto setStringFunc = (setLevelString_t)dlsym(RTLD_DEFAULT, "_ZN11GJGameLevel14setLevelStringESs");
+
+        std::string newName = currentLevel->m_sLevelName + " 2";
+        if (newName.length() > 20) {
+            newName = newName.substr(0, 20);
+        }
+
+        newLevel->m_nLevelLength = currentLevel->m_nLevelLength;
+        newLevel->m_nAudioTrack = currentLevel->m_nAudioTrack;
+
+        setNameFunc(newLevel, &newName);
+        setStringFunc(newLevel, &currentLevel->m_sLevelString);
+    
+        int originalID;
+        if (hax.originalIDMap.find(currentLevel) != hax.originalIDMap.end() && hax.originalIDMap[currentLevel] > 0) {
+            originalID = hax.originalIDMap[currentLevel];
+        } else {
+            originalID = currentLevel->m_nLevelID;
+        }
+        hax.originalIDMap[newLevel] = originalID;
+        
+        auto director = CCDirector::sharedDirector();
+        auto scene = EditLevelLayer::scene(newLevel);
+        auto transition = CCTransitionFade::create(0.5f, scene);
+        director->replaceScene(transition);
+    }
+};
+#endif
 #if GAME_VERSION < GV_1_6
 void LevelInfoLayer::onViewLevelInfo() {
     GJGameLevel* level = getInfoLayerLevel(this);
     std::string s = level->m_sLevelString;
     std::string::difference_type count = std::count(s.begin(), s.end(), ';');
     int objectCount = std::max(0, static_cast<int>(count) - 1);
-    CCString* flAlertInsides = CCString::createWithFormat(
+    auto flAlertInsides = fmt::format(
 #if GAME_VERSION < GV_1_5
-        "<cy>%s</c> by <cy>%s</c>\n<cg>Total Attempts</c>: %i\n<cr>Normal</c>: %i%%\n<co>Practice</c>: %i%%\n<cy>Audio Track</c>: %s (ID %i)\n<cl>Level ID</c>: %i\n<cb>User ID</c>: %i\n<cz>Object Count</c>: %i",
+        "<cy>{}</c> by <cy>{}</c>\n<cg>Total Attempts</c>: {}\n<cr>Normal</c>: {}%\n<co>Practice</c>: {}%\n<cy>Audio Track</c>: {} (ID {})\n<cl>Level ID</c>: {}\n<cb>User ID</c>: {}\n<cz>Object Count</c>: {}",
 #else
-        "<cy>%s</c> by <cy>%s</c>\n<cg>Total Attempts</c>: %i\n<cr>Normal</c>: %i%%\n<co>Practice</c>: %i%%\n<cy>Audio Track</c>: %s (ID %i)\n<cl>Level ID</c>: %i\n<cb>User ID</c>: %i\n<cy>Feature Score</c>: %i\n<cz>Object Count</c>: %i",
+        "<cy>{}</c> by <cy>{}</c>\n<cg>Total Attempts</c>: {}\n<cr>Normal</c>: {}%\n<co>Practice</c>: {}%\n<cy>Audio Track</c>: {} (ID {})\n<cl>Level ID</c>: {}\n<cb>User ID</c>: {}\n<cy>Feature Score</c>: {}\n<cz>Object Count</c>: {}",
 #endif
         level->m_sLevelName.c_str(),
         level->m_sUserName.c_str(),
@@ -36,7 +81,7 @@ void LevelInfoLayer::onViewLevelInfo() {
     FLAlertLayer::create(
         nullptr,
         "Level Info",
-        flAlertInsides->getCString(),
+        flAlertInsides.c_str(),
         "OK",
         nullptr,
         300.f
@@ -51,9 +96,9 @@ void LevelInfoLayer_onLevelInfo(LevelInfoLayer* self SEL_MenuHandler_1_7_compat2
     std::string s = level->m_sLevelString;
     std::string::difference_type count = std::count(s.begin(), s.end(), ';');
     int objectCount = std::max(0, static_cast<int>(count) - 1);
-    CCString* flAlertInsides = CCString::createWithFormat(
+    auto flAlertInsides = fmt::format(
 // #if GAME_VERSION < GV_1_7
-        "<cy>%s</c> by <cy>%s</c>\n<cg>Total Attempts</c>: %i\n<cl>Total Jumps</c>: %i\n<cp>Normal</c>: %i%%\n<co>Practice</c>: %i%%\n<cy>Audio Track</c>: %s (ID %i)\n<cr>Level ID</c>: %i\n<cb>User ID</c>: %i\n<cy>Feature Score</c>: %i\n<cz>Object Count</c>: %i",
+        "<cy>{}</c> by <cy>{}</c>\n<cg>Total Attempts</c>: {}\n<cl>Total Jumps</c>: {}\n<cp>Normal</c>: {}%\n<co>Practice</c>: {}%\n<cy>Audio Track</c>: {} (ID {})\n<cr>Level ID</c>: {}\n<cb>User ID</c>: {}\n<cy>Feature Score</c>: {}\n<cz>Object Count</c>: {}",
 // #else
 //         "<cy>%s</c> by <cy>%s</c>\n<cg>Total Attempts</c>: %i\n<cl>Total Jumps</c>: %i\n<cp>Normal</c>: %i%%\n<co>Practice</c>: %i%%\n<cy>Audio Track</c>: %s (ID %i)\n<cr>Level ID</c>: %i\n<cb>User ID</c>: %i\n<cy>Feature Score</c>: %i\n<cg>Password</c>: %i\n<cz>Object Count</c>: %i",
 // #endif
@@ -76,7 +121,7 @@ void LevelInfoLayer_onLevelInfo(LevelInfoLayer* self SEL_MenuHandler_1_7_compat2
     FLAlertLayer::create(
         nullptr,
         "Level Info",
-        flAlertInsides->getCString(),
+        flAlertInsides.c_str(),
         "OK",
         nullptr,
         300.f
@@ -135,7 +180,11 @@ bool LevelInfoLayer_init(LevelInfoLayer* self, GJGameLevel* level) {
         leftMenu->setPosition(ccp(30.f, winSize.height / 2));
         if (hax.getModuleEnabled(ModuleID::LEVEL_COPYING)) {
             CCSprite* cloneSpr = cocos2d::CCSprite::create("GJ_duplicateBtn.png");
+            #if GDPS == GDPS_NEOPOINTFOUR
+            CCMenuItemSpriteExtra* cloneBtn = CCMenuItemSpriteExtra::create(cloneSpr, cloneSpr, self, menu_selector(LevelInfoLayerExt::onClone));
+            #else
             CCMenuItemSpriteExtra* cloneBtn = CCMenuItemSpriteExtra::create(cloneSpr, cloneSpr, self, menu_selector(LevelInfoLayer::onClone));
+            #endif
 
             leftMenu->addChild(cloneBtn);
             cloneBtn->setPosition(ccp(0.f, 25.f));
@@ -193,7 +242,38 @@ bool LevelInfoLayer_init(LevelInfoLayer* self, GJGameLevel* level) {
         diffSpr->setPosition(ccp(winSize.width / 2 - 120, winSize.height / 2 + 30));
     }
 #endif
-#ifdef NP4
+#if GDPS == GDPS_NEOPOINTFOUR
+    if (hax.originalIDMap.find(level) != hax.originalIDMap.end() && hax.originalIDMap[level] > 0) {
+        
+        std::string searchText = "By " + std::string(level->m_sUserName);
+        
+        CCArray* children = self->getChildren();
+        if (children) {
+            for (int i = 0; i < children->count(); i++) {
+                CCNode* child = (CCNode*)children->objectAtIndex(i);
+                CCLabelBMFont* label = dynamic_cast<CCLabelBMFont*>(child);
+                
+                if (label) {
+                    std::string text = label->getString();
+                    if (text == searchText) {
+                        CCSprite* copyMark = CCSprite::create(COPY_MARK_TEXTURE);
+                        if (copyMark) {
+                            CCPoint labelPos = label->getPosition();
+                            float labelWidth = label->getContentSize().width;
+                            float labelScale = label->getScale();
+                            
+                            float anchorX = label->getAnchorPoint().x;
+                            float rightEdge = labelPos.x + (labelWidth * labelScale * (1.0f - anchorX));
+                            copyMark->setPosition(ccp(rightEdge + 14, labelPos.y - 2));
+                            
+                            self->addChild(copyMark);
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
     auto val = hax.featureTypeMap[level];
     if (val == 0) return true;
     CCSprite* featureFrame = CCSprite::create((val == 2) ? MAGIC_TEXTURE : FEATURED_TEXTURE);
@@ -216,6 +296,31 @@ void LevelInfoLayer_levelDownloadFinished(LevelInfoLayer* self, GJGameLevel* lev
 }
 #endif
 
+#if GAME_VERSION > GV_1_0
+void (*TRAM_LevelInfoLayer_updateSideButtons)(LevelInfoLayer* self);
+void LevelInfoLayer_updateSideButtons(LevelInfoLayer* self) {
+    TRAM_LevelInfoLayer_updateSideButtons(self);
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.getModuleEnabled(ModuleID::LIKE_INDICATOR)) {
+        auto director = CCDirector::sharedDirector();
+        auto winSize = director->getWinSize();
+        auto level = getInfoLayerLevel(self);
+        auto glm = GameLevelManager::sharedState();
+        bool hasLiked = glm->hasLikedItem(LikeItemType::Level, level->m_nLevelID, true);
+        bool hasDisliked = glm->hasLikedItem(LikeItemType::Level, level->m_nLevelID, false);
+        if (hasLiked || hasDisliked) {
+            auto likeIndicator = CCSprite::create("GJ_like2Btn2_liked.png");
+            if (hasDisliked) {
+                likeIndicator->release();
+                likeIndicator = CCSprite::create("GJ_like2Btn2_disliked.png");
+            }
+            likeIndicator->setPosition(ccp(winSize.width - 29.5, 89));
+            self->addChild(likeIndicator, 1000);
+        }
+    }
+}
+#endif
+
 void LevelInfoLayer_om() {
     Omni::hook("_ZN14LevelInfoLayer4initEP11GJGameLevel",
         reinterpret_cast<void*>(LevelInfoLayer_init),
@@ -234,5 +339,10 @@ void LevelInfoLayer_om() {
     Omni::hook("_ZN14LevelInfoLayer21levelDownloadFinishedEP11GJGameLevel",
         reinterpret_cast<void*>(LevelInfoLayer_levelDownloadFinished),
         reinterpret_cast<void**>(&TRAM_LevelInfoLayer_levelDownloadFinished));
+#endif
+#if GAME_VERSION > GV_1_0
+    Omni::hook("_ZN14LevelInfoLayer17updateSideButtonsEv",
+        reinterpret_cast<void*>(LevelInfoLayer_updateSideButtons),
+        reinterpret_cast<void**>(&TRAM_LevelInfoLayer_updateSideButtons));
 #endif
 }

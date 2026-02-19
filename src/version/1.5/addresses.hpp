@@ -29,6 +29,7 @@
 /**/ #define EditorUI__m_editorLayer           0x1cc /**/ // EditorUI::init
 /**/ #define EditorUI__m_selectedObject        0x250 /**/ // EditorUI::selectObject
 /**/ #define EditorUI__m_selectedObjects       0x180 /**/ // EditorUI::deselectAll 
+/**/ #define EditorUI__m_touch                 0x230 /**/ // EditorUI::onDelete
 /**/ #define EditorUI__m_unkFloat              0x158 /**/ // EditorUI::setupCreateMenu (at the bottom)
 
 /**/ #define EditorUI__m_zoomOutButton         0x1a0 /**/ // EditorUI::init
@@ -52,9 +53,11 @@
 /**/ #define GameObject__m_useAudioScale       0x2fc /**/ // GameObject::getUseAudioScale
 /**/ #define GJComment__m_commentID            0x130 /**/ // GJComment::getCommentID
 
+/**/ #define GJSearchObject__m_page            0x138 /**/ // GJSearchObject::getPage
 /**/ #define GJSearchObject__m_type            0x128 /**/ // GJSearchObject::getType
 /**/ #define LeaderboardsLayer__m_boardType    0x148 /**/ // LeaderboardsLayer::selectLeaderboard
 /**/ #define LevelBrowserLayer__m_searchObject 0x154 /**/ // LevelBrowserLayer::setSearchObject
+/**/ #define LevelBrowserLayer__m_total        0x15c /**/ // LevelBrowserLayer::updateLevelsLabel
 
 /**/ #define LevelCell__m_level                0x180 /**/ // LevelCell::loadFromLevel
 /**/ #define LevelEditorLayer__m_batchNode     0x140 /**/ // LevelEditorLayer::createObject (1st function call after GameObject::createObject)
@@ -121,6 +124,7 @@
 /**/ #define place_y_max                    0x147C84 /**/ // EditorUI::onCreateObject - 00 60 9F 44
 /**/ #define place_x_min                    0x147C78 /**/ // EditorUI::onCreateObject - 00 80 9D 43
 /**/ #define place_y_min                    0x147C7C /**/ // EditorUI::onCreateObject - 00 00 D2 42
+/**/ #define search_query_length_fix        0x116378 /**/ // BLX sprintf, GameToolbox::getResponse, "HTTP Status Code: %d, tag = %s"
 /**/ #define zoom_bypass_max                0x1472C6 /**/ // EditorUI::zoomGameLayer
 /**/ #define zoom_bypass_min                0x1472D8 /**/ // EditorUI::zoomGameLayer
 /*******************************************************/

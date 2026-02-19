@@ -15,10 +15,7 @@ void showRandomMessage() {
         "I loooove <co>GD Cologne</c>!",
         "Another Time Then...",
         "<cl>And we Will End!!</c>",
-        std::string(CCString::createWithFormat(
-            "Hello <cy>%s</c>. You don't know me, but I know you. I want to play a <cr>game</c>.",
-            getPlayerName().c_str()
-        )->getCString()),
+        fmt::format("Hello <cy>{}</c>. You don't know me, but I know you. I want to play a <cr>game</c>.", getPlayerName()),
         "no worries I will load a backup so people can restore levels they want via account page. May take a while",
         "A wild <cy>Prew Davlou</c> appeared!",
         "i had a dream that the united nations recognized zoink as an independent country",
@@ -31,16 +28,16 @@ void showRandomMessage() {
         "i know what you did last night",
         "Beautiful risings <cy>Pharoah</c>. My temple is calling for its <cy>Pharoah</c>.",
         "Dude, I know this is unrelated, but I need your help right now.", 
-        std::string(CCString::createWithFormat(
-            "IS THIS A UNDERRATED <cy>%s</c> MASTERPIECE!?",
-            READABLE_GAME_VERSION
-        )->getCString()),
+        fmt::format("IS THIS A UNDERRATED <cy>{}</c> MASTERPIECE!?", READABLE_GAME_VERSION),
         "I'm literally older than yo Brainrot Ahhh.",
         "xD:Call me ...Ring...Ring... hello...What?! ok :D bye mlg",
         "The community in this game does there difficulty rating sonhorrible",
         "I got the coin and then i went to the",
         "I Was happy as hell when I found out stringstream was dead, I cooked for the whole day"
     };
+    #if GDPS == GDPS_NEOPOINTFOUR
+    messages.push_back("<cy>Active</c>\n<cg>Total Attempts</c>: 0\n<cr>Normal</c>: 0%\n<co>Practice</c>: 0%\n<cb>Level ID</c>: ?");
+    #endif
     int index = rand() % messages.size();
     FLAlertLayer::create(
         nullptr,
@@ -72,8 +69,8 @@ void LevelSelectLayer::onViewLevelInfo() {
     }
     GameLevelManager* GLM = GameLevelManager::sharedState();
     GJGameLevel* level = GLM->getMainLevel(levelID); 
-    CCString* flAlertInsides = CCString::createWithFormat(
-        "<cy>%s</c>\n<cg>Total Attempts</c>: %i\n<cr>Normal</c>: %i%%\n<co>Practice</c>: %i%%\n<cb>Level ID</c>: %i",
+    auto flAlertInsides = fmt::format(
+        "<cy>{}</c>\n<cg>Total Attempts</c>: {}\n<cr>Normal</c>: {}%\n<co>Practice</c>: {}%\n<cb>Level ID</c>: {}",
         level->m_sLevelName.c_str(),
         level->m_nAttempts,
         level->m_nNormalPercent,
@@ -83,7 +80,7 @@ void LevelSelectLayer::onViewLevelInfo() {
     FLAlertLayer::create(
         nullptr,
         "Level Info",
-        flAlertInsides->getCString(),
+        flAlertInsides.c_str(),
         "OK",
         nullptr,
         300.f

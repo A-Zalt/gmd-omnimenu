@@ -8,6 +8,85 @@
 #include "UndoObject.hpp"
 #include "ButtonSprite.hpp"
 #include "EditButtonBar.hpp"
+#include <math.h>
+
+CCSprite* filterSpr;
+ButtonSprite* filterBtnSpr;
+
+enum EditMenuButtons
+{
+    LEFT = 1,
+    RIGHT = 2,
+    UP = 3,
+    DOWN = 4,
+    SMALL_LEFT = 5,
+    SMALL_RIGHT = 6,
+    SMALL_UP = 7,
+    SMALL_DOWN = 8,
+#if GAME_VERSION < GV_1_5
+    FLIP_X = 9,
+    FLIP_Y = 10,
+    ROTATE_90_CW = 11,
+    ROTATE_90_CCW = 12,
+    BIG_UP = 100001,
+    BIG_DOWN = 100002,
+    BIG_LEFT = 100003,
+    BIG_RIGHT = 100004,
+#else
+    BIG_LEFT = 9,
+    BIG_RIGHT = 10,
+    BIG_UP = 11,
+    BIG_DOWN = 12,
+#if GAME_VERSION == GV_1_5
+    FLIP_X = 13,
+    FLIP_Y = 14,
+    ROTATE_90_CW = 15,
+    ROTATE_90_CCW = 16,
+#else
+    FLIP_X = 17,
+    FLIP_Y = 18,
+    ROTATE_90_CW = 19,
+    ROTATE_90_CCW = 20,
+#endif
+#endif
+    TINY_UP = 100005,
+    TINY_DOWN = 100006,
+    TINY_LEFT = 100007,
+    TINY_RIGHT = 100008,
+    HALF_UP = 100009,
+    HALF_DOWN = 100010,
+    HALF_LEFT = 100011,
+    HALF_RIGHT = 100012,
+    ROTATE_45_CCW = 100013,
+    ROTATE_45_CW = 100014,
+    ROTATE_22_CCW = 100015,
+    ROTATE_22_CW = 100016,
+    ROTATE_11_CCW = 100017,
+    ROTATE_11_CW = 100018,
+    ROTATE_5_CCW = 100019,
+    ROTATE_5_CW = 100020,
+    ROTATE_1_CCW = 100021,
+    ROTATE_1_CW = 100022,
+    RESET_ROTATION = 100023
+};
+
+int EditorUI::getSelectedObjectID() {
+    auto selObj = getSelectedObject(this);
+    auto sel = getSelectedObjects(this);
+    if (selObj) {
+        return getObjectKey(selObj);
+    } else if (sel && sel->count() > 0) {
+        int objectID = 0;
+        for (int i = 0; i < sel->count(); i++) {
+            auto currObj = static_cast<GameObject*>(sel->objectAtIndex(i));
+            if (i == 0) objectID = getObjectKey(currObj);
+            else if (getObjectKey(currObj) != objectID) { // not all objects are of the same type
+                return 0;
+            }
+        }
+    }
+    return 0;
+}
 
 void updateObjectInfoLabel(EditorUI* self) {
     HaxManager& hax = HaxManager::sharedState();
@@ -15,22 +94,31 @@ void updateObjectInfoLabel(EditorUI* self) {
         if (hax.editorObjectInfo) hax.editorObjectInfo->setString("");
         return;
     }
+    if (filterSpr && hax.objectIDFilter == 0) {
+        int objectID = self->getSelectedObjectID();
+        if (objectID == 0) filterSpr->setVisible(false);
+        else {
+            filterSpr->setVisible(true);
+            auto cache = cocos2d::CCSpriteFrameCache::sharedSpriteFrameCache();
+            auto* frame = cache->spriteFrameByName(keyToFrame(objectID));
+            auto scaleFactor = std::max(frame->getOriginalSize().width, frame->getOriginalSize().height);
+            if (scaleFactor < 20) scaleFactor += 5;
+            filterSpr->setScale(0.8 * (30 / scaleFactor));
+            filterSpr->setDisplayFrame(frame);
+        }
+    }
     if (!hax.editorObjectInfo) {
-        CCLog("no EOI");
         return;
     }
-    CCLog("update object info label");
     if (getSelectedObjects(self) && getSelectedObjects(self)->count() > 0) {
-        hax.editorObjectInfo->setString(CCString::createWithFormat(
-            "Objects: %i", getSelectedObjects(self)->count()
-        )->getCString());
+        hax.editorObjectInfo->setString(fmt::format("Objects: {}", getSelectedObjects(self)->count()).c_str());
     } else if (getSelectedObject(self)) {
         auto obj = getSelectedObject(self);
-        hax.editorObjectInfo->setString(CCString::createWithFormat(
-            "Position: (%i, %i)\nRotation: %i\nID: %i\nSection: %i\nType: %i",
+        hax.editorObjectInfo->setString(fmt::format(
+            "Position: ({}, {})\nRotation: {}\nID: {}\nSection: {}\nType: {}",
             (int)obj->getPositionX(), (int)obj->getPositionY(), (int)obj->getRotation(),
             getObjectKey(obj), getSectionIdx(obj), getObjectType(obj)
-        )->getCString());
+        ).c_str());
     } else {
         hax.editorObjectInfo->setString("");
     }
@@ -65,7 +153,6 @@ void EditorUI_zoomOut(EditorUI* self) {
     HaxManager& hax = HaxManager::sharedState();
     if (hax.getModuleEnabled(ModuleID::ZOOM_BYPASS)) {
         cocos2d::CCLayer* gameLayer = getEditorGameLayer(getUIEditorLayer(self));
-        CCLog("%f", gameLayer->getScale());
         if (gameLayer->getScale() > 0.11f) TRAM_EditorUI_zoomOut(self);
     } else {
         TRAM_EditorUI_zoomOut(self);
@@ -215,7 +302,7 @@ bool EditorUI_init(EditorUI* self, LevelEditorLayer* lel) {
         CCLabelBMFont* objInfo = CCLabelBMFont::create("", "chatFont.fnt");
         objInfo->setAnchorPoint({0, 1});
         objInfo->setPosition(ccp(15, winSize.height - 45));
-        objInfo->setScale(0.6);
+        objInfo->setScale(0.7);
         self->addChild(objInfo);
         hax.editorObjectInfo = objInfo;
     }
@@ -231,13 +318,14 @@ bool EditorUI_init(EditorUI* self, LevelEditorLayer* lel) {
     return true;
 }
 
-#if GAME_VERSION < GV_1_6
+#if GAME_VERSION < GV_1_8
 void (*TRAM_EditorUI_setupDeleteMenu)(EditorUI* self);
 void EditorUI_setupDeleteMenu(EditorUI* self) {
     TRAM_EditorUI_setupDeleteMenu(self);
     HaxManager& hax = HaxManager::sharedState();
+    CCMenu* menu = getEditorUIButtonMenu(self);
+#if GAME_VERSION < GV_1_6
     if (hax.getModuleEnabled(ModuleID::DELETE_START_POS)) {
-        CCMenu* menu = getEditorUIButtonMenu(self);
 
         if (!menu || menu == nullptr) { // useless failsafe but i don't like removing those
             TRAM_EditorUI_setupDeleteMenu(self);
@@ -253,7 +341,51 @@ void EditorUI_setupDeleteMenu(EditorUI* self) {
         menu->alignItemsHorizontallyWithPadding(10);
 #endif 
     }
+#endif
+    if (hax.getModuleEnabled(ModuleID::SELECT_FILTER)) {
+        auto winSize = CCDirector::sharedDirector()->getWinSize();
+        filterSpr = CCSprite::createWithSpriteFrameName("square_01_001.png");
+        filterSpr->setScale(0.7);
+        filterSpr->setVisible(false);
+        filterBtnSpr = ButtonSprite::create(filterSpr, 32, 32, 32, 1, true, "GJ_button_04.png");
+        auto filterBtn = CCMenuItemSpriteExtra::create(filterBtnSpr, filterBtnSpr, self, menu_selector(EditorUI::onSelectFilter));
+        menu->addChild(filterBtn);
+        filterBtn->setPosition(winSize.width / 2 - 135, -20);
+        auto mi = CCMenuItem::create(NULL, NULL);
+        menu->addChild(mi);
+        auto filterLabel = CCLabelBMFont::create("Filter:", "bigFont.fnt");
+        filterLabel->setPosition(winSize.width / 2 - 135, 20);
+        filterLabel->setScale(0.5);
+        mi->addChild(filterLabel);
+    }
 }
+void EditorUI::onSelectFilter() {
+    HaxManager& hax = HaxManager::sharedState();
+    int objectID = getSelectedObjectID();
+    if (hax.objectIDFilter == 0 && objectID != 0) {
+        filterBtnSpr->updateBGImage("GJ_button_02.png");
+        hax.objectIDFilter = objectID;
+    } else if (hax.objectIDFilter != 0) {
+        filterBtnSpr->updateBGImage("GJ_button_04.png");
+        hax.objectIDFilter = 0;
+        if (getSelectedObjectID() == 0) {
+            filterSpr->setVisible(false);
+        }
+    }
+}
+void (*TRAM_EditorUI_onDelete)(EditorUI* self);
+void EditorUI_onDelete(EditorUI* self) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.objectIDFilter == 0) return TRAM_EditorUI_onDelete(self);
+    auto lel = getUIEditorLayer(self);
+    auto obj = lel->objectAtPosition(MEMBER_BY_OFFSET(CCPoint, self, EditorUI__m_touch));
+    if (obj && getObjectKey(obj) == hax.objectIDFilter) {
+        lel->removeObject(obj);
+    }
+}
+#endif
+
+#if GAME_VERSION < GV_1_6
 void EditorUI::onDeleteStartPos() {
     LevelEditorLayer* editLayer = getUIEditorLayer(this);
     CCArray* sections = getEditorSections(editLayer);
@@ -649,6 +781,66 @@ void EditorUI::moveObjectCall2(CCNode* sender) {
     }
     updateObjectInfoLabel(this);
 }
+
+SelectionContext EditorUI::getSelectionContext() {
+    float minX = 3.4e+38F;
+    float minY = 3.4e+38F;
+    float maxX = -3.4e+38F;
+    float maxY = -3.4e+38F;
+
+    auto selectedObjects = getSelectedObjects(this);
+    for (int i = 0; i < selectedObjects->count(); i++) {
+        GameObject* obj = static_cast<GameObject*>(selectedObjects->objectAtIndex(i));
+        if (obj->getPositionX() < minX) minX = obj->getPositionX(); // std::min and std::max made this broken
+        if (obj->getPositionY() < minY) minY = obj->getPositionY();
+        if (obj->getPositionX() > maxX) maxX = obj->getPositionX();
+        if (obj->getPositionY() > maxY) maxY = obj->getPositionY();
+    }
+    return {
+        .centerX = (minX + maxX) / 2, 
+        .centerY = (minY + maxY) / 2,
+        .minX = minX,
+        .minY = minY,
+        .maxX = maxX,
+        .maxY = maxY
+    };
+}
+
+void EditorUI::rotateObjects(float rot, int tag) {
+    auto selectedObjects = getSelectedObjects(this);
+    if (selectedObjects->count() > 0) {
+        HaxManager& hax = HaxManager::sharedState();
+        if (hax.getModuleEnabled(ModuleID::RELATIVE_ROTATION)) {
+            if (tag == 100023) return;
+            auto ctx = getSelectionContext();
+            for (int i = 0; i < selectedObjects->count(); i++) {
+                GameObject* obj = static_cast<GameObject*>(selectedObjects->objectAtIndex(i));
+                float rotation = fmod((obj->getRotation() + rot), 360.0f);
+                float radians = -rot * (M_PI / 180.f);
+
+                // shoutout to adelfa i cant do trig
+                double x = ((obj->getPositionX() - ctx.centerX) * cos(radians) - (obj->getPositionY() - ctx.centerY) * sin(radians)) + ctx.centerX;
+                double y = ((obj->getPositionY() - ctx.centerY) * cos(radians) + (obj->getPositionX() - ctx.centerX) * sin(radians)) + ctx.centerY;
+            
+                obj->setRotation(rotation);
+                obj->setPositionX(x);
+                obj->setPositionY(y);
+                getUIEditorLayer(this)->reorderObjectSection(obj);
+            }
+        } else {
+            for (int i = 0; i < selectedObjects->count(); i++) {
+                GameObject* obj = static_cast<GameObject*>(selectedObjects->objectAtIndex(i));
+                if (tag == 100023) obj->setRotation(0);
+                else obj->setRotation(fmod((obj->getRotation() + rot), 360.0f));
+            }
+        }
+    } else {
+        auto obj = getSelectedObject(this);
+        if (tag == 100023) obj->setRotation(0);
+        else obj->setRotation(fmod((obj->getRotation() + rot), 360.0f));
+    }
+}
+
 void EditorUI::transformObjectCall2(CCNode* sender) {
     if (!getSelectedObject(this) && getSelectedObjects(this)->count() <= 0) return;
     auto selectedObjects = getSelectedObjects(this);
@@ -692,17 +884,7 @@ void EditorUI::transformObjectCall2(CCNode* sender) {
         default:
             break;
     }
-    if (selectedObjects->count() > 0) {
-        for (int i = 0; i < selectedObjects->count(); i++) {
-            GameObject* obj = static_cast<GameObject*>(selectedObjects->objectAtIndex(i));
-            if (tag == 100023) obj->setRotation(0);
-            else obj->setRotation(fmod((obj->getRotation() + rot), 360.0f));
-        }
-    } else {
-        auto obj = getSelectedObject(this);
-        if (tag == 100023) obj->setRotation(0);
-        else obj->setRotation(fmod((obj->getRotation() + rot), 360.0f));
-    }
+    rotateObjects(rot, tag);
     updateObjectInfoLabel(this);
 }
 
@@ -737,6 +919,18 @@ void EditorUI_createMoveMenu(EditorUI* self) {
         buttons->addObject(btn);
         btn = self->getSpriteButton("edit_rightBtn2_001.png", menu_selector(EditorUI::moveObjectCall), nullptr, 0.9);
         btn->setTag(6);
+        buttons->addObject(btn);
+        btn = self->getSpriteButton("edit_flipXBtn_001.png", menu_selector(EditorUI::transformObjectCall), nullptr, 0.9);
+        btn->setTag(EditMenuButtons::FLIP_X);
+        buttons->addObject(btn);
+        btn = self->getSpriteButton("edit_flipYBtn_001.png", menu_selector(EditorUI::transformObjectCall), nullptr, 0.9);
+        btn->setTag(EditMenuButtons::FLIP_Y);
+        buttons->addObject(btn);
+        btn = self->getSpriteButton("edit_cwBtn_001.png", menu_selector(EditorUI::transformObjectCall), nullptr, 0.9);
+        btn->setTag(EditMenuButtons::ROTATE_90_CW);
+        buttons->addObject(btn);
+        btn = self->getSpriteButton("edit_ccwBtn_001.png", menu_selector(EditorUI::transformObjectCall), nullptr, 0.9);
+        btn->setTag(EditMenuButtons::ROTATE_90_CCW);
         buttons->addObject(btn);
 
 
@@ -801,45 +995,6 @@ void EditorUI_createMoveMenu(EditorUI* self) {
 
 
 
-        btn = self->getSpriteButton("edit_flipXBtn_001.png", menu_selector(EditorUI::transformObjectCall), nullptr, 0.9);
-#if GAME_VERSION < GV_1_5
-        btn->setTag(9);
-#elif GAME_VERSION == GV_1_5
-        btn->setTag(13);
-#else
-        btn->setTag(17);
-#endif
-        buttons->addObject(btn);
-        btn = self->getSpriteButton("edit_flipYBtn_001.png", menu_selector(EditorUI::transformObjectCall), nullptr, 0.9);
-#if GAME_VERSION < GV_1_5
-        btn->setTag(10);
-#elif GAME_VERSION == GV_1_5
-        btn->setTag(14);
-#else
-        btn->setTag(18);
-#endif
-        buttons->addObject(btn);
-        btn = self->getSpriteButton("edit_cwBtn_001.png", menu_selector(EditorUI::transformObjectCall), nullptr, 0.9);
-#if GAME_VERSION < GV_1_5
-        btn->setTag(11);
-#elif GAME_VERSION == GV_1_5
-        btn->setTag(15);
-#else
-        btn->setTag(19);
-#endif
-        buttons->addObject(btn);
-        btn = self->getSpriteButton("edit_ccwBtn_001.png", menu_selector(EditorUI::transformObjectCall), nullptr, 0.9);
-#if GAME_VERSION < GV_1_5
-        btn->setTag(12);
-#elif GAME_VERSION == GV_1_5
-        btn->setTag(16);
-#else
-        btn->setTag(20);
-#endif
-        buttons->addObject(btn);
-
-
-
         btn = self->getSpriteButton2("edit_rotate45rBtn_001.png", menu_selector(EditorUI::transformObjectCall2), nullptr, 0.9);
         btn->setTag(100014);
         buttons->addObject(btn);
@@ -900,13 +1055,33 @@ void EditorUI_createMoveMenu(EditorUI* self) {
 
 void (*TRAM_EditorUI_selectObject)(EditorUI* self, GameObject* obj);
 void EditorUI_selectObject(EditorUI* self, GameObject* obj) {
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.objectIDFilter != 0 && getObjectKey(obj) != hax.objectIDFilter) return;
     TRAM_EditorUI_selectObject(self, obj);
     updateObjectInfoLabel(self);
 }
 void (*TRAM_EditorUI_selectObjectsInRect)(EditorUI* self, CCRect rect);
 void EditorUI_selectObjectsInRect(EditorUI* self, CCRect rect) {
-    CCLog("select objects in rekt");
-    TRAM_EditorUI_selectObjectsInRect(self, rect);
+    HaxManager& hax = HaxManager::sharedState();
+    if (hax.objectIDFilter != 0) {
+        CCArray* objects = getUIEditorLayer(self)->objectsInRect(rect);
+        if (objects->count() > 0) {
+            if (objects->count() == 1) {
+                self->selectObject(static_cast<GameObject*>(objects->objectAtIndex(0)));
+            } else {
+                auto sel = getSelectedObjects(self);
+                for (int i = 0; i < objects->count(); i++) {
+                    auto obj = static_cast<GameObject*>(objects->objectAtIndex(i));
+                    if (!sel->containsObject(obj) && getObjectKey(obj) == hax.objectIDFilter) {
+                        sel->addObject(obj);
+                        obj->setColor(ccc3(0, 255, 0));
+                    }
+                }
+            }
+        }
+    } else {
+        TRAM_EditorUI_selectObjectsInRect(self, rect);
+    }
     updateObjectInfoLabel(self);
 }
 void (*TRAM_EditorUI_deselectObject)(EditorUI* self);
@@ -920,33 +1095,94 @@ void EditorUI_deselectAll(EditorUI* self) {
     TRAM_EditorUI_deselectAll(self);
     updateObjectInfoLabel(self);
 }
-void (*TRAM_EditorUI_moveObjectCall)(EditorUI* self, CCNode* node);
-void EditorUI_moveObjectCall(EditorUI* self, CCNode* node) {
-    TRAM_EditorUI_moveObjectCall(self, node);
-    updateObjectInfoLabel(self);
-}
-void (*TRAM_EditorUI_transformObjectCall)(EditorUI* self, CCNode* node);
-void EditorUI_transformObjectCall(EditorUI* self, CCNode* node) {
-    TRAM_EditorUI_transformObjectCall(self, node);
-    updateObjectInfoLabel(self);
-}
 #else
 void (*TRAM_EditorUI_deselectAll)(EditorUI* self, CCObject* sender);
 void EditorUI_deselectAll(EditorUI* self, CCObject* sender) {
     TRAM_EditorUI_deselectAll(self, sender);
     updateObjectInfoLabel(self);
 }
-void (*TRAM_EditorUI_moveObjectCall)(EditorUI* self, CCObject* node);
-void EditorUI_moveObjectCall(EditorUI* self, CCObject* node) {
-    TRAM_EditorUI_moveObjectCall(self, node);
-    updateObjectInfoLabel(self);
-}
-void (*TRAM_EditorUI_transformObjectCall)(EditorUI* self, CCObject* node);
-void EditorUI_transformObjectCall(EditorUI* self, CCObject* node) {
-    TRAM_EditorUI_transformObjectCall(self, node);
-    updateObjectInfoLabel(self);
-}
 #endif
+void (*TRAM_EditorUI_moveObjectCall)(EditorUI* self, hook_1_7_compat);
+void EditorUI_moveObjectCall(EditorUI* self, hook_1_7_compat) {
+    TRAM_EditorUI_moveObjectCall(self, sender);
+    updateObjectInfoLabel(self);
+}
+
+void flipObject(GameObject* obj, bool flipY) {
+    auto rotation = fabsf(obj->getRotation());
+    auto shouldFlipY = flipY;
+    if (rotation == 90 || rotation == 270) shouldFlipY = !shouldFlipY;
+
+    if (!shouldFlipY) obj->setFlipX(!obj->isFlipX());
+    else obj->setFlipY(!obj->isFlipY());
+    
+    if (rotation != 0 && rotation != 90 && rotation != 180 && rotation != 270 && rotation != 360) {
+        obj->setRotation(-obj->getRotation());
+    }
+}
+
+void (*TRAM_EditorUI_transformObjectCall)(EditorUI* self, hook_1_7_compat);
+void EditorUI_transformObjectCall(EditorUI* self, hook_1_7_compat) {
+    HaxManager& hax = HaxManager::sharedState();
+#if GAME_VERSION >= GV_1_7
+    #define __sender node
+    auto node = (CCNode*)sender;
+#else
+    #define __sender sender
+#endif
+    if (!hax.getModuleEnabled(ModuleID::RELATIVE_ROTATION)) {
+        TRAM_EditorUI_transformObjectCall(self, __sender);
+    } else {
+#if GAME_VERSION < GV_1_7
+        int tag = sender->getTag();
+#else
+        int tag = static_cast<CCNode*>(sender)->getTag();
+#endif
+        auto selectedObjects = getSelectedObjects(self);
+        auto selectedObject = getSelectedObject(self);
+        switch (tag) {
+            case EditMenuButtons::ROTATE_90_CW:
+                if (selectedObjects->count() > 0) self->rotateObjects(90, EditMenuButtons::ROTATE_90_CW);
+                else TRAM_EditorUI_transformObjectCall(self, __sender);
+                break;
+            case EditMenuButtons::ROTATE_90_CCW:
+                if (selectedObjects->count() > 0) self->rotateObjects(-90, EditMenuButtons::ROTATE_90_CCW);
+                else TRAM_EditorUI_transformObjectCall(self, __sender);
+                break;
+            case EditMenuButtons::FLIP_X:
+                if (selectedObjects->count() > 0) {
+                    auto ctx = self->getSelectionContext();
+                    for (int i = 0; i < selectedObjects->count(); i++) {
+                        GameObject* obj = static_cast<GameObject*>(selectedObjects->objectAtIndex(i));
+                        float centerDist = ctx.centerX - obj->getPositionX();
+                        obj->setPositionX(obj->getPositionX() + centerDist * 2);
+                        flipObject(obj, false);
+                        getUIEditorLayer(self)->reorderObjectSection(obj);
+                    }
+                } else if (selectedObject) {
+                    flipObject(selectedObject, false);
+                    getUIEditorLayer(self)->reorderObjectSection(selectedObject);
+                }
+                break;
+            case EditMenuButtons::FLIP_Y:
+                if (selectedObjects->count() > 0) {
+                    auto ctx = self->getSelectionContext();
+                    for (int i = 0; i < selectedObjects->count(); i++) {
+                        GameObject* obj = static_cast<GameObject*>(selectedObjects->objectAtIndex(i));
+                        float centerDist = ctx.centerY - obj->getPositionY();
+                        obj->setPositionY(obj->getPositionY() + centerDist * 2);
+                        flipObject(obj, true);
+                        getUIEditorLayer(self)->reorderObjectSection(obj);
+                    }
+                } else if (selectedObject) {
+                    flipObject(selectedObject, true);
+                    getUIEditorLayer(self)->reorderObjectSection(selectedObject);
+                }
+                break;
+        }
+    }
+    updateObjectInfoLabel(self);
+}
 
 void (*TRAM_EditorUI_destructor)(EditorUI* self);
 void EditorUI_destructor(EditorUI* self) {
@@ -957,6 +1193,8 @@ void EditorUI_destructor(EditorUI* self) {
     hax.inEditor = false;
     setDecimals('1');
     hax.editorObjectInfo = nullptr;
+    filterSpr = nullptr;
+    filterBtnSpr = nullptr;
     TRAM_EditorUI_destructor(self);
 }
 void (*TRAM_EditorUI_destructor2)(EditorUI* self);
@@ -1036,7 +1274,7 @@ void EditorUI_om() {
     Omni::hook("_ZN8EditorUI4initEP16LevelEditorLayer",
         reinterpret_cast<void*>(EditorUI_init),
         reinterpret_cast<void**>(&TRAM_EditorUI_init));
-#if GAME_VERSION < GV_1_6
+#if GAME_VERSION < GV_1_8
     Omni::hook("_ZN8EditorUI15setupDeleteMenuEv",
         reinterpret_cast<void*>(EditorUI_setupDeleteMenu),
         reinterpret_cast<void**>(&TRAM_EditorUI_setupDeleteMenu));
@@ -1090,4 +1328,9 @@ void EditorUI_om() {
     Omni::hook("_ZN8EditorUID2Ev",
         reinterpret_cast<void*>(EditorUI_destructor2),
         reinterpret_cast<void**>(&TRAM_EditorUI_destructor2));
+#if GAME_VERSION < GV_1_8
+    Omni::hook("_ZN8EditorUI8onDeleteEv", 
+        reinterpret_cast<void*>(EditorUI_onDelete),
+        reinterpret_cast<void**>(&TRAM_EditorUI_onDelete));
+#endif
 }

@@ -10,4 +10,6 @@ public:
 
     bool init(char const*, int, int, float, bool, char const*, char const*, float);
 	bool init(cocos2d::CCSprite*, int, int, float, float, bool, char const*);
+
+    void updateBGImage(char const*);
 };

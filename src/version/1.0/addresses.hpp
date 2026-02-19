@@ -35,6 +35,7 @@
 /**/ #define EditorUI__m_editorLayer           0x1c4 /**/ // EditorUI::init
 /**/ #define EditorUI__m_selectedObject        0x248 /**/ // EditorUI::selectObject
 /**/ #define EditorUI__m_selectedObjects       0x180 /**/ // EditorUI::deselectAll 
+/**/ #define EditorUI__m_touch                 0x228 /**/ // EditorUI::onDelete
 /**/ #define EditorUI__m_unkFloat              0x158 /**/ // EditorUI::setupCreateMenu (at the bottom)
 
 /**/ #define GameLevelManager__m_keyTimers     0x130 /**/ // GameLevelManager::isTimeValid
@@ -50,8 +51,10 @@
 /**/ #define GameObject__m_shouldSpawn         0x2c0 /**/ // GameObject::getShouldSpawn
 /**/ #define GameObject__m_type                0x2b8 /**/ // GameObject::getType
 /**/ #define GameObject__m_useAudioScale       0x2eb /**/ // GameObject::getUseAudioScale
+/**/ #define GJSearchObject__m_page            0x138 /**/ // GJSearchObject::getPage
 /**/ #define GJSearchObject__m_type            0x128 /**/ // GJSearchObject::getType
 /**/ #define LevelBrowserLayer__m_searchObject 0x150 /**/ // LevelBrowserLayer::setSearchObject
+/**/ #define LevelBrowserLayer__m_total        0x158 /**/ // LevelBrowserLayer::updateLevelsLabel
 /**/ #define LevelCell__m_level                0x180 /**/ // LevelCell::loadFromLevel
 /**/ #define LevelEditorLayer__m_batchNode     0x140 /**/ // LevelEditorLayer::createObject (1st function call after GameObject::createObject)
 /**/ #define LevelEditorLayer__m_gameLayer     0x158 /**/ // LevelEditorLayer::getGameLayer
@@ -108,6 +111,7 @@
 /**/ #define place_y_max                    0x14B050 /**/ // EditorUI::onCreateObject - 00 60 9F 44
 /**/ #define place_x_min                    0x14B044 /**/ // EditorUI::onCreateObject - 00 80 9D 43
 /**/ #define place_y_min                    0x14B048 /**/ // EditorUI::onCreateObject - 00 00 D2 42
+/**/ #define search_query_length_fix        0x10C876 /**/ // BLX sprintf, GameToolbox::getResponse, "HTTP Status Code: %d, tag = %s"
 /**/ #define ship_tint                      0x13EFBC /**/ // PlayerObject::setColor
 /**/ #define zoom_bypass_max_1              0x149738 /**/ // EditorUI::zoomGameLayer
 /**/ #define zoom_bypass_max_2              0x149872 /**/ // EditorUI::zoomGameLayer

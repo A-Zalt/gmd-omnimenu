@@ -31,9 +31,6 @@
 #endif
 #include "hooks/CCScheduler.cpp"
 #include "hooks/GameSoundManager.cpp"
-#ifndef USE_MINIAUDIO
-#include "hooks/SimpleAudioEngine.cpp"
-#endif
 #include "hooks/CCControlColourPicker.cpp"
 #include "hooks/LevelBrowserLayer.cpp"
 #include "hooks/GJGarageLayer.cpp"
@@ -41,12 +38,23 @@
 #if GAME_VERSION >= GV_1_3
 #include "hooks/LeaderboardsLayer.cpp"
 #endif
+#include "hooks/EndLevelLayer.cpp"
 
 #if GDPS == GDPS_NEOPOINTFOUR
-#include "hooks/Neopointfour.cpp"
+#include "hooks/Neopointfour/LevelTools.cpp"
+#include "hooks/Neopointfour/GJGameLevel.cpp"
+#include "hooks/Neopointfour/InfoLayer.cpp"
+#include "hooks/Neopointfour/GJComment.cpp"
+#include "hooks/Neopointfour/LevelSearchLayer.cpp"
+#include "hooks/Neopointfour/CCHttpClient.cpp"
+#include "hooks/Neopointfour/GameLevelManager.cpp"
+#include "hooks/Neopointfour/CCDictionary.cpp"
+#include "hooks/Neopointfour/LoadingLayer.cpp"
 #elif GDPS == GDPS_1_7
 #include "hooks/17GDPS.cpp"
 #endif
+#include "hooks/AppDelegate.cpp"
+#include "hooks/SimpleAudioEngine.cpp"
 
 void initialize_hooks() {
     PlayLayer_om();
@@ -89,14 +97,21 @@ void initialize_hooks() {
     LeaderboardsLayer_om();
 #endif
     EndPortalObject_om();
+    EndLevelLayer_om();
+    AppDelegate_om();
 
 #if GDPS == GDPS_NEOPOINTFOUR
-    Neopointfour_om();
+    NP4_GJGameLevel_om();
+    NP4_LevelTools_om();
+    NP4_InfoLayer_om();
+    NP4_GJComment_om();
+    NP4_LevelSearchLayer_om();
+    NP4_CCHttpClient_om();
+    NP4_GameLevelManager_om();
+    NP4_CCDictionary_om();
+    NP4_LoadingLayer_om();
 #elif GDPS == GDPS_1_7
     GDPS17_om();
 #endif
-
-#ifndef USE_MINIAUDIO
     SimpleAudioEngine_om();
-#endif
 }

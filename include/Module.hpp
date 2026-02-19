@@ -8,7 +8,8 @@ enum class ModuleCategory {
     Informational = 3,
     Universal = 4,
     Label = 5,
-    Particles = 6
+    Particles = 6,
+    SaveData = 8 // not a real category, just exists for hax.lastCategory to remember the Save Data tab
 };
 
 // class Module {

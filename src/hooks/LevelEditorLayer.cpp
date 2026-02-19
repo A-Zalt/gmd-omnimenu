@@ -98,6 +98,14 @@ bool LevelEditorLayer_init(LevelEditorLayer* self, GJGameLevel* level) {
         self->scheduleUpdate();
     }
 
+    hax.hitboxLayerEditor = HitboxLayerEditor::create(self);
+    getEditorGameLayer(self)->addChild(hax.hitboxLayerEditor, 98);
+
+#if GDPS == GDPS_NEOPOINTFOUR
+    auto editorObject = getEditorSettingsObject(self);
+    editorObject->setAudioTrack(level->m_nAudioTrack);
+#endif
+
     return true;
 }
 
@@ -145,6 +153,186 @@ void LevelEditorLayer_createObjectsFromSetup(LevelEditorLayer* self, std::string
         self->addObjectFromString(objstr);
     }
 #endif
+}
+
+
+HitboxLayerEditor* HitboxLayerEditor::create(LevelEditorLayer* self) {
+    auto ret = new HitboxLayerEditor;
+    if (ret->init(self)) {
+        ret->autorelease();
+        return ret;
+    }
+    delete ret;
+    return nullptr;
+}
+
+bool HitboxLayerEditor::init(LevelEditorLayer* self) {
+    if (!CCLayer::init()) return false;
+    parent = self;
+    return true;
+}
+
+#if GAME_VERSION < GV_1_7
+CCRect getRectOnCamera(LevelEditorLayer* layer, CCRect otherRect) {
+    return CCRect(
+        (CCRect::CCRectGetMinX(otherRect)),
+        (CCRect::CCRectGetMinY(otherRect)),
+        (CCRect::CCRectGetMaxX(otherRect)),
+        (CCRect::CCRectGetMaxY(otherRect))
+    );
+}
+void drawRect(LevelEditorLayer* layer, CCRect rect) {
+    auto cameraRect = getRectOnCamera(layer, rect);
+    ccDrawRect(
+        ccp(CCRect::CCRectGetMinX(cameraRect) + 0.75, CCRect::CCRectGetMinY(cameraRect) + 0.75), 
+        ccp(
+            CCRect::CCRectGetMaxX(cameraRect) - CCRect::CCRectGetMinX(cameraRect) - 0.75, 
+            CCRect::CCRectGetMaxY(cameraRect) - CCRect::CCRectGetMinY(cameraRect) - 0.75
+        )
+    );
+}
+#else
+CCRect getRectOnCamera(LevelEditorLayer* layer, CCRect otherRect) {
+    auto camera = getEditorGameLayer(layer)->convertToNodeSpace(CCPoint(0,0));
+    return CCRect(
+        otherRect.getMinX(),
+        otherRect.getMinY(),
+        otherRect.size.width,
+        otherRect.size.height
+    );
+}
+void drawRect(LevelEditorLayer* layer, CCRect rect) {
+    auto cameraRect = getRectOnCamera(layer, rect);
+    ccDrawRect(
+        ccp(cameraRect.getMinX() + 0.75, cameraRect.getMinY() + 0.75), 
+        ccp(
+            cameraRect.getMaxX() - 0.75, 
+            cameraRect.getMaxY() - 0.75
+        )
+    );
+}
+#endif
+
+void HitboxLayerEditor::draw() {
+    HaxManager& hax = HaxManager::sharedState();
+    if (!hax.getModuleEnabled(ModuleID::SHOW_HITBOXES_EDITOR)) return;
+
+    GLint originalSrcFunc, originalDestFunc;
+    glGetIntegerv(GL_BLEND_SRC_RGB, &originalSrcFunc);
+    glGetIntegerv(GL_BLEND_DST_RGB, &originalDestFunc);
+
+    auto scale = getEditorGameLayer(parent)->getScale();
+
+    if (scale < 0.6) {
+        glLineWidth(1);
+    } else if (scale < 0.8) {
+        glLineWidth(2);
+    } else {
+        glLineWidth(3);
+    }
+    glBlendFunc(GL_ONE, GL_ZERO);
+#if GAME_VERSION >= GV_1_7
+    auto getObjectRect = (CCRect(*)(GameObject*))(DobbySymbolResolver(MAIN_LIBRARY, "_ZN10GameObject13getObjectRectEv"));
+    auto getObjectRectFF = (CCRect(*)(GameObject*, float, float))(DobbySymbolResolver(MAIN_LIBRARY, "_ZN10GameObject13getObjectRectEff"));
+    #define _getObjectRect(obj) getObjectRect(obj);
+    #define _getObjectRectFF(obj, scaleX, scaleY) getObjectRectFF(obj, scaleX, scaleY);
+#else
+    #define _getObjectRect(obj) obj->getObjectRect();
+    #define _getObjectRectFF(obj, scaleX, scaleY) obj->getObjectRect(scaleX, scaleY);
+#endif
+
+    auto winSize = CCDirector::sharedDirector()->getWinSize();
+    auto bottomLeft = getEditorGameLayer(parent)->convertToNodeSpace(CCPoint(0,0));
+    auto topRight = ccp(bottomLeft.x + winSize.width / scale, bottomLeft.y + winSize.height / scale);
+
+    auto sections = getEditorSections(parent);
+
+    int a1 = floorf(bottomLeft.x / 100);
+    int a2 = floorf(topRight.x / 100);
+    int a3 = sections->count() - 1;
+    auto leftmostSection = std::max(0, a1);
+    auto rightmostSection = std::min(a3, a2);
+    for (int i = leftmostSection; i <= rightmostSection; i++) {
+        auto section = static_cast<CCArray*>(sections->objectAtIndex(i));
+        for (int j = 0; j < section->count(); j++) {
+            auto object = static_cast<GameObject*>(section->objectAtIndex(j));
+            CCRect actualRect;
+            auto rect = _getObjectRect(object);
+            actualRect.size = rect.size;
+            actualRect.origin = ccp(
+                object->getPositionX() - actualRect.size.width * object->getAnchorPoint().x,
+                object->getPositionY() - actualRect.size.height * object->getAnchorPoint().y
+            );
+            // no touch triggered support yet
+#if GAME_VERSION < GV_1_7
+            if (CCRect::CCRectGetMaxY(actualRect) < bottomLeft.y) continue;
+            if (CCRect::CCRectGetMinY(actualRect) > topRight.y) continue;
+#else
+            auto objID = getObjectKey(object);
+            if (objID == 29 || objID == 30 || objID == 104 || objID == 105 || objID == 221) continue;
+            if (rect.getMaxY() < bottomLeft.y) continue;
+            if (rect.getMinY() > topRight.y) continue;
+#endif
+            switch (getObjectType(object)) {
+                case 0:
+                    ccDrawColor4B(0, 0, 255, 255);
+                    drawRect(parent, actualRect);
+                    break;
+                case 2:
+                    ccDrawColor4B(255, 0, 0, 255);
+                #if GAME_VERSION >= GV_1_4
+                    if (getRadius(object) > 0) {
+                        ccDrawCircle(
+                            object->getPosition(),
+                            getRadius(object),
+                            0, 24, false
+                        );
+                        break;
+                    }
+                #endif
+                    drawRect(parent, actualRect);
+                    break;
+                case GameObjectType::ReverseGravityPortal:
+                case GameObjectType::NormalGravityPortal:
+                case GameObjectType::IconPortal:
+                case GameObjectType::ShipPortal:
+                case GameObjectType::YellowOrb:
+                case GameObjectType::YellowPad:
+                // 1.02 only
+                case GameObjectType::MirrorPortal:
+                case GameObjectType::UnmirrorPortal:
+                // 1.11 only
+            #if GAME_VERSION >= GV_1_1
+                case GameObjectType::BallPortal:
+            #endif
+            #if GAME_VERSION >= GV_1_3
+                case GameObjectType::BlueOrb:
+                case GameObjectType::BluePad:
+            #endif
+            #if GAME_VERSION >= GV_1_4
+                case GameObjectType::NormalSizePortal:
+                case GameObjectType::MiniSizePortal:
+            #endif
+            #if GAME_VERSION >= GV_1_5
+                case GameObjectType::PinkOrb:
+                case GameObjectType::PinkPad:
+                case GameObjectType::BirdPortal:
+            #endif
+            #if GAME_VERSION >= GV_1_6
+                case GameObjectType::BreakableBlock:
+                case GameObjectType::SecretCoin:
+            #endif
+            #if GAME_VERSION >= GV_1_7
+                case GameObjectType::SpeedPortal:
+            #endif
+                    ccDrawColor4B(0, 255, 0, 255);
+                    drawRect(parent, actualRect);
+                    break;
+            }
+        }
+    }
+    glLineWidth(1);
+    glBlendFunc(originalSrcFunc, originalDestFunc);
 }
 
 void LevelEditorLayer_om() {

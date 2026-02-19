@@ -15,3 +15,4 @@ template <typename T>
 std::string ToString(T val);
 
 int stoi(const std::string& str);
+void getPackageName();

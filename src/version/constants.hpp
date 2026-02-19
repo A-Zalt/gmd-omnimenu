@@ -3,15 +3,16 @@
 
 
 
-#define MENU_VERSION "v1.1.0"
-#define MENU_SETTINGS "settings" READABLE_GAME_VERSION ".json"
+#define MENU_VERSION "v1.2.0"
+#define MENU_SETTINGS_OLD "settings" READABLE_GAME_VERSION ".json"
 #define MENU_SETTINGS_PATH "/storage/emulated/0/OMNImenu/"
 
 #define FORCE_AUTO_SAFE_MODE // Comment this out to disable force auto safe mode
 #define PING_SPOOFING // Comment this out to disable Pig Spoofing (brutal)
 // #define STAR_RATED_LEVELS_GRANT_COINS // Uncomment this to enable star rated levels granting secret coins even in Force Auto Safe Mode (1.6+)
 #define GDPS GDPS_NONE // Possible values: GDPS_NONE, GDPS_NEOPOINTFOUR and GDPS_1_7 (1.7 GDPS by Aricco) 
-#define USE_MINIAUDIO // Comment this out to disable Miniaudio (currently buggy on Bluestacks Nougat)
+// #define EXTRA_COLORS // Uncomment this to enable extra colors (1.3 and 1.4 only)
+#define NUMBER_OF_BACKUPS 5 // Change this to modify the amount of available backups per game version
 
 #if GDPS == GDPS_NONE
     // You have to replace both of these if necessary
@@ -30,6 +31,9 @@
 
 #define FEATURED_TEXTURE "thelazycat/GJ_featuredCoin_001.png"
 #define MAGIC_TEXTURE "thelazycat/GJ_epicCoin_001.png"
+#define COPY_MARK_TEXTURE "randomb/collaborationIcon_001.png"
+#define MORE_FILTERS_TEXTURE "randomb/GJ_plusBtn_001.png"
+#define RANDOM_BUTTON_TEXTURE "GJ_randomBtn_001.png"
 #define CLIPBOARD_HELPER_CLASS JAVA_PATH_MAIN "/ClipboardHelper"
 #define JNI_FN_EXPAND(pkg, cls, fn) Java_##pkg##_##cls##_##fn
 #define JNI_FN(pkg, cls, fn) JNI_FN_EXPAND(pkg, cls, fn)
@@ -85,13 +89,17 @@
     #define SEL_MenuHandler_1_7_compat CCObject* sender
     #define SEL_MenuHandler_1_7_compat2 \
      , CCObject* sender
+    #define dummy_first_sender_param_1_7 nullptr
     #define sender_param_1_7 , sender
     #define dummy_sender_param_1_7 , nullptr
+    #define hook_1_7_compat CCObject* sender
     #define _Cocos2dxMusic "org/cocos2dx/lib/Cocos2dxMusic"
 #else
     #define SEL_MenuHandler_1_7_compat
     #define SEL_MenuHandler_1_7_compat2
+    #define dummy_first_sender_param_1_7
     #define sender_param_1_7
     #define dummy_sender_param_1_7
+    #define hook_1_7_compat CCNode* sender
     #define _Cocos2dxMusic "org/cocos2dx/lib/p"
 #endif

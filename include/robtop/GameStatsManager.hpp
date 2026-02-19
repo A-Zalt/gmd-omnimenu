@@ -7,4 +7,5 @@ public:
     static GameStatsManager* sharedState();
 
     int getStat(const char* stat);
+    int incrementStat(const char* key, int value);
 };

@@ -8,6 +8,10 @@
 
 class CreateMenuItem : public CCMenuItemSpriteExtra {};
 
+struct SelectionContext {
+    float centerX, centerY, minX, minY, maxX, maxY;
+};
+
 class EditorUI : public cocos2d::CCLayer
 {
 public:
@@ -63,4 +67,10 @@ public:
 
     void moveObjectCall2(CCNode* sender);
     void transformObjectCall2(CCNode* sender);
+    
+    void onSelectFilter();
+    int getSelectedObjectID();
+
+    void rotateObjects(float rot, int tag);
+    SelectionContext getSelectionContext();
 };
