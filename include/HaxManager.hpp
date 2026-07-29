@@ -1,7 +1,7 @@
 #pragma once
 
 #include <cocos2d.h>
-#include "Module.hpp"
+#include "Preference.hpp"
 #include "CCMenuItemSpriteExtra.hpp"
 #include "constants.hpp"
 #include "../version/VersionUtils.hpp"
@@ -21,6 +21,7 @@
 #include <ctime>
 #include <fmt/format.h>
 #include "Utils.hpp"
+#include "HaxButton.hpp"
 
 enum class CheatIndicatorColor {
     Green,
@@ -36,6 +37,7 @@ struct BackupResult {
 enum ModuleID {
     _100_KB_FIX,
     _16K_FIX,
+    AUDIO_PLAYBACK,
     AUTO_BACKUP,
     AUTO_SAFE_MODE,
     RGB_COLOR_INPUTS, // Better Color Inputs
@@ -52,6 +54,7 @@ enum ModuleID {
     OBJECT_COUNTER, // Editor Pause Info
     EXTRA_EDIT_BUTTONS,
     FAST_MENU,
+    FLOATING_ICON,
     FONT_OFFSET_FIX,
     FORCE_VISIBILITY,
     // FPS_BYPASS,
@@ -69,6 +72,8 @@ enum ModuleID {
     HIDE_ATTEMPTS,
     HIDE_CHECKPOINT_BUTTONS,
     HIDE_END_SCREEN,
+    HIDE_ICON_ON_EDITOR,
+    HIDE_ICON_ON_PLAY,
     HIDE_PAUSE_MENU,
     INSTANT_COMPLETE,
     INPUT_BUG_FIX,
@@ -163,6 +168,9 @@ public:
         static HaxManager instance;
         return instance;
     }
+
+    // std::unordered_map<std::string, Preference> preferences;
+
     // std::map<std::string, Module*> modules;
     std::array<Module, MODULE_COUNT> modules;
     cocos2d::CCLabelBMFont* cheatIndicatorLabel;
@@ -209,6 +217,7 @@ public:
     CCLabelBMFont* editorObjectInfo;
     float ntOpacity;
     CCArray* startPositions;
+    HaxButton* omniMenu;
 
 #if GAME_VERSION > GV_1_4
     bool blockVerify;
@@ -786,6 +795,11 @@ private:
             "16K Fix (Read Desc)", 
             "Fixes a bug where only 16,384 objects can render in the editor by culling the objects. (module by akqanile/Adelfa)\nNOTE: this can be potentially incompatible with vanilla layering, and makes the editor way laggier on dense levels.", 
             false, ModuleCategory::Editor, [](bool _){});
+        modules[ModuleID::AUDIO_PLAYBACK] = Module(
+            "audio_playback",
+            "Audio Playback", 
+            "Plays the song of the level in the editor. (module by nano)", 
+            false, ModuleCategory::Editor, [](bool _){});
 #endif
 // #if GAME_VERSION < GV_1_6
 //         modules.insert(std::pair<std::string, Module*>("back_button_pause", new Module(
@@ -1068,6 +1082,11 @@ private:
             "Fast Menu", 
             "Makes fade transitions instant.", 
             false, ModuleCategory::Universal, [](bool _){});
+        modules[ModuleID::FLOATING_ICON] = Module(
+            "floating_icon",
+            "Floating Menu Icon",
+            "Makes the OMNImenu button always be on screen. (module by nano)", 
+            false, ModuleCategory::Universal, [](bool _){});
 #if GAME_VERSION < GV_1_5
         modules[ModuleID::FONT_OFFSET_FIX] = Module(
             "font_offset_fix",
@@ -1100,6 +1119,16 @@ private:
             "GDShare", 
             "Adds buttons to convert a level to a .gmd file and vice-versa. May not work on older Android versions.", 
             false, ModuleCategory::Universal, [](bool _){});
+        modules[ModuleID::HIDE_ICON_ON_PLAY] = Module(
+            "hide_icon_on_play",
+            "Hide Icon On Play",
+            "Hides the floating mod menu button when playing a level. (module by nano)", 
+            true, ModuleCategory::Universal, [](bool _){});
+        modules[ModuleID::HIDE_ICON_ON_EDITOR] = Module(
+            "hide_icon_on_editor",
+            "Hide Icon On Editor",
+            "Hides the floating mod menu button when playing a level. (module by nano)", 
+            true, ModuleCategory::Universal, [](bool _){});
 #if GAME_VERSION < GV_1_2
         modules[ModuleID::INPUT_BUG_FIX] = Module(
             "input_bug_fix",

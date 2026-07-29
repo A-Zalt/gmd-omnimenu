@@ -29,9 +29,9 @@ void MenuLayer::onMenuInfo(SEL_MenuHandler_1_7_compat) {
         "Game Information",
         fmt::format(
 #if GDPS == GDPS_NEOPOINTFOUR
-            "<cg>OMNImenu</c> {}\n<cl>Geometry Dash</c> {}\n<cr>Special Thanks</c>: <cy>akqanile</c>, <cy>Hris69</c>, <cy>Pololak</c>, <cy>Nikolyas</c>, <cy>Capeling</c>, <cy>Cvolton</c>, <cy>dank_meme01</c>, <cy>prevter</c>, <cy>Thelazycat</c>, <cy>HJFod</c>, <cy>iAndyHD_3</c>, <cy>nano</c>, <cy>JJ Reed</c>\nWith love from <cy>AntiMatter</c> and <cy>RandomB</c> <cr><3</c>", 
+            "<cg>OMNImenu</c> {}\n<cl>Geometry Dash</c> {}\n<cr>Special Thanks</c>: <cy>akqanile</c>, <cy>Hris69</c>, <cy>Pololak</c>, <cy>Nikolyas</c>, <cy>Capeling</c>, <cy>Cvolton</c>, <cy>dank_meme01</c>, <cy>prevter</c>, <cy>Thelazycat</c>, <cy>HJFod</c>, <cy>iAndyHD_3</c>\nWith love from <cy>AntiMatter</c>, <cy>RandomB</c> and <cy>nano</c> <cr><3</c>", 
 #else
-            "<cg>OMNImenu</c> {}\n<cl>Geometry Dash</c> {}\n<cr>Special Thanks</c>: <cy>akqanile</c>, <cy>Hris69</c>, <cy>Pololak</c>, <cy>Nikolyas</c>, <cy>RandomB</c>, <cy>Capeling</c>, <cy>Cvolton</c>, <cy>dank_meme01</c>, <cy>prevter</c>, <cy>Thelazycat</c>, <cy>HJFod</c>, <cy>iAndyHD_3</c>, <cy>nano</c>, <cy>JJ Reed</c>\nWith love from <cy>AntiMatter</c> <cr><3</c>", 
+            "<cg>OMNImenu</c> {}\n<cl>Geometry Dash</c> {}\n<cr>Special Thanks</c>: <cy>akqanile</c>, <cy>Hris69</c>, <cy>Pololak</c>, <cy>Nikolyas</c>, <cy>RandomB</c>, <cy>Capeling</c>, <cy>Cvolton</c>, <cy>dank_meme01</c>, <cy>prevter</c>, <cy>Thelazycat</c>, <cy>HJFod</c>, <cy>iAndyHD_3</c>\nWith love from <cy>AntiMatter</c> and <cy>nano</c> <cr><3</c>", 
 #endif
             MENU_VERSION, READABLE_GAME_VERSION_FULL).c_str(),
         "OK",
@@ -60,10 +60,30 @@ bool MenuLayer_init(cocos2d::CCLayer* self) {
     infoMenu->setPosition(ccp(winSize.width - 25.f, winSize.height - 25.f));
 
     CCSprite* menuSpr = CCSprite::create("OMNImenu_btn.png");
-    CCMenuItemSpriteExtra* menuBtn = CCMenuItemSpriteExtra::create(menuSpr, menuSpr, self, menu_selector(MenuLayer::onOpenMenu));
-    bottomMenu->addChild(menuBtn);
-    // menuBtn->setPosition(ccp(-130, -winSize.height + 70.f));
-    bottomMenu->alignItemsHorizontallyWithPadding(5.0f);
+
+    if (hax.getModuleEnabled(ModuleID::FLOATING_ICON) && !hax.omniMenu) {   
+        CCLog("creating haxbutton");     
+        hax.omniMenu = HaxButton::create();
+        hax.omniMenu->retain();
+        hax.omniMenu->setup();
+        #if GAME_VERSION == GV_1_7
+        self->addChild(hax.omniMenu->m_sMenu);
+        #endif
+    } else if (!hax.getModuleEnabled(ModuleID::FLOATING_ICON)) {
+        CCMenuItemSpriteExtra* menuBtn = CCMenuItemSpriteExtra::create(menuSpr, menuSpr, self, menu_selector(MenuLayer::onOpenMenu));
+    #ifndef STEALTH_MODE 
+        bottomMenu->addChild(menuBtn);
+        // menuBtn->setPosition(ccp(-130, -winSize.height + 70.f));
+        bottomMenu->alignItemsHorizontallyWithPadding(5.0f);
+    #else
+        infoBtn->setVisible(false);
+        bottomMenu = CCMenu::create();
+        bottomMenu->addChild(menuBtn);
+        self->addChild(bottomMenu);
+        bottomMenu->setPosition(ccp(50, winSize.height - 50));
+        menuBtn->setOpacity(0);
+    #endif
+    }
 
     #if GDPS == GDPS_NEOPOINTFOUR
     if (!hasRecalculated) {

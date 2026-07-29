@@ -70,6 +70,9 @@ public:
     
     void onSelectFilter();
     int getSelectedObjectID();
+    
+    void onPlay(CCObject*);
+    void stopMusic(CCObject*);
 
     void rotateObjects(float rot, int tag);
     SelectionContext getSelectionContext();

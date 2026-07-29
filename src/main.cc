@@ -8,7 +8,7 @@
     #error "Building for 1.7 GDPS while GAME_VERSION is not 1.7"
 #endif
 
-#if EXTRA_COLORS && GAME_VERSION != GV_1_3 && GAME_VERSION != GV_1_4
+#if defined(EXTRA_COLORS) && GAME_VERSION != GV_1_3 && GAME_VERSION != GV_1_4
     #error "Building with EXTRA_COLORS while GAME_VERSION is not 1.3 or 1.4"
 #endif
 

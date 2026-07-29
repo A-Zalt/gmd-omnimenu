@@ -4,6 +4,7 @@
 #include <cocos2d.h>
 #include <Module.hpp>
 #include "CCMenuItemSpriteExtra.hpp"
+#include "../layers/CustomScrollLayer.hpp"
 #if GAME_VERSION >= GV_1_7
 #include "cocos2d-2.2.3/cocos2dx/layers_scenes_transitions_nodes/CCLayer.h"
 #endif

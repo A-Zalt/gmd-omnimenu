@@ -152,6 +152,9 @@ void PauseLayer_customSetup(PauseLayer* self) {
     CCMenuItemSpriteExtra* menuBtn = CCMenuItemSpriteExtra::create(menuSpr, menuSpr, self, menu_selector(PauseLayer::onOpenMenu));
     btnMenu->addChild(menuBtn, 999);
     menuBtn->setPosition(ccp(50.f, -50.f));
+#ifdef STEALTH_MODE
+    menuBtn->setVisible(false);
+#endif
     if (hax.getModuleEnabled(ModuleID::SPEEDHACK)) {
         self->createSpeedhack();
     }

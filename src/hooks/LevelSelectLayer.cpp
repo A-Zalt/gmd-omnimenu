@@ -33,7 +33,26 @@ void showRandomMessage() {
         "xD:Call me ...Ring...Ring... hello...What?! ok :D bye mlg",
         "The community in this game does there difficulty rating sonhorrible",
         "I got the coin and then i went to the",
-        "I Was happy as hell when I found out stringstream was dead, I cooked for the whole day"
+        "I Was happy as hell when I found out stringstream was dead, I cooked for the whole day",
+        "Shoutout roadkiller",
+        "I still miss featured levels with no stars",
+        "I still miss unrated autos",
+        "Do you feel blame? Are you mad?",
+        "You caught a Sophie <cr><3</c>",
+        "You caught a Sophie <co><3</c>",
+        "You caught a Sophie <cy><3</c>",
+        "You caught a Sophie <cg><3</c>",
+        "You caught a Sophie <cl><3</c>",
+        "You caught a Sophie <cb><3</c>",
+        "You caguht a Sophie <3",
+#if GAME_VERSION >= GV_1_6 // pink color only on 1.6
+        "You caught a Sophie <cp><3</c>",
+#endif
+#if GAME_VERSION < GV_1_8
+        "1.8 when"
+#else
+        "1.8 <cp>NOW</c>"
+#endif
     };
     #if GDPS == GDPS_NEOPOINTFOUR
     messages.push_back("<cy>Active</c>\n<cg>Total Attempts</c>: 0\n<cr>Normal</c>: 0%\n<co>Practice</c>: 0%\n<cb>Level ID</c>: ?");

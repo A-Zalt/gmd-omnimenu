@@ -13,6 +13,10 @@ bool EditorPauseLayer_init(cocos2d::CCLayer* self, LevelEditorLayer* editLayer) 
     HaxManager& hax = HaxManager::sharedState();
     auto director = CCDirector::sharedDirector();
     auto winSize = director->getWinSize();
+    if (hax.getModuleEnabled(ModuleID::HIDE_ICON_ON_EDITOR) && hax.getModuleEnabled(ModuleID::FLOATING_ICON) && hax.omniMenu) {
+        hax.omniMenu->m_sMenu->setVisible(true);
+        hax.omniMenu->m_sMenu->setEnabled(true);
+    }
 #if GAME_VERSION >= GV_1_6
     CCObject* obj = self->getChildren()->objectAtIndex(2);
     auto label = dynamic_cast<CCLabelBMFont*>(obj);
@@ -132,6 +136,9 @@ bool EditorPauseLayer_init(cocos2d::CCLayer* self, LevelEditorLayer* editLayer) 
     CCMenuItemSpriteExtra* menuBtn = CCMenuItemSpriteExtra::create(menuSpr, menuSpr, self, menu_selector(PauseLayer::onOpenMenu));
     btnMenu->addChild(menuBtn, 999);
     menuBtn->setPosition(ccp(winSize.width - 50.f, -50.f));
+#ifdef STEALTH_MODE
+    menuBtn->setVisible(false);
+#endif
     return true;
 }
 

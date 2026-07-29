@@ -109,7 +109,7 @@ public:
     /** set the target/selector of the menu item*/
     void setTarget(CCObject *rec, SEL_MenuHandler selector);
 
-protected:
+//protected:
     CCObject*       m_pListener;
     SEL_MenuHandler    m_pfnSelector;
     int             m_nScriptTapHandler;

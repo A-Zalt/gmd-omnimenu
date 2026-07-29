@@ -1,6 +1,8 @@
 // massive thanks to adelfa for helping me figure out this touch dispatcher bullshit
 
 #include "../layers/HaxMenu.hpp"
+// #include "../layers/CustomScrollLayer.hpp"
+#include "VersionUtils.hpp"
 #include "FLAlertLayer.hpp"
 #include "HaxManager.hpp"
 #include "LocalLevelManager.hpp"
@@ -16,6 +18,7 @@
 #include "AppDelegate.hpp"
 #include <fstream>
 #include "LoadingLayer.hpp"
+#include "HaxButton.hpp"
 
 using namespace cocos2d;
 
@@ -160,7 +163,7 @@ bool HaxMenu::init(CCLayer* referrer) {
         CCMoveTo::create(getDuration(), ccp(100.0f, winSize.height / 2)), 3
     ));
 
-    CCNode* rightParent = CCNode::create();
+    auto rightParent = CCNode::create(); // CustomScrollLayer::create();
     addChild(rightParent);
     rightParent->setPosition(winSize.width + 100.f, winSize.height / 2);
     this->rightParent = rightParent;
@@ -331,6 +334,7 @@ void HaxMenu::onSaveData(SEL_MenuHandler_1_7_compat) {
         }
         y -= 30;
     }
+    // this->rightParent->m_height = 50;
     // auto label2 = CCLabelTTF::create(fmt::format("Backup Key: {}").c_str(), "Helvetica-Oblique.ttf", 11);
     // label2->setPosition(ccp(38, winSize.height / 2 - 20));
 }
@@ -473,6 +477,7 @@ void HaxMenu::onCategory(ModuleCategory category) {
     CCSize winSize = director->getWinSize();
 
     int y = -20;
+    float height = 20;
 
     int key = 0;
     for (Module& record : hax.modules)
@@ -516,6 +521,7 @@ void HaxMenu::onCategory(ModuleCategory category) {
         infoBtn->setTag(key);
         this->modMenu->addChild(infoBtn, 1003);
         y -= 16;
+        height += 16;
         key++;
     }
     if (category == ModuleCategory::Player) {
@@ -543,6 +549,9 @@ void HaxMenu::onCategory(ModuleCategory category) {
         this->restoreBtn = restoreBtn;*/
 #endif
     }
+    // CCLog("abcasdfasdadsfdas");
+    // this->rightParent->m_height = height;
+    // CCLog("abcasdfasdadsfdas");
 }
  // if you see this dm "dfdfdcsxxs" to scarfolk.resident on discord
 
@@ -566,28 +575,37 @@ void HaxMenu::toggler(CCObject* sender) {
     int tag = menuItem->getTag();
     auto& hax = HaxManager::sharedState();
     hax.modules[tag].toggle();
+    if (tag == ModuleID::FLOATING_ICON) {
+        if (!hax.omniMenu) {
+            hax.omniMenu = HaxButton::create();
+            hax.omniMenu->retain();
+            hax.omniMenu->setup();
+            hax.omniMenu->m_sMenu->setVisible(false);
+            hax.omniMenu->m_sMenu->setEnabled(false);
+        }
+    }
     if (tag == ModuleID::PIG_SPOOFING) {
         if (!canSpoofPih) return;
-        float value = static_cast<float>(rand()) / RAND_MAX * 333;
-        CCLog("%f", value);
-        if (value >= 33 && value < 34) {
-            canSpoofPih = false;
-            static_cast<CCMenuItemToggler*>(sender)->toggle(false);
-            this->runAction(CCSequence::create(
-                CCDelayTime::create(2.f),
-                CCCallFunc::create(this, callfunc_selector(HaxMenu::onThree)),
-                nullptr
-            ));
-        } else {
-            GameSoundManager::sharedManager()->playEffect("pih.mp3", 1.0, 0.0, 1.0);
-            hax.modules[tag].toggle();
-            static_cast<CCMenuItemToggler*>(sender)->toggle(true);
-            this->runAction(CCSequence::create(
-                CCDelayTime::create(0.2f),
-                CCCallFunc::create(this, callfunc_selector(HaxMenu::onPih)),
-                nullptr
-            ));
-        }
+        // float value = static_cast<float>(rand()) / RAND_MAX * 333;
+        // CCLog("%f", value);
+        // if (value >= 33 && value < 34) {
+        //     canSpoofPih = false;
+        //     static_cast<CCMenuItemToggler*>(sender)->toggle(false);
+        //     this->runAction(CCSequence::create(
+        //         CCDelayTime::create(2.f),
+        //         CCCallFunc::create(this, callfunc_selector(HaxMenu::onThree)),
+        //         nullptr
+        //     ));
+        // } else {
+        GameSoundManager::sharedManager()->playEffect("pih.mp3", 1.0, 0.0, 1.0);
+        hax.modules[tag].toggle();
+        static_cast<CCMenuItemToggler*>(sender)->toggle(true);
+        this->runAction(CCSequence::create(
+            CCDelayTime::create(0.2f),
+            CCCallFunc::create(this, callfunc_selector(HaxMenu::onPih)),
+            nullptr
+        ));
+        // }
     }
 }
 void HaxMenu::modInfo(CCObject* sender) {
@@ -622,21 +640,21 @@ void HaxMenu::onPih(CCObject* sender) {
         nullptr
     ));
 }
-void HaxMenu::onThree(CCObject* sender) {
-    GameSoundManager::sharedManager()->playEffect("three.mp3", 1.0, 0.0, 1.0);
-    CCDirector* director = CCDirector::sharedDirector();
-    CCSize winSize = director->getWinSize();
-    CCSprite* three = CCSprite::create("three.png");
-    addChild(three, 1011);
-    three->setPosition(ccp(winSize.width / 2, winSize.height / 2));
-    three->runAction(CCSequence::create(
-        CCFadeIn::create(0.2f),
-        CCDelayTime::create(1),
-        CCFadeOut::create(0.25f),
-        CCCallFunc::create(three, callfunc_selector(CCNode::removeFromParentAndCleanup)),
-        nullptr
-    ));
-}
+// void HaxMenu::onThree(CCObject* sender) {
+//     GameSoundManager::sharedManager()->playEffect("three.mp3", 1.0, 0.0, 1.0);
+//     CCDirector* director = CCDirector::sharedDirector();
+//     CCSize winSize = director->getWinSize();
+//     CCSprite* three = CCSprite::create("three.png");
+//     addChild(three, 1011);
+//     three->setPosition(ccp(winSize.width / 2, winSize.height / 2));
+//     three->runAction(CCSequence::create(
+//         CCFadeIn::create(0.2f),
+//         CCDelayTime::create(1),
+//         CCFadeOut::create(0.25f),
+//         CCCallFunc::create(three, callfunc_selector(CCNode::removeFromParentAndCleanup)),
+//         nullptr
+//     ));
+// }
 
 void HaxMenu::keyBackClicked() {
     onClose(nullptr);
@@ -645,6 +663,10 @@ void HaxMenu::keyBackClicked() {
 void HaxMenu::onClose(CCObject* sender) {
     auto& hax = HaxManager::sharedState();
     hax.saveSettingsToFile();
+    
+    if (hax.getModuleEnabled(ModuleID::FLOATING_ICON)) {
+        hax.omniMenu->resetVisibility();
+    }
 
     CCDirector* director = CCDirector::sharedDirector();
     CCSize winSize = director->getWinSize();
@@ -673,8 +695,8 @@ void HaxMenu::onClose(CCObject* sender) {
 
 bool HaxMenu::ccTouchBegan(cocos2d::CCTouch* t, cocos2d::CCEvent*)
 {
+    auto pos = getTouchLocation(t);
 #if GAME_VERSION >= GV_1_7
-    auto pos = t->getLocation(); 
     CCRect bb1 = leftPanel->boundingBox();
     CCRect bb2 = rightPanel->boundingBox();
 
@@ -688,7 +710,6 @@ bool HaxMenu::ccTouchBegan(cocos2d::CCTouch* t, cocos2d::CCEvent*)
         onClose(nullptr);
     }
 #else
-    auto pos = cocos2d::CCDirector::sharedDirector()->convertToGL(t->locationInView());
     CCRect bb1 = leftPanel->boundingBox();
     CCRect bb2 = rightPanel->boundingBox();
     CCRect bb3 = CCRect(CCRect::CCRectGetMinX(bb1) + leftParent->getPositionX(), CCRect::CCRectGetMinY(bb1) + leftParent->getPositionY(),

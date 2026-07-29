@@ -8,10 +8,54 @@
 #include "UndoObject.hpp"
 #include "ButtonSprite.hpp"
 #include "EditButtonBar.hpp"
+#include "LevelTools.hpp"
 #include <math.h>
 
+#if GAME_VERSION < GV_1_8
 CCSprite* filterSpr;
 ButtonSprite* filterBtnSpr;
+
+static bool g_playback = false;
+static float g_lineX = 0.0f;
+static CCNode* g_gameLayer = nullptr;
+static CCMenuItemSpriteExtra* g_playBtn = nullptr;
+static CCMenuItemSpriteExtra* g_stopBtn = nullptr;
+static float g_speedMult = 0.9f;
+
+void EditorUI::onPlay(CCObject*) {
+    auto lel = getUIEditorLayer(this);
+    auto grid = getGridLayer(lel);
+    g_gameLayer = MEMBER_BY_OFFSET(CCNode*, lel, LevelEditorLayer__m_gameLayer);
+    g_lineX = g_gameLayer->convertToNodeSpace(CCPointZero).x;
+    if (g_lineX < lel->convertToNodeSpace(CCPointZero).x) 
+        g_lineX = 0.0f;
+    g_playback = true;
+    auto eng = CocosDenshion::SimpleAudioEngine::sharedEngine();
+
+    eng->playBackgroundMusic(
+        LevelTools::getAudioFileName(getAudioTrack(getEditorSettingsObject(lel)))
+    );
+    eng->setBackgroundMusicTime((g_lineX < 0) ? 0 : g_lineX / 311.58f);
+
+    CCLog("[OMNIMENU]: supposed time: %.1f", g_lineX / 311.58f);
+
+    g_playBtn->setVisible(false);
+    g_playBtn->setEnabled(false);
+
+    g_stopBtn->setVisible(true);
+    g_stopBtn->setEnabled(true);
+}
+
+void EditorUI::stopMusic(CCObject*) {
+    g_playback = false;
+    CocosDenshion::SimpleAudioEngine::sharedEngine()->pauseBackgroundMusic();
+    g_playBtn->setVisible(true);
+    g_playBtn->setEnabled(true);
+
+    g_stopBtn->setVisible(false);
+    g_stopBtn->setEnabled(false);
+}
+#endif
 
 enum EditMenuButtons
 {
@@ -94,6 +138,7 @@ void updateObjectInfoLabel(EditorUI* self) {
         if (hax.editorObjectInfo) hax.editorObjectInfo->setString("");
         return;
     }
+#if GAME_VERSION < GV_1_8
     if (filterSpr && hax.objectIDFilter == 0) {
         int objectID = self->getSelectedObjectID();
         if (objectID == 0) filterSpr->setVisible(false);
@@ -107,6 +152,7 @@ void updateObjectInfoLabel(EditorUI* self) {
             filterSpr->setDisplayFrame(frame);
         }
     }
+#endif
     if (!hax.editorObjectInfo) {
         return;
     }
@@ -279,6 +325,27 @@ bool EditorUI_init(EditorUI* self, LevelEditorLayer* lel) {
 
         delMenu->addChild(delSelBtn);
     }
+#if GAME_VERSION < GV_1_8
+    if (hax.getModuleEnabled(ModuleID::AUDIO_PLAYBACK)) {
+        auto spr = CCSprite::create("GJ_playMusicBtn_001.png");
+        auto btn = CCMenuItemSpriteExtra::create(spr, spr, self, menu_selector(EditorUI::onPlay));
+        g_playBtn = btn;
+        btn->setPosition({30, winSize.height / 2});
+        auto menu = CCMenu::create(btn, NULL);
+        menu->setPosition(CCPointZero);
+        self->addChild(menu);
+
+        spr = CCSprite::create("GJ_stopMusicBtn_001.png");
+        btn = CCMenuItemSpriteExtra::create(spr, spr, self, menu_selector(EditorUI::stopMusic));
+        btn->setVisible(false);
+        btn->setEnabled(false);
+        g_stopBtn = btn;
+        btn->setPosition({30, winSize.height / 2});
+        menu = CCMenu::create(btn, NULL);
+        menu->setPosition(CCPointZero);
+        self->addChild(menu);
+    }
+#endif
 #if GAME_VERSION < GV_1_5
     if (hax.getModuleEnabled(ModuleID::COPY_PASTE)) {
 
@@ -783,10 +850,10 @@ void EditorUI::moveObjectCall2(CCNode* sender) {
 }
 
 SelectionContext EditorUI::getSelectionContext() {
-    float minX = 3.4e+38F;
-    float minY = 3.4e+38F;
-    float maxX = -3.4e+38F;
-    float maxY = -3.4e+38F;
+    float minX = FLT_MAX;
+    float minY = FLT_MAX;
+    float maxX = -FLT_MAX;
+    float maxY = -FLT_MAX;
 
     auto selectedObjects = getSelectedObjects(this);
     for (int i = 0; i < selectedObjects->count(); i++) {
@@ -1193,8 +1260,10 @@ void EditorUI_destructor(EditorUI* self) {
     hax.inEditor = false;
     setDecimals('1');
     hax.editorObjectInfo = nullptr;
+#if GAME_VERSION < GV_1_8
     filterSpr = nullptr;
     filterBtnSpr = nullptr;
+#endif
     TRAM_EditorUI_destructor(self);
 }
 void (*TRAM_EditorUI_destructor2)(EditorUI* self);

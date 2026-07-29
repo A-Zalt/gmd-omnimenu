@@ -324,9 +324,9 @@ int stoi(const std::string& s) {
 void getPackageName() {
     CCLog("a");
     auto& hax = HaxManager::sharedState();
-    if (strcmp("", hax.packageName)) {
-        return;
-    }
+    // if (strcmp("", hax.packageName)) {
+    //     return;
+    // }
 #if GDPS == GDPS_NEOPOINTFOUR
     hax.packageName = "com.cynigdx.onepointfour";
 #elif GDPS == GDPS_1_7

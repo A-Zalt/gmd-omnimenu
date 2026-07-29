@@ -4,7 +4,7 @@
 #include "LevelSettingsObject.hpp"
 
 // original 16k fix code: https://github.com/cierra-kb/legacy-starry-sky/blob/main/src/modules/editor.cpp
-
+#if GAME_VERSION < GV_1_8
 void LevelEditorLayer_update(LevelEditorLayer* self, float dt) {
     CCRect visible_rect;
     
@@ -60,7 +60,10 @@ void LevelEditorLayer_update(LevelEditorLayer* self, float dt) {
 
         }
     }
+    if (g_playback) 
+        g_lineX += dt * 342.6f * g_speedMult;
 }
+#endif
 
 bool (*TRAM_LevelEditorLayer_init)(LevelEditorLayer* self, GJGameLevel* level);
 bool LevelEditorLayer_init(LevelEditorLayer* self, GJGameLevel* level) {
@@ -78,7 +81,8 @@ bool LevelEditorLayer_init(LevelEditorLayer* self, GJGameLevel* level) {
 
     if (!TRAM_LevelEditorLayer_init(self, level)) return false;
 
-    if (hax.getModuleEnabled(ModuleID::_16K_FIX)) {
+#if GAME_VERSION < GV_1_8
+    if (hax.getModuleEnabled(ModuleID::_16K_FIX) || hax.getModuleEnabled(ModuleID::AUDIO_PLAYBACK)) {
         // https://gist.github.com/netguy204/6097063
 #if GAME_VERSION < GV_1_7
         void** vtable = *(void***)self;
@@ -97,6 +101,7 @@ bool LevelEditorLayer_init(LevelEditorLayer* self, GJGameLevel* level) {
         CCLog("update schedule");
         self->scheduleUpdate();
     }
+#endif
 
     hax.hitboxLayerEditor = HitboxLayerEditor::create(self);
     getEditorGameLayer(self)->addChild(hax.hitboxLayerEditor, 98);
@@ -109,6 +114,7 @@ bool LevelEditorLayer_init(LevelEditorLayer* self, GJGameLevel* level) {
     return true;
 }
 
+#if GAME_VERSION < GV_1_8
 void (*TRAM_LevelEditorLayer_createObjectsFromSetup)(LevelEditorLayer* self, std::string str);
 void LevelEditorLayer_createObjectsFromSetup(LevelEditorLayer* self, std::string str) {
     HaxManager& hax = HaxManager::sharedState();
@@ -154,6 +160,7 @@ void LevelEditorLayer_createObjectsFromSetup(LevelEditorLayer* self, std::string
     }
 #endif
 }
+#endif
 
 
 HitboxLayerEditor* HitboxLayerEditor::create(LevelEditorLayer* self) {

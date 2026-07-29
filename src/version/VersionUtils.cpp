@@ -692,6 +692,9 @@ LevelSettingsObject* getEditorSettingsObject(LevelEditorLayer* lel) {
 void setEditorSettingsObject(LevelEditorLayer* lel, LevelSettingsObject* settings) {
     MEMBER_BY_OFFSET(LevelSettingsObject*, lel, LevelEditorLayer__m_settings) = settings;
 }
+int getAudioTrack(LevelSettingsObject* obj) {
+    return MEMBER_BY_OFFSET(int, obj, LevelSettingsObject__m_audioTrack);
+}
 
 #if GAME_VERSION < GV_1_2
 std::string getAllowedChars(CCTextInputNode* input) {
@@ -852,10 +855,10 @@ void setShouldRunDelayedReset(PlayLayer* playLayer, bool value) {
 #endif
 #endif
 
-#if GAME_VERSION >= GV_1_7
 GJGameLevel* getLELLevel(LevelEditorLayer* lel) {
     return MEMBER_BY_OFFSET(GJGameLevel*, lel, LevelEditorLayer__m_level);
 }
+#if GAME_VERSION >= GV_1_7
 CCArray* getSpeedObjects(DrawGridLayer* gridLayer) {
     return MEMBER_BY_OFFSET(CCArray*, gridLayer, DrawGridLayer__m_speedObjects);
 }
@@ -1042,5 +1045,21 @@ const char* keyToFrame(int objectID) {
         default:
             return "";
     }
+#endif
+}
+
+CCPoint getTouchLocation(CCTouch* touch) {
+#if GAME_VERSION >= GV_1_7
+    return touch->getLocation();
+#else
+    return CCDirector::sharedDirector()->convertToGL(touch->locationInView());
+#endif
+}
+
+CCPoint getPreviousTouchLocation(CCTouch* touch) {
+#if GAME_VERSION >= GV_1_7
+    return touch->getPreviousLocation();
+#else
+    return CCDirector::sharedDirector()->convertToGL(touch->previousLocationInView());
 #endif
 }

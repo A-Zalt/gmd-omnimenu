@@ -26,8 +26,8 @@ void UILayer::updateLabel() {
     HaxManager& hax = HaxManager::sharedState();
     fmt::internal::MemoryBuffer<char, 500> buf;
     fmt::BasicWriter<char> writer(buf);
-    time_t now = time(NULL);
     if (hax.getModuleEnabled(ModuleID::LABEL_CLOCK)) {
+        time_t now = time(NULL);
         if (cachedSeconds != now || !cachedTm) {  
             cachedTm = localtime(&now);
             cachedSeconds = now;

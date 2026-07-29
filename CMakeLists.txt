@@ -9,7 +9,7 @@ project(menu)
 
 set(VERSIONS 1 2 3 4 5 6 7 10 18)
 
-add_library(menu SHARED src/main.cc src/layers/HaxMenu.cpp src/version/VersionUtils.cpp src/Utils.cpp)
+add_library(menu SHARED src/main.cc src/layers/HaxMenu.cpp src/version/VersionUtils.cpp src/Utils.cpp src/layers/HaxButton.cpp)
 
 set(DOBBY_DEBUG OFF CACHE INTERNAL "" FORCE)
 set(DOBBY_GENERATE_SHARED OFF CACHE INTERNAL "" FORCE)
@@ -89,4 +89,5 @@ target_include_directories(menu PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src/layers
     ${CMAKE_CURRENT_SOURCE_DIR}/src/hooks
     ${CMAKE_CURRENT_SOURCE_DIR}/src/version
-    ${CMAKE_CURRENT_SOURCE_DIR}/vendor/fmt)
+    ${CMAKE_CURRENT_SOURCE_DIR}/vendor/fmt
+    ${CMAKE_CURRENT_SOURCE_DIR}/include/layers/RBot)

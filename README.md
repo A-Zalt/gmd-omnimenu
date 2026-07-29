@@ -22,6 +22,8 @@ Downloads are available in the Discord server: https://discord.gg/4AC23yn4yF
 - HJFod - BetterEdit code (particularly the RGB Color Inputs)
 - iAndy_HD3 - Helping out with fmtlib
 - Pololak - GD 1.7 (1.9?) Cocos 2.2.3 headers
+- RandomB - Neopointfour-specific features, Page Selector, Save on Level Exit
+- nano56 - A few mods
 
 ## Build Instructions
 Note: the minimum supported Android version is currently KitKat (4.4). Android 14+ devices won't work without solutions like Shizuku or Virtual Master.

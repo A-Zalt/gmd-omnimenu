@@ -1,35 +1,37 @@
 /////////////////////////////////////////////////////////
-//                         1.7                         //
+//                         1.8                         //
 /*******************************************************/
 /*/                      OFFSETS                      /*/
 /*******************************************************/
-/**/ #define BoomScrollLayer__m_currentScreen  0x18c /**/ // BoomScrollLayer::getCurrentScreen
-/**/ #define BoomScrollLayer__m_dynamic        0x124 /**/ // BoomScrollLayer::getTotalPages
-/**/ #define BoomScrollLayer__m_dynamicPages   0x120 /**/ // BoomScrollLayer::getTotalPages
-/**/ #define BoomScrollLayer__m_pages          0x134 /**/ // BoomScrollLayer::getTotalPages
+/**/ #define BoomScrollLayer__m_currentScreen  0x198 /**/ // BoomScrollLayer::getCurrentScreen
+/**/ #define BoomScrollLayer__m_dynamic        0x130 /**/ // BoomScrollLayer::getTotalPages
+/**/ #define BoomScrollLayer__m_dynamicPages   0x12c /**/ // BoomScrollLayer::getTotalPages
+/**/ #define BoomScrollLayer__m_pages          0x140 /**/ // BoomScrollLayer::getTotalPages
 /**/ #define CCMenuItemSpriteExtra__m_ogScale  0x118 /**/ // CCMenuItemSpriteExtra::setOriginalScale
-/**/ #define CCTextInputNode__m_charLimit      0x140 /**/ // CCTextInputNode::getCharLimit
-/**/ #define CCTextInputNode__m_inputDelegate  0x13c /**/ // CCTextInputNode::getDelegate
-/**/ #define CCTextInputNode__m_textField      0x138 /**/ // CCTextInputNode::getTextField
-/**/ #define CheckpointObject__m_isFlipped     0x104 /**/ // CheckpointObject::getIsFlipped
-/**/ #define CheckpointObject__m_playerPos      0xec /**/ // CheckpointObject::getPlayerPos
-/**/ #define ColorPickerPopup__m_colorWheel    0x1ac /**/ // ColorPickerPopup::selectColor
-/**/ #define ColorSelectPopup__m_colorWheel    0x1a4 /**/ // ColorSelectPopup::selectColor
-/**/ #define ColorSelectPopup__m_duration      0x1c4 /**/ // ColorSelectPopup::sliderChanged
-/**/ #define ColorSelectPopup__m_durLabel      0x1ac /**/ // ColorSelectPopup::updateDurLabel
-/**/ #define ColorSelectPopup__m_slider        0x1b0 /**/ // ColorSelectPopup::init
+/**/ #define CCTextInputNode__m_charLimit      0x14c /**/ // CCTextInputNode::getCharLimit
+/**/ #define CCTextInputNode__m_inputDelegate  0x148 /**/ // CCTextInputNode::getDelegate
+/**/ #define CCTextInputNode__m_textField      0x144 /**/ // CCTextInputNode::getTextField
+/**/ #define CheckpointObject__m_isFlipped      0xf5 /**/ // CheckpointObject::getIsFlipped
 
-/**/ #define DrawGridLayer__m_speedObjects     0x124 /**/ // DrawGridLayer::addToSpeedObjects
+/**/ #define CheckpointObject__m_playerCheck01  0xec /**/ // CheckpointObject::getPlayerCheck01
+/**/ #define CheckpointObject__m_playerCheck02  0xf0 /**/ // CheckpointObject::getPlayerCheck02
+
+/**/ #define ColorPickerPopup__m_colorWheel    0x1b8 /**/ // ColorPickerPopup::selectColor
+/**/ #define ColorSelectPopup__m_colorWheel    0x1b0 /**/ // ColorSelectPopup::selectColor
+/**/ #define ColorSelectPopup__m_duration      0x1d0 /**/ // ColorSelectPopup::sliderChanged
+/**/ #define ColorSelectPopup__m_durLabel      0x1b8 /**/ // ColorSelectPopup::updateDurLabel
+/**/ #define ColorSelectPopup__m_slider        0x1bc /**/ // ColorSelectPopup::init
+
+/**/ #define DrawGridLayer__m_speedObjects     0x13c /**/ // DrawGridLayer::addToSpeedObjects
 
 /**/ #define EditButtonBar__m_pages             0xec /**/ // EditButtonBar::init
-/**/ #define EditLevelLayer__m_level           0x118 /**/ // EditLevelLayer::init
-/**/ #define EditorPauseLayer__m_editorLayer   0x1a4 /**/ // EditorPauseLayer::init
-/**/ #define EditorUI__m_buttonMenu            0x13c /**/ // EditorUI::setupDeleteMenu
+/**/ #define EditLevelLayer__m_level           0x124 /**/ // EditLevelLayer::init
+/**/ #define EditorPauseLayer__m_editorLayer   0x1a8 /**/ // EditorPauseLayer::init
 /**/ #define EditorUI__m_createButtonBar       0x114 /**/ // EditorUI::setupCreateMenu (at the bottom)
 /**/ #define EditorUI__m_createButtonBars      0x174 /**/ // EditorUI::setupCreateMenu (at the bottom)
-/**/ #define EditorUI__m_createButtons         0x18c /**/ // EditorUI::getCreateBtn (at the bottom)
-/**/ #define EditorUI__m_editButtonBar         0x118 /**/ // EditorUI::createMoveMenu (at the bottom)
-/**/ #define EditorUI__m_editorLayer           0x194 /**/ // EditorUI::init
+/**/ #define EditorUI__m_createButtons         0x204 /**/ // EditorUI::getCreateBtn (at the bottom)
+/**/ #define EditorUI__m_editButtonBar         0x158 /**/ // EditorUI::createMoveMenu (at the bottom)
+/**/ #define EditorUI__m_editorLayer           0x20c /**/ // EditorUI::init
 /**/ #define EditorUI__m_selectedObject        0x1b8 /**/ // EditorUI::selectObject
 /**/ #define EditorUI__m_selectedObjects       0x138 /**/ // EditorUI::deselectAll 
 /**/ #define EditorUI__m_touch                 0x1b0 /**/ // EditorUI::onDelete
@@ -96,6 +98,9 @@
 /**/ #define PlayLayer__m_startPos             0x274 /**/ // PlayLayer::getStartPos
 /**/ #define PlayLayer__m_uiLayer              0x244 /**/ // PlayLayer::getUILayer
 /**/ #define PlayLayer__m_unkPrac              0x270 /**/ // PlayLayer::togglePracticeMode (set to 1 at the bottom)
+
+/**/ #define PlayerCheckpoint__m_playerPos      0xe8 /**/ // PlayerCheckpoint::getPlayerPos
+
 /**/ #define PlayerObject__m_gravity           0x300 /**/ // PlayerObject::gravityUp
 /**/ #define PlayerObject__m_onGround          0x30d /**/ // PlayerObject::pushButton (if statement that updateJump is called in)
 /**/ #define PlayerObject__m_pGround           0x354 /**/ // PlayerObject::deactivateParticle

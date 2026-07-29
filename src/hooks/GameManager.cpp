@@ -103,6 +103,10 @@ ccColor3B GameManager_colorForIdx(GameManager* self, int idx) {
             return ccc3(250, 127, 255);
         case 14:
             return ccc3(0, 0, 0);
+        case 15:
+            return ccc3(0, 255, 0xc0);
+        case 16:
+            return ccc3(0x7d, 0x7d, 255);
 #else
         case 13:
             return ccc3(255, 0xb9, 0);
@@ -110,6 +114,10 @@ ccColor3B GameManager_colorForIdx(GameManager* self, int idx) {
             return ccc3(250, 127, 255);
         case 15:
             return ccc3(0, 0, 0);
+        case 16:
+            return ccc3(0, 255, 0xc0);
+        case 17:
+            return ccc3(0x7d, 0x7d, 255);
 #endif
         default:
             return ccc3(255, 255, 255);
@@ -165,30 +173,34 @@ void GameManager_om() {
     #if GAME_VERSION == GV_1_3
         DobbyCodePatch(
             reinterpret_cast<void*>(get_address(iconkit_colors)),
-            std::vector<uint8_t>({0x0f}).data(), 1
+            std::vector<uint8_t>({0x11}).data(), 1
         );
         DobbyCodePatch(
             reinterpret_cast<void*>(get_address(iconkit_colors2)),
-            std::vector<uint8_t>({0x0f}).data(), 1
+            std::vector<uint8_t>({0x11}).data(), 1
+        );
+        DobbyCodePatch(
+            reinterpret_cast<void*>(get_address(iconkit_colors3)),
+            std::vector<uint8_t>({0x11}).data(), 1
         );
         DobbyCodePatch(
             reinterpret_cast<void*>(get_address(iconkit_colors4)),
-            std::vector<uint8_t>({0x0f}).data(), 1
+            std::vector<uint8_t>({0x11}).data(), 1
         );
     #elif GAME_VERSION == GV_1_4
         DobbyCodePatch(
             reinterpret_cast<void*>(get_address(iconkit_colors)),
-            std::vector<uint8_t>({0x10}).data(), 1
+            std::vector<uint8_t>({0x12}).data(), 1
         );
         DobbyCodePatch(
             reinterpret_cast<void*>(get_address(iconkit_colors2)),
-            std::vector<uint8_t>({0x10}).data(), 1
+            std::vector<uint8_t>({0x12}).data(), 1
         );
-    #endif
         DobbyCodePatch(
             reinterpret_cast<void*>(get_address(iconkit_colors3)),
-            std::vector<uint8_t>({0x0f}).data(), 1
+            std::vector<uint8_t>({0x12}).data(), 1
         );
+    #endif
 #endif
     // Omni::hook("_ZN10GameObject20createAndAddParticleEiPKciN7cocos2d15tCCPositionTypeE",
     //     reinterpret_cast<void*>(GameManager_createAndAddParticle),

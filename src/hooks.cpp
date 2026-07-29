@@ -39,6 +39,11 @@
 #include "hooks/LeaderboardsLayer.cpp"
 #endif
 #include "hooks/EndLevelLayer.cpp"
+#include "hooks/DrawGridLayer.cpp"
+#if GAME_VERSION >= GV_1_7
+#include "hooks/CCMenuItem.cpp"
+#endif
+// #include "hooks/CCMenuItemSpriteExtra.cpp"
 
 #if GDPS == GDPS_NEOPOINTFOUR
 #include "hooks/Neopointfour/LevelTools.cpp"
@@ -114,4 +119,11 @@ void initialize_hooks() {
     GDPS17_om();
 #endif
     SimpleAudioEngine_om();
+    
+    DrawGridLayer_om();
+
+#if GAME_VERSION >= GV_1_7
+    CCMenuItem_om();
+#endif
+    // CCMenuItemSpriteExtra_om();
 }

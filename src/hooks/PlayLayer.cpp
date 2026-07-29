@@ -3,6 +3,7 @@
 #include "UILayer.hpp"
 #include "Utils.hpp"
 #include "LevelTools.hpp"
+#include "HaxButton.hpp"
 
 #define F_audio_start \
     HaxManager& hax = HaxManager::sharedState();\
@@ -224,6 +225,10 @@ void PlayLayer::resetLevelLogic(PlayLayer* self) {
     if (respawnAction) {
         self->stopAction(respawnAction);
     }
+    if (hax.getModuleEnabled(ModuleID::HIDE_ICON_ON_PLAY) && hax.getModuleEnabled(ModuleID::FLOATING_ICON) && hax.omniMenu) {
+        hax.omniMenu->m_sMenu->setVisible(false);
+        hax.omniMenu->m_sMenu->setEnabled(false);
+    }
     TRAM_PlayLayer_resetLevel(self);
 
     CCNode* lastCheckpoint = self->getLastCheckpoint();
@@ -361,6 +366,10 @@ void PlayLayer_onQuit(PlayLayer* self) {
     HaxManager& hax = HaxManager::sharedState();
     hax.areWeInPlayLayer = false;
     hax.mbfEnabled = hax.getModuleEnabled(ModuleID::MUSIC_BUG_FIX);
+    if (hax.omniMenu && !hax.omniMenu->m_sMenu->isEnabled()) {
+        hax.omniMenu->m_sMenu->setVisible(true);
+        hax.omniMenu->m_sMenu->setEnabled(true);
+    }
     if (hax.getModuleEnabled(ModuleID::SAVE_ON_LEVEL_EXIT)) {
         auto gman = GameManager::sharedState();
         gman->save();
@@ -519,10 +528,10 @@ void PlayLayer_update(PlayLayer* self, float dt) {
     }
     if (hax.getModuleEnabled(ModuleID::NOCLIP_TINT_ON_DEATH) && hax.getModuleEnabled(ModuleID::NOCLIP)) {
         if (hax.lastDeadFrame < hax.frameCount - 1 || hax.completed) {
-            hax.ntOpacity -= 1500 * dt;
+            hax.ntOpacity -= 1500 * dt; // 335 * dt;
             if (hax.ntOpacity < 0) hax.ntOpacity = 0;
         } else {
-            hax.ntOpacity += 1500 * dt;
+            hax.ntOpacity += 1500 * dt; // = 67
             if (hax.ntOpacity > 100) hax.ntOpacity = 100;
         }
         int intOp = static_cast<int>(hax.ntOpacity);
@@ -854,13 +863,13 @@ void (*TRAM_PlayLayer_pauseGame)(PlayLayer* self);
 void PlayLayer_pauseGame(PlayLayer* self) {
     TRAM_PlayLayer_pauseGame(self);
     HaxManager& hax = HaxManager::sharedState();
-    if (hax.areWeInPlayLayer) F_pauseBackgroundMusic();
+    F_pauseBackgroundMusic();
 }
 void (*TRAM_PlayLayer_resume)(PlayLayer* self);
 void PlayLayer_resume(PlayLayer* self) {
     TRAM_PlayLayer_resume(self);
     HaxManager& hax = HaxManager::sharedState();
-    if (!hax.dead || (getPlayLayerPractice(self) && !hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK)) && hax.areWeInPlayLayer && !hax.quitPlayLayer) {
+    if (!hax.dead || (getPlayLayerPractice(self) && !hax.getModuleEnabled(ModuleID::PRACTICE_MUSIC_HACK)) && !hax.quitPlayLayer) {
         F_resumeBackgroundMusic();
     }
 }

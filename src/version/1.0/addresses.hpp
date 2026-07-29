@@ -59,12 +59,14 @@
 /**/ #define LevelEditorLayer__m_batchNode     0x140 /**/ // LevelEditorLayer::createObject (1st function call after GameObject::createObject)
 /**/ #define LevelEditorLayer__m_gameLayer     0x158 /**/ // LevelEditorLayer::getGameLayer
 /**/ #define LevelEditorLayer__m_gridLayer     0x150 /**/ // LevelEditorLayer::removeObject
+/**/ #define LevelEditorLayer__m_level         0x15c /**/ // LevelEditorLayer::getLevel
 /**/ #define LevelEditorLayer__m_objectCount   0x154 /**/ // LevelEditorLayer::getObjectCount
 /**/ #define LevelEditorLayer__m_sections      0x144 /**/ // LevelEditorLayer::getSectionCount
 /**/ #define LevelEditorLayer__m_settings      0x160 /**/ // LevelEditorLayer::getLevelSettings
 /**/ #define LevelEditorLayer__m_redoArray     0x14c /**/ // LevelEditorLayer::addToRedoList
 /**/ #define LevelInfoLayer__m_level           0x150 /**/ // LevelInfoLayer::init
 /**/ #define LevelSelectLayer__m_scrollLayer   0x14c /**/ // LevelSelectLayer::onNext (param in BoomScrollLayer::quickUpdate)
+/**/ #define LevelSettingsObject__m_audioTrack 0x130 /**/ // LevelSettingsObject::getAudioTrack
 /**/ #define PlayLayer__m_attempts             0x280 /**/ // PlayLayer::getAttempts
 /**/ #define PlayLayer__m_attemptLabel         0x1d8 /**/ // PlayLayer::updateAttempts (assigned to a var right after the if statement)
 /**/ #define PlayLayer__m_cameraPos            0x22c /**/ // PlayLayer::getCameraPos

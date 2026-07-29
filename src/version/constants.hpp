@@ -3,9 +3,11 @@
 
 
 
-#define MENU_VERSION "v1.2.0"
+#define MENU_VERSION "v1.3.0"
 #define MENU_SETTINGS_OLD "settings" READABLE_GAME_VERSION ".json"
 #define MENU_SETTINGS_PATH "/storage/emulated/0/OMNImenu/"
+
+// #define STEALTH_MODE // gd colon mode
 
 #define FORCE_AUTO_SAFE_MODE // Comment this out to disable force auto safe mode
 #define PING_SPOOFING // Comment this out to disable Pig Spoofing (brutal)

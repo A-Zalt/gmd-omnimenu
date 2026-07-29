@@ -185,6 +185,7 @@ void setEditObjectButton(EditorUI* self, CCMenuItemSpriteExtra* btn);
 int getGlobalOrderOfArrival();
 LevelSettingsObject* getEditorSettingsObject(LevelEditorLayer* lel);
 void setEditorSettingsObject(LevelEditorLayer* lel, LevelSettingsObject* settings);
+int getAudioTrack(LevelSettingsObject* obj);
 
 #if GAME_VERSION < GV_1_2
 std::string getAllowedChars(CCTextInputNode* input);
@@ -218,8 +219,8 @@ bool getAutoRetry();
 void setShouldRunDelayedReset(PlayLayer* playLayer, bool value);
 #endif
 #endif
-#if GAME_VERSION >= GV_1_7
 GJGameLevel* getLELLevel(LevelEditorLayer* lel);
+#if GAME_VERSION >= GV_1_7
 CCArray* getSpeedObjects(DrawGridLayer* gridLayer);
 int getStartSpeed(LevelSettingsObject* settings);
 // float getLevelDistance(LevelEditorLayer* lel);
@@ -257,3 +258,5 @@ CCLayer* getMainLayer(CCLayer* infoLayer);
 #endif
 int getTotalLevels(LevelBrowserLayer* browser);
 const char* keyToFrame(int objectID);
+CCPoint getTouchLocation(CCTouch* touch);
+CCPoint getPreviousTouchLocation(CCTouch* touch);

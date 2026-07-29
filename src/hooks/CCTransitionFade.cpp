@@ -1,9 +1,11 @@
 #include "hook.hpp"
+#include "HaxButton.hpp"
 
 CCTransitionFade* (*TRAM_CCTransitionFade_create)(float duration, CCScene* scene, const ccColor3B& color);
 CCTransitionFade* CCTransitionFade_create(float duration, CCScene* scene, const ccColor3B& color = ccBLACK) {
     HaxManager& hax = HaxManager::sharedState();
     if (hax.getModuleEnabled(ModuleID::FAST_MENU)) return TRAM_CCTransitionFade_create(0.f, scene, color);
+    if (hax.getModuleEnabled(ModuleID::FLOATING_ICON) && hax.omniMenu) hax.omniMenu->onSceneTransition();
     return TRAM_CCTransitionFade_create(duration, scene, color);
 }
 
